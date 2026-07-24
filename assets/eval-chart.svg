@@ -1,0 +1,20 @@
+<svg width="720" height="230" viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Invented or wrong Nav2 MPPI parameters: 21 without skills, 0 with skills (haiku, single graded run)">
+  <rect x="0.75" y="0.75" width="718.5" height="228.5" rx="12" fill="#111A2E" stroke="#233047" stroke-width="1.5"/>
+
+  <text x="28" y="44" font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="16" font-weight="600" fill="#E2E8F0">Invented or wrong Nav2 MPPI parameters — lower is better</text>
+  <text x="28" y="66" font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="13" fill="#94A3B8">claude -p, model haiku, identical prompt, single graded run (n=1) — evals/RESULTS.md</text>
+
+  <!-- baseline axis -->
+  <line x1="200" y1="96" x2="200" y2="196" stroke="#334155" stroke-width="1.5"/>
+
+  <g font-family="-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif" font-size="14">
+    <!-- row 1: without skills, 21 -->
+    <text x="184" y="122" fill="#94A3B8" text-anchor="end">without skills</text>
+    <path d="M200 108h432a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H200z" fill="#38BDF8"/>
+    <text x="648" y="122" fill="#F1F5F9" font-weight="700">21</text>
+
+    <!-- row 2: with skills, 0 -->
+    <text x="184" y="172" fill="#94A3B8" text-anchor="end">with skills</text>
+    <text x="210" y="172" fill="#F1F5F9" font-weight="700">0</text>
+  </g>
+</svg>

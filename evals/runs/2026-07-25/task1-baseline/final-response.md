@@ -1,0 +1,1 @@
+Syntax check was blocked by permissions, but the file is straightforward — created `scan_monitor.py`, a `rclpy` node that subscribes to `/scan` (`sensor_msgs/msg/LaserScan`) and uses `get_logger().info(..., throttle_duration_sec=1.0)` to log the minimum finite range once per second.
