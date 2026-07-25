@@ -3,42 +3,34 @@ name: ros2-dev
 description: "Nav2 & SLAM: AMCL, costmaps, MPPI/DWB/Smac plugins, behavior trees, SLAM Toolbox, RTAB-Map, Isaac ROS VSLAM, docking."
 ---
 
-# Nav2 & SLAM Development Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
+# Nav2 & SLAM Development (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-## 1. Documentation Entry Points
+## 1. Establish first (Nav2-specific; the general gates are in `CLAUDE.md`)
 
-Every Nav2 component page hangs off the configuration index — navigate from it instead of guessing deep URLs.
+Nav2 config is only correct relative to a specific robot. Ask if unstated:
 
-| For | Entry point |
-| :--- | :--- |
-| **Every Nav2 plugin/server config page** | `https://docs.nav2.org/configuration/index.html` |
-| First-time robot bringup | `https://docs.nav2.org/setup_guides/index.html` |
-| Tutorials (incl. SLAM + Nav2 together) | `https://docs.nav2.org/tutorials/index.html` |
-| Nav2 C++ (Jazzy) Doxygen | `https://api.nav2.org/nav2-jazzy/html/` |
-| SLAM Toolbox (not on docs.nav2.org) | `https://github.com/SteveMacenski/slam_toolbox` |
-| RTAB-Map (RGB-D / 3D LiDAR graph SLAM) | `https://introlab.github.io/rtabmap/` |
-| Isaac ROS Visual SLAM (stereo VIO) | `https://nvidia-isaac-ros.github.io/concepts/visual_slam/index.html` |
+- **Footprint / inscribed radius** — `inflation_radius` and every "won't fit through the door" complaint depend on it. A default copied from a tutorial robot is the most common root cause of bad navigation.
+- **Drive type** — diff / omni / ackermann. Sets `motion_model` and rules out planners (car-like needs `SmacPlannerHybrid`).
+- **Where does `map -> odom` come from** — AMCL, SLAM Toolbox, or RTAB-Map? Exactly one may publish it. Two is a silent conflict.
+- **Modifying an existing `nav2_params.yaml` or starting fresh?** Modify in place when one exists; a wholesale replacement silently drops the robot-specific values already tuned into it.
 
-## 2. Local Ground Truth — diff against these, never against memory
+## 2. The loop
 
-- **Shipped Nav2 defaults**: `/opt/ros/$ROS_DISTRO/share/nav2_bringup/params/nav2_params.yaml`
-- **Shipped BT XML**: `/opt/ros/$ROS_DISTRO/share/nav2_bt_navigator/behavior_trees/`
+1. **Read the shipped defaults first** — `/opt/ros/$ROS_DISTRO/share/nav2_bringup/params/nav2_params.yaml`. This is the baseline for every value you write; never emit a parameter you haven't seen there or in the docs.
+2. **Verify odometry and TF physically before touching Nav2 params.** Bad odom cannot be fixed by tuning — `check_odom_direction.py`, `check_tf_tree.py --sensors laser_frame` (bundled in `ros2-troubleshooting`).
+3. **Write the config**, changing one thing at a time from the baseline.
+4. **Prove it**: all lifecycle servers `active` (`ros2 lifecycle get /controller_server`), a goal is accepted, and the robot actually moves. "The YAML looks right" is not done.
 
-## 3. Symbols to Verify (never write these from memory)
+## 3. Plugin strings are fully namespaced
 
-**Plugin strings are fully namespaced** — the single most common startup-killing
-error is dropping the package prefix (`nav2_mppi_controller::MPPIController`, not
-`mppi_controller::MPPIController`). A wrong plugin string means the server loads
-nothing and Nav2 dies at startup.
+The single most common startup-killing error is dropping the package prefix:
 
-- **Controllers** — MPPI critics `GoalCritic`, `PathAlignCritic`, `ObstaclesCritic`, `PreferForwardCritic`; `motion_model` values `DiffDrive` / `Ackermann` / `Omni`. Also DWB, Regulated Pure Pursuit, Rotation Shim.
-- **Progress / goal checkers** — `SimpleProgressChecker`, `SimpleGoalChecker`, `StoppedGoalChecker`. Plural `progress_checker_plugins` since Iron; singular `progress_checker_plugin` is a pre-Iron leftover.
-- **Planners** — `SmacPlanner2D`, `SmacPlannerHybrid` (ackermann/car-like), `SmacPlannerLattice`, NavFn, Theta\*.
-- **Costmap layers** — static, obstacle, voxel, inflation (`inflation_radius`, `cost_scaling_factor`); plus costmap filters.
-- **AMCL** — `min_particles`/`max_particles`, laser model `likelihood_field` or `beam`, `alpha1`..`alpha4`.
-- **BT nodes** — actions `ComputePathToPose`, `FollowPath`, `Spin`, `BackUp`, `Wait`; conditions `IsStuck`, `GoalReached`; controls `PipelineSequence`, `RecoveryNode`; decorators `RateController`, `DistanceController`.
-- **SLAM** — `slam_toolbox` async/sync lifecycle node, `ceres_solver`, `.posegraph` serialization; `rtabmap_slam`; map saving via `ros2 run nav2_map_server map_saver_cli -f my_map`.
-- **Also configurable**: collision monitor, velocity smoother, docking server, waypoint follower — all under the configuration index above.
+```yaml
+plugin: "nav2_mppi_controller::MPPIController"   # correct
+plugin: "mppi_controller::MPPIController"        # server loads nothing, Nav2 dies at startup
+```
+
+Confirm the string against the shipped defaults file before writing it.
 
 ## 4. Symptom -> Root Cause -> Action
 
@@ -49,35 +41,17 @@ nothing and Nav2 dies at startup.
 | Costmap empty even though `/map` is published | QoS mismatch: map_server publishes `transient_local`, subscriber uses volatile durability | Set subscriber durability to `transient_local`; check `ros2 topic info /map -v` |
 | Obstacles appear but never clear from costmap | `raytrace_max_range` <= `obstacle_max_range` in obstacle layer | Set raytrace range slightly larger than obstacle range |
 | "No valid trajectory" / robot refuses to move near obstacles | Inflation too large for footprint, or velocity limits effectively zero | Compare `inflation_radius` + `footprint` vs corridor width; check `min_vel_x`/`max_vel_x` actually nonzero |
-| AMCL pose diverges while driving | Odometry noise params unrealistic, or initial pose never set | Set initial pose; sanity-check odom quality first (`check_odom_direction.py`, bundled in `ros2-troubleshooting`), then tune `alpha1-4` |
-| MPPI oscillates / prefers reversing | Critic weights: `PreferForwardCritic` too weak vs `PathAlignCritic` | Raise `PreferForwardCritic.cost_weight`; verify with default `nav2_params.yaml` as baseline |
+| AMCL pose diverges while driving | Odometry noise params unrealistic, or initial pose never set | Set initial pose; sanity-check odom quality first (`check_odom_direction.py`), then tune `alpha1-4` |
+| MPPI oscillates / prefers reversing | Critic weights: `PreferForwardCritic` too weak vs `PathAlignCritic` | Raise `PreferForwardCritic.cost_weight`; verify against the shipped defaults as baseline |
 | Path planned through walls | Static layer not enabled in global costmap, or wrong `map_topic` | Check global costmap `plugins` list includes static layer and its `map_topic` |
+| Controller server won't load a plugin at startup | Plugin string missing its package namespace (see §3) | Copy the exact string from the shipped defaults |
 
-## 5. Tuning Baselines (start here, then adjust in the stated direction)
+## 5. Reference (load only when you need it)
 
-Baseline = shipped defaults in `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` — always diff against that file, not memory.
+- **`references/symbols.md`** — doc entry points, plugin/critic/planner/BT node names, costmap layers, SLAM packages. Read this before naming anything.
+- **`references/tuning.md`** — AMCL, costmap, MPPI and slam_toolbox baselines with tune-in-this-direction guidance. Read this when the robot moves but behaves badly.
 
-### A. AMCL
-| Param | Baseline | Symptom -> direction |
-| :--- | :--- | :--- |
-| `alpha1`..`alpha4` (odom noise) | 0.2 each | Pose lags/overtrusts bad odom -> raise toward 0.4. Good wheel odom but pose jitters -> lower toward 0.1. Fix odometry first (`check_odom_direction.py`) — alphas cannot repair inverted/scaled odom. |
-| `min_particles` / `max_particles` | 500 / 2000 | Kidnapped-robot recovery poor or large map -> raise max to 5000 (CPU cost is linear). Small static map -> defaults are fine. |
-| `update_min_d` / `update_min_a` | 0.25 m / 0.2 rad | Pose updates feel laggy -> lower both; CPU-bound -> raise. |
-| `laser_max_beams` | 60 | Localization weak in feature-sparse corridors -> raise to 100-180; CPU-bound -> keep 60. |
-
-### B. Costmaps
-| Param | Baseline | Symptom -> direction |
-| :--- | :--- | :--- |
-| `resolution` | 0.05 m | Indoor default. Narrow gaps misjudged -> 0.025 (4x memory/CPU). Outdoor/large -> 0.1. |
-| `inflation_radius` | 0.55 m | Must exceed robot inscribed radius + margin. Robot hugs obstacles -> raise; can't pass doorways -> lower toward inscribed radius + ~0.1 m. |
-| `cost_scaling_factor` | 3.0 | Higher = cost decays faster = paths allowed closer to walls. Too timid in corridors -> raise toward 10; clipping corners -> lower. |
-| local costmap size | 3 x 3 m | Faster robots need to see further: >= 2 x (max speed x controller horizon). |
-
-### C. Controller (MPPI) & SLAM
-- MPPI: tune ONE critic weight at a time from the shipped defaults; `PreferForwardCritic` up if it reverses unnecessarily, `PathAlignCritic` down if it refuses to deviate around obstacles. Re-baseline from the defaults file after any Nav2 upgrade — critic defaults shift between releases.
-- slam_toolbox: `resolution: 0.05`; clamp `max_laser_range` to the LiDAR's *reliable* range (usually ~80% of datasheet); loop closure misfires in repetitive corridors -> raise `loop_match_minimum_response_fine`.
-
-## 6. Strict Coding Rules
+## 6. Strict Rules
 1. Never mix obsolete ROS 1 `move_base` or ROS 2 Foxy parameter names.
-2. For SLAM, verify whether `slam_toolbox` or `rtabmap` is publishing the `map` -> `odom` transform to prevent double-transform conflicts.
-3. Before tuning Nav2, verify odometry and TF physically with `check_odom_direction.py` and `check_tf_tree.py --sensors laser_frame` (bundled in `ros2-troubleshooting`).
+2. Exactly one node publishes `map -> odom`. Verify which before adding another localization source.
+3. Never tune Nav2 solely in simulation — sim uses ideal kinematics; re-verify on hardware.

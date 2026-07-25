@@ -17,7 +17,7 @@ Anti-Halluzinations-Referenz-Skills — jeder Skill routet zur offiziellen Dokum
 
 | Skills | Stets geladener Router | Doku-Links (CI-geprüft) | Physische Roboter-Checks | Evals: halluzinierte Parameter |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **13 Zeilen** | **38** | **4 Skripte** | **21 → 0** |
+| **11** | **26 Zeilen** | **38** | **4 Skripte** | **21 → 0** |
 
 </div>
 
@@ -53,8 +53,8 @@ Die meisten Robotik-Skill-Packs backen API-Wissen in die Skill-Dateien ein. Soba
 
 | | Inhaltsschwere Skill-Packs | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Wo Wissen lebt | eingebacken in Skill-Dateien, **400–1.800 Zeilen/Skill** | geroutet zu offizieller Doku, **45–130 Zeilen/Skill** |
-| Stets geladener Kontext | vollständiges SKILL.md | **13-Zeilen**-Router |
+| Wo Wissen lebt | eingebacken in Skill-Dateien, **400–1.800 Zeilen/Skill** | geroutet zu offizieller Doku; **~60-zeilige** Skill-Rümpfe, Detailmasse in `references/`, **nur bei Bedarf** gelesen |
+| Stets geladener Kontext | vollständiges SKILL.md | **26-Zeilen**-Router |
 | Wenn sich eine Jazzy-API ändert | Snippets verrotten still; Doku-Regressionstests für immer | Verrottungsfläche schrumpft auf Links + Symbolnamen — **38 Links** wöchentlich per CI geprüft (nur Erreichbarkeit), toter Link lässt Build scheitern |
 | Verifikation | statisch / logbasiert | **physisch**: IMU-Gravitation, Anschiebe-Test, TF-Montagen vs. reale Hardware, DDS-QoS-Matching |
 | Distributionsangabe | „unterstützt 4 Distributionen" über Beispielen, die heimlich nur eine anvisieren | **nur Jazzy**, von Anfang an klar |
@@ -144,7 +144,7 @@ Die reine Entscheidungslogik wird ohne ROS unit-getestet (`python3 skills/ros2-t
 
 ```mermaid
 flowchart LR
-    A["Ihre Anfrage"] --> B["CLAUDE.md<br/>13-Zeilen-Router,<br/>keine API-Details"]
+    A["Ihre Anfrage"] --> B["CLAUDE.md<br/>26-Zeilen-Router,<br/>keine API-Details"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>Doku-Links +<br/>verifizierte Symbole"]
     C --> D["offizielle Jazzy-Doku<br/>oder /opt/ros/jazzy/"]
     D --> E["Code"]

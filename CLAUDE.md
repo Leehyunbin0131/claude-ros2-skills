@@ -10,4 +10,17 @@ On every task, before writing code or answering:
 
 Never invent message types, API method names, QoS signatures, param names, or TF frames. Look them up.
 
+## Establish before writing (no doc can tell you these)
+
+Ask when the request doesn't say — guessing one of these and writing 200 lines costs far more than one question:
+
+- **Real hardware, simulation, or both?** Sets `use_sim_time`, decides whether physical checks apply, and whether any tuning transfers.
+- **Existing workspace or greenfield?** Match the package layout, naming, and launch conventions already in the repo before inventing your own.
+- **Who already publishes the topic or TF you're about to add?** Two publishers on one transform is a silent failure that looks healthy in every log.
+- **Real geometry** — sensor mounting orientation, wheel radius/separation — whenever the task touches them. The robot is not its CAD model.
+
+## Done means it ran
+
+Writing the code is not the deliverable. Report what you actually observed — a build succeeding, `ros2 topic echo` showing data, a check script passing — or state plainly that you could not verify and what you'd need to.
+
 Target: **Ubuntu 24.04 LTS / ROS 2 Jazzy Jalisco**. Legacy (Gazebo Classic, pre-Jazzy APIs) is out of scope unless explicitly asked.

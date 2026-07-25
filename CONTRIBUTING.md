@@ -29,6 +29,22 @@ Symptom tables and calibration baselines are the highest-value content here:
 they are not in any single doc page, they don't rot on a release, and they map
 straight onto a failure someone actually hit. Grow those.
 
+### Three layers, three price tags
+
+| Layer | Paid | Put here |
+| :--- | :--- | :--- |
+| `description` frontmatter | always, every session | trigger words only |
+| `SKILL.md` body | when the skill fires | what to establish first, the loop, symptom table, "done" criterion |
+| `references/*.md` in the skill dir | **only when read** | symbol catalogs, per-component detail, tuning tables |
+
+Bulk reference material goes in `references/` and gets a one-line pointer from
+the body — see `skills/ros2-dev/`. This is what lets the repo add depth without
+taxing every user who loads the skill: a reader asking "why does AMCL diverge"
+should not pay for the behavior-tree node list.
+
+Keep bodies around 60–80 lines. If a body is growing past that, the new content
+is almost always reference material in disguise.
+
 Boilerplate that repeats what `CLAUDE.md` already says (target distro, "verify
 before writing") does not belong in a skill — it is paid for on every load, and
 twice over when a task loads two skills.

@@ -17,7 +17,7 @@ Skills de référence anti-hallucination — chaque skill route vers la document
 
 | Skills | Routeur toujours chargé | Liens doc (vérifiés par CI) | Vérifications physiques du robot | Évals : paramètres hallucinés |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **13 lignes** | **38** | **4 scripts** | **21 → 0** |
+| **11** | **26 lignes** | **38** | **4 scripts** | **21 → 0** |
 
 </div>
 
@@ -53,8 +53,8 @@ La plupart des packs de skills robotiques figent la connaissance des API dans le
 
 | | Packs de skills riches en contenu | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Où vit la connaissance | figée dans les fichiers de skill, **400–1 800 lignes/skill** | routée vers la doc officielle, **45–130 lignes/skill** |
-| Contexte toujours chargé | SKILL.md complet | routeur de **13 lignes** |
+| Où vit la connaissance | figée dans les fichiers de skill, **400–1 800 lignes/skill** | routée vers la doc officielle ; corps de **~60 lignes**, détail volumineux dans `references/` lu **seulement si nécessaire** |
+| Contexte toujours chargé | SKILL.md complet | routeur de **26 lignes** |
 | Quand une API Jazzy change | les snippets pourrissent en silence ; tests de régression de la doc pour toujours | la surface de pourrissement se réduit aux liens + noms de symboles — **38 liens** vérifiés chaque semaine par CI (vitalité seulement), lien mort = build cassé |
 | Vérification | statique / basée sur les logs | **physique** : gravité IMU, test de poussée, montages TF vs matériel réel, matching QoS DDS |
 | Annonce de distribution | « couvre 4 distributions » sur des exemples qui n'en visent qu'une | **Jazzy uniquement**, annoncé d'emblée |
@@ -144,7 +144,7 @@ La logique de décision pure est testée unitairement sans ROS (`python3 skills/
 
 ```mermaid
 flowchart LR
-    A["votre requête"] --> B["CLAUDE.md<br/>routeur 13 lignes,<br/>pas de détails API"]
+    A["votre requête"] --> B["CLAUDE.md<br/>routeur 26 lignes,<br/>pas de détails API"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>liens docs +<br/>symboles vérifiés"]
     C --> D["docs officielles Jazzy<br/>ou /opt/ros/jazzy/"]
     D --> E["code"]

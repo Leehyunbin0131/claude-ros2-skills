@@ -17,7 +17,7 @@ Skills de referencia contra alucinaciones — cada skill enruta a la documentaci
 
 | Skills | Router siempre cargado | Enlaces de doc (comprobados por CI) | Comprobaciones físicas del robot | Evals: parámetros alucinados |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **13 líneas** | **38** | **4 scripts** | **21 → 0** |
+| **11** | **26 líneas** | **38** | **4 scripts** | **21 → 0** |
 
 </div>
 
@@ -53,8 +53,8 @@ La mayoría de los packs de skills de robótica incrustan el conocimiento de las
 
 | | Packs de skills cargados de contenido | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Dónde vive el conocimiento | incrustado en archivos de skill, **400–1.800 líneas/skill** | enrutado a docs oficiales, **45–130 líneas/skill** |
-| Contexto siempre cargado | SKILL.md completo | router de **13 líneas** |
+| Dónde vive el conocimiento | incrustado en archivos de skill, **400–1.800 líneas/skill** | enrutado a docs oficiales; cuerpos de **~60 líneas**, el detalle voluminoso en `references/` leído **solo cuando hace falta** |
+| Contexto siempre cargado | SKILL.md completo | router de **26 líneas** |
 | Cuando una API de Jazzy cambia | los snippets se pudren en silencio; tests de regresión de docs para siempre | la superficie de podredumbre se reduce a enlaces + nombres de símbolos — **38 enlaces** comprobados semanalmente por CI (solo vitalidad), enlace muerto rompe la build |
 | Verificación | estática / basada en logs | **física**: gravedad del IMU, prueba de empuje, montajes TF vs. hardware real, matching de QoS DDS |
 | Declaración de distribución | "cubre 4 distribuciones" sobre ejemplos que apuntan a una | **solo Jazzy**, declarado desde el principio |
@@ -144,7 +144,7 @@ La lógica de decisión pura se testea unitariamente sin ROS (`python3 skills/ro
 
 ```mermaid
 flowchart LR
-    A["tu petición"] --> B["CLAUDE.md<br/>router de 13 líneas,<br/>sin detalles de API"]
+    A["tu petición"] --> B["CLAUDE.md<br/>router de 26 líneas,<br/>sin detalles de API"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>enlaces a docs +<br/>símbolos verificados"]
     C --> D["docs oficiales de Jazzy<br/>o /opt/ros/jazzy/"]
     D --> E["código"]

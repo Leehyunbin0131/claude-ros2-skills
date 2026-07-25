@@ -15,7 +15,7 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 
 | Skills | Always-loaded router | Doc links (CI-checked) | Robot ground-truth checks | Evals: hallucinated params |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **13 lines** | **38** | **4 scripts** | **21 → 0** |
+| **11** | **26 lines** | **38** | **4 scripts** | **21 → 0** |
 
 </div>
 
@@ -51,8 +51,8 @@ Most robotics skill packs bake API knowledge into the skill files. That works un
 
 | | Content-heavy skill packs | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Knowledge lives | baked into skill files, **400–1,800 lines/skill** | routed to official docs, **45–130 lines/skill** |
-| Always-loaded context | full SKILL.md | **13-line** router |
+| Knowledge lives | baked into skill files, **400–1,800 lines/skill** | routed to official docs; **~60-line** skill bodies, bulk detail in `references/` read **only when needed** |
+| Always-loaded context | full SKILL.md | **26-line** router |
 | When a Jazzy API changes | snippets rot silently; needs doc regression tests forever | rot surface shrinks to entry-point links + symbol names — **38 links** CI-checked weekly (liveness only), dead link fails the build |
 | Verification | static / log-based | **physical**: IMU gravity, push test, TF mounts vs. real hardware, DDS QoS matching |
 | Distro claim | "covers 4 distros" over examples targeting one | **Jazzy only**, stated up front |
@@ -142,7 +142,7 @@ The pure decision logic is unit-tested without ROS (`python3 skills/ros2-trouble
 
 ```mermaid
 flowchart LR
-    A["your request"] --> B["CLAUDE.md<br/>13-line protocol,<br/>no API details"]
+    A["your request"] --> B["CLAUDE.md<br/>26-line protocol,<br/>no API details"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>doc links +<br/>verified symbol names"]
     C --> D["official Jazzy docs<br/>or /opt/ros/jazzy/"]
     D --> E["code"]
