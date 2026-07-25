@@ -172,7 +172,7 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 
 ## Roadmap
 
-1. **Eval pairs graded inside `ros:jazzy`**, against a live install rather than pinned sources — container recipe in [`evals/README.md`](./evals/README.md).
+1. **Eval pairs graded inside `ros:jazzy`**, for a live-install baseline — container recipe in [`evals/README.md`](./evals/README.md).
 2. **Task 5 results** — the task with a binary runtime outcome (does `ros2 topic echo` print data), exercising `ros2-package` and the build/source loop end to end.
 3. **Corrections-to-done as a tracked metric.** How many rounds of "no, not like that" a task takes is the number users actually pay for.
 4. **Deterministic `references/` resolution**, so bulk detail is reached whenever it's relevant.
