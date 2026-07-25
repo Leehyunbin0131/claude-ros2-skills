@@ -79,15 +79,17 @@ This repository optimizes for a single outcome: minimizing the risk of generatin
 
 ## Evals
 
-To evaluate performance, identical prompts were executed in fresh, headless Claude Code sessions both with and without these skills installed. Each pair used the same model and was graded symbol-by-symbol against pinned upstream ROS 2 Jazzy source repositories.
+To evaluate performance, identical prompts were executed in fresh, headless Claude Code sessions both with and without these skills installed. Each pair used the same model and was graded symbol-by-symbol against pinned upstream ROS 2 Jazzy sources — and, for the container runs, against the live `/opt/ros/jazzy` installation inside a `ros:jazzy` Docker container where the agent can actually build and run its output.
 
 | Metric / Test | Without skills | With skills |
 | :--- | ---: | ---: |
-| Incorrect or fabricated Nav2 MPPI keys (Haiku) | **~30** — missing required `critics:` list; configuration fails to run | **~16–20** — correct plugin strings, `motion_model`, and checker namespaces |
+| Fabricated Nav2 MPPI parameter keys — live Jazzy install (Haiku) | **~16**, plus a nonexistent plugin string and no `critics:` list — the configuration cannot start | **0** — every key mechanically diffed against the installed defaults |
+| `demo_pkg` end to end: build → `ros2 run` / `ros2 launch` / `topic echo` (Haiku) | **Fails all three** — the package never registers in the ament index | **Passes all three**, confirmed by independent re-runs of each command |
+| Cost to reach that package outcome | $0.17 / 36 turns | **$0.08 / 18 turns** — correct on the first pass and 2.2× cheaper |
 | `/scan` callback executes on a physical BEST_EFFORT LiDAR (Sonnet) | **Never** — fails silently due to mismatched QoS defaults | **Yes** — connects successfully |
-| Execution runs that verified environment before writing code | **0 / 3** | **3 / 3** |
+| Verification before writing | **Zero** verification tools used in any baseline run | Used in **every** run |
 
-The behavioral change is the most striking result: baseline sessions used **zero** verification tools even when available, whereas sessions equipped with these skills loaded relevant guidelines and checked system defaults first. In one test, the agent asked key clarifying questions upfront and explicitly reported verified parameters versus unchecked assumptions, avoiding uninformed guesses.
+The container runs also captured the designed workflow end to end: before writing any Nav2 config, the agent asked the four questions the skill front-loads (footprint, existing vs. fresh params, localization source, velocity limits), then read the shipped defaults from `/opt/ros/jazzy` and produced a YAML whose answer-dependent values match the user's stated limits exactly. On the package task, the skills condition was simultaneously the correct one and the substantially cheaper one — a single prescribed create → wire → build → source → prove sequence, executed once.
 
 Review full evaluation tables, test environments, and individual run analyses in [`evals/RESULTS.md`](./evals/RESULTS.md). For details on the evaluation protocol, task checklists, and container setup, see [`evals/README.md`](./evals/README.md). Pull requests containing additional graded transcripts are welcome.
 
@@ -172,11 +174,12 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 
 ## Roadmap
 
-1. **Automate evaluation pairs inside `ros:jazzy` containers** to establish a live installation baseline — see container setup details in [`evals/README.md`](./evals/README.md).
-2. **Publish Task 5 evaluation results** — validating runtime performance with binary outcomes (confirming whether `ros2 topic echo` outputs data) across `ros2-package` builds and workspace sourcing cycles.
-3. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
-4. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
-5. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
+1. ~~Automate evaluation pairs inside `ros:jazzy` containers~~ — **done (2026-07-25):** Task 4 re-run against a live `/opt/ros/jazzy` install; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
+2. ~~Publish Task 5 evaluation results~~ — **done (2026-07-25):** binary build/run/echo outcome measured in-container; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
+3. **Extend container evaluations to Tasks 1–3**, so every task in the suite has a live-install measurement.
+4. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
+5. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
+6. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
 
 ## Contributing
 
