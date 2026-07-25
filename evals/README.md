@@ -37,6 +37,34 @@ ties: the with-skills run paying for doc fetches is the honest price of
 verification, and a change that grows it without moving the other columns should
 be reverted.
 
+## Running a pair in a Jazzy container
+
+Tasks that verify against `/opt/ros/jazzy/` need ROS actually installed. The
+`ros:jazzy` image is the reference environment:
+
+```bash
+docker run --rm -it -v "$PWD":/repo ros:jazzy bash
+# inside the container, install the Claude Code CLI, then:
+mkdir -p /tmp/ev/{baseline,with-skills/.claude/skills}
+cp -r /repo/skills/* /tmp/ev/with-skills/.claude/skills/
+cp /repo/CLAUDE.md /tmp/ev/with-skills/
+
+P="Set up Nav2 with the MPPI controller for a differential-drive robot on Jazzy. Give me the controller server YAML."
+
+cd /tmp/ev/baseline && claude -p "$P" --model haiku --output-format json \
+  --permission-mode acceptEdits \
+  --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > result.json
+
+cd /tmp/ev/with-skills && claude -p "$P" --model haiku --output-format stream-json --verbose \
+  --permission-mode acceptEdits \
+  --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > result.jsonl
+```
+
+Grade against `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml`, and
+record from the run metadata: cost, token counts, and **which files the agent
+actually opened** (the `stream-json` tool calls answer whether it reached the
+shipped defaults or fell back to `references/`).
+
 ## Task 1 — sensor subscription (`ros2-core`)
 
 > Write a Python node for ROS 2 Jazzy that subscribes to `/scan`

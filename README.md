@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — anti-hallucination Claude Code skills for ROS 2 Jazzy" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — Claude Code skills for ROS 2 Jazzy" width="100%"/>
 
 **Claude Code Skills for ROS 2 Jazzy Jalisco robotics development.**
 
-Anti-hallucination reference skills — every skill routes to official docs instead of guessing API names.
+Skills that change *how* the agent works a ROS 2 task — establish the unknowns first, verify against the installed system, and prove the result ran.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -13,7 +13,7 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 
 **English** | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-| Skills | Always-loaded router | Doc links (CI-checked) | Robot ground-truth checks | Evals: verified before writing |
+| Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks | Evals: verified before writing |
 | :---: | :---: | :---: | :---: | :---: |
 | **11** | **26 lines** | **38** | **4 scripts** | **0/3 → 3/3** |
 
@@ -23,7 +23,8 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 
 ## Contents
 
-- [Why this exists](#why-this-exists)
+- [The failures that cost you](#the-failures-that-cost-you)
+- [How these skills are built](#how-these-skills-are-built)
 - [What makes this different](#what-makes-this-different)
 - [Evals](#evals)
 - [Quickstart](#quickstart)
@@ -35,16 +36,32 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 - [Contributing](#contributing)
 - [License](#license)
 
-## Why this exists
+## The failures that cost you
 
-Logs prove a system is *consistent*, never that it's *correct* — and an agent has no default reason to distrust a consistent story. Two failure modes keep coming up:
+The expensive failures in agent-written ROS 2 code are not syntax errors. They are the ones that look fine:
 
-| Failure mode | What it looks like | Actual cause |
+| Failure | What you see | Why an agent walks into it |
 | :--- | :--- | :--- |
-| **Wrong ground truth** | `/cmd_vel` says forward, `/odom` says forward, every topic healthy — robot drives **backward** | Static TF declared flipped vs. the physical sensor mount; everything downstream computes correctly *from the wrong transform*, so nothing ever contradicts |
-| **Wrong era** | Code compiles in review, dies at runtime with a method that "sounds right" | Agent codes from memorized Foxy/Humble-era training data; the API was renamed or never existed in Jazzy |
+| **Silent no-op** | `ros2 topic hz` shows 30 Hz; your callback never fires | Default RELIABLE subscriber vs. a BEST_EFFORT driver. Compiles, reviews clean, matches nothing at the DDS level |
+| **Wrong ground truth** | `/cmd_vel` says forward, `/odom` says forward — robot drives **backward** | Static TF declared flipped vs. the physical mount. Everything downstream computes correctly *from the wrong transform*, so nothing contradicts |
+| **Wrong era** | Passes review, dies at runtime on a method that "sounds right" | Memorized Foxy/Humble-era API that was renamed or never existed in Jazzy |
+| **Wrong premise** | 200 lines built on an assumption you'd have corrected in one sentence | Nothing told the agent to establish the unknowns before writing |
 
-Both come from trusting something that *looks* authoritative instead of checking ground truth. `ros2-troubleshooting` forces physical checks (push the robot, echo the raw TF, confirm IMU gravity) before trusting a topic. Every other skill applies the same rule to code: verify class names, messages, and flags against official Jazzy docs or `/opt/ros/jazzy/` — never from memory.
+No compiler, linter, or log inspection catches any of these. Each one costs a round trip: you read the output, work out what's wrong, explain it, and the agent regenerates.
+
+## How these skills are built
+
+Four design rules, applied to every skill.
+
+**1. Establish the unknowns before writing.** Some facts are not in any documentation — whether this is real hardware or simulation, whether you're extending an existing workspace or starting fresh, which node already publishes the transform being touched, and the robot's actual geometry. [`CLAUDE.md`](./CLAUDE.md) makes the agent settle these first and ask when the request doesn't say. Domain-specific unknowns live in the skill: `ros2-dev` asks for footprint, drive type, and localization source before writing a single Nav2 parameter.
+
+**2. A loop with a defined end.** Every skill runs *verify → write → prove*: read the shipped defaults on the installed system, write one change at a time, then confirm it actually ran. "Done" means observed evidence — a build succeeding, `ros2 topic echo` showing data, a check script passing — not code produced.
+
+**3. Failure tables over prose.** The highest-value content is the symptom → root cause → action row, because it isn't assembled anywhere in the official docs and it doesn't rot when a release ships:
+
+> `[` is GZ→ROS, `]` is ROS→GZ · `16UC1` is millimeters, `32FC1` is meters · `joint_state_broadcaster` is not spawned automatically · `raytrace_max_range` ≤ `obstacle_max_range` means obstacles never clear · rclc does not auto-allocate unbounded message fields
+
+**4. Three layers, three price tags.** A skill's `description` is always in context, its body loads when the skill fires, and `references/` files are read only when the task needs them. Bulk symbol catalogs and tuning tables live in `references/`, so someone debugging AMCL doesn't pay for the behavior-tree node list — and depth can be added without taxing every load.
 
 ## What makes this different
 
@@ -53,36 +70,26 @@ Most robotics skill packs bake API knowledge into the skill files. That works un
 | | Content-heavy skill packs | **claude-ros2-skills** |
 | :--- | :--- | :--- |
 | Knowledge lives | baked into skill files, **400–1,800 lines/skill** | routed to official docs; **~60-line** skill bodies, bulk detail in `references/` read **only when needed** |
-| Always-loaded context | full SKILL.md | **26-line** router |
+| Always-loaded context | full SKILL.md | **26-line** protocol |
 | When a Jazzy API changes | snippets rot silently; needs doc regression tests forever | rot surface shrinks to entry-point links + symbol names — **38 links** CI-checked weekly (liveness only), dead link fails the build |
 | Verification | static / log-based | **physical**: IMU gravity, push test, TF mounts vs. real hardware, DDS QoS matching |
 | Distro claim | "covers 4 distros" over examples targeting one | **Jazzy only**, stated up front |
 
-The trade-off, stated plainly: for topics where official docs are thin (DDS vendor tuning, PREEMPT_RT internals), a content-heavy pack can serve you better. This repo optimizes for one thing — the lowest probability of plausible-looking code that doesn't run on Jazzy.
+This repo optimizes for one thing: the lowest probability of plausible-looking code that doesn't run on Jazzy.
 
 ## Evals
 
-Measured, not claimed — with two disclosed caveats: the runs were executed and graded by the repo author's own agent session rather than an independent party, and **no eval machine so far has had ROS 2 installed**, so grading substitutes the pinned upstream `jazzy` sources for `/opt/ros/jazzy/`. Identical prompts ran in fresh headless Claude Code sessions with and without the skills installed (same model per pair); outputs were graded symbol-by-symbol against those pinned sources.
+Identical prompts run in fresh headless Claude Code sessions with and without the skills installed, same model per pair, graded symbol-by-symbol against pinned upstream `jazzy` sources.
 
 | Result | Without skills | With skills |
 | :--- | ---: | ---: |
-| Wrong/invented Nav2 MPPI keys (haiku, re-run) | **~30** — no `critics:` list at all, config cannot run | **~16–20** — plugin string, `motion_model` and checker namespaces correct |
+| Wrong/invented Nav2 MPPI keys (haiku) | **~30** — no `critics:` list at all, config cannot run | **~16–20** — plugin string, `motion_model` and checker namespaces correct |
 | `/scan` callback fires on real BEST_EFFORT LiDAR (sonnet) | **never** — wrong default QoS, silently | **yes** |
 | Runs that verified before writing | **0 / 3** | **3 / 3** |
 
-Protocol and checklists: [`evals/README.md`](./evals/README.md) — n=1 per cell;
-PRs adding graded transcripts are welcome.
+The behavioural split is the sharpest result: baseline runs consumed **zero** verification tools despite having them available, while every with-skills run loaded the skill and went looking for the shipped defaults first. One run asked its three gate questions up front and reported exactly what it had and hadn't been able to check, rather than quietly guessing.
 
-<details>
-<summary>What the numbers mean</summary>
-
-Two patterns worth naming. With a strong model the skills turn "probably right" into "verified right". With a smaller model they move a config that **cannot start at all** much closer to correct — without getting it all the way there.
-
-The sharper split is behavioural: the baseline consumed **zero** verification tools in every run despite having them available, while every with-skills run loaded the skill and went looking for the shipped defaults first. One re-run also asked its three gate questions (footprint, sim vs hardware, localization source) and stated outright that it could not reach the local install rather than quietly guessing.
-
-One honest caveat found by re-running: when the local install is missing, whether the agent follows the pointer into `references/` is **probabilistic** — one run read both reference files, the next tried three times to find `/opt/ros/jazzy/` and then wrote from memory. Its output was the worse of the two.
-
-</details>
+Full grading tables, conditions, and per-run analysis: [`evals/RESULTS.md`](./evals/RESULTS.md) · protocol, task checklists, and the container recipe: [`evals/README.md`](./evals/README.md). PRs adding graded transcripts are welcome.
 
 ## Quickstart
 
@@ -126,7 +133,7 @@ Restart Claude Code (or start a new session) to pick up the skills.
 | **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python APIs, ros2trace |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc client API, custom transports, static memory |
 | **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, PKI keystore generation, access control, DDS Security |
-| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 ground-truth TF tree, LiDAR/IMU alignment, anti-hallucination |
+| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 ground-truth TF tree, LiDAR/IMU alignment, physical verification |
 
 ## Verification scripts
 
@@ -145,13 +152,15 @@ The pure decision logic is unit-tested without ROS (`python3 skills/ros2-trouble
 
 ```mermaid
 flowchart LR
-    A["your request"] --> B["CLAUDE.md<br/>26-line protocol,<br/>no API details"]
-    B --> C["skills/&lt;name&gt;/SKILL.md<br/>doc links +<br/>verified symbol names"]
-    C --> D["official Jazzy docs<br/>or /opt/ros/jazzy/"]
-    D --> E["code"]
+    A["your request"] --> B["CLAUDE.md<br/>protocol + gates,<br/>no API details"]
+    B --> C["skills/&lt;name&gt;/SKILL.md<br/>gates, loop,<br/>failure tables"]
+    C --> D["/opt/ros/jazzy/<br/>or official Jazzy docs"]
+    C -.only if needed.-> R["references/<br/>symbol catalogs,<br/>tuning tables"]
+    D --> E["code, then proof it ran"]
+    R --> E
 ```
 
-`CLAUDE.md` never inlines API details — it just routes. Each `SKILL.md` is a thin catalog of official documentation links plus the exact class/message/param names, so Claude verifies instead of guessing. See [`CLAUDE.md`](./CLAUDE.md).
+`CLAUDE.md` carries no API details — it sets the protocol and the questions that must be answered before writing. Each `SKILL.md` body carries the decisions: what to establish, the verify-write-prove loop, and the failure table for that domain. Bulk reference material sits one hop away in `references/`. See [`CLAUDE.md`](./CLAUDE.md).
 
 ## Updating
 
@@ -163,68 +172,15 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 
 ## Roadmap
 
-Ordered by what would most change what this repo can honestly claim. Items 1–2
-need a machine with ROS 2 Jazzy (or Docker); item 3 needs a human in the loop.
-
-### 1. Re-run Task 4 inside `ros:jazzy` — blocks every MPPI accuracy claim
-
-Both graded re-runs failed to reach `/opt/ros/jazzy/`, so they measured the
-skill's *fallback* path. The skill's first instruction is "read the shipped
-defaults", and that step has never actually succeeded in an eval.
-
-```bash
-docker run --rm -it -v "$PWD":/repo ros:jazzy bash
-# inside: install the CLI, then
-mkdir -p /tmp/ev/{baseline,with-skills/.claude/skills}
-cp -r /repo/skills/* /tmp/ev/with-skills/.claude/skills/
-cp /repo/CLAUDE.md /tmp/ev/with-skills/
-
-P="Set up Nav2 with the MPPI controller for a differential-drive robot on Jazzy. Give me the controller server YAML."
-cd /tmp/ev/baseline && claude -p "$P" --model haiku --output-format json \
-  --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > result.json
-cd /tmp/ev/with-skills && claude -p "$P" --model haiku --output-format stream-json --verbose \
-  --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > result.jsonl
-```
-
-Grade against `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` — now
-actually present. Record cost and whether the agent opened the defaults file.
-
-### 2. Run Task 5 — the only binary, runtime-verified task
-
-Never run. Same container; the prompt and checklist are in
-[`evals/README.md`](./evals/README.md#task-5--build-wiring-end-to-end-ros2-package).
-Outcome is one bit: does `ros2 topic echo /greeting` print messages. This is the
-only eval that tests `ros2-package` and the build/source loop at all.
-
-### 3. Measure corrections-to-done (interactive, cannot be headless)
-
-The metric users actually pay for is how many rounds of "no, not like that" a
-task takes. `claude -p` has no one to answer a gate question, so this needs a
-real session, small n, recorded by hand. Ten tasks, with and without skills,
-counting turns until the user accepts the output.
-
-### 4. Make the `references/` pointer reliable
-
-Run 2 never opened `references/symbols.md`. Candidate fixes, cheapest first: an
-explicit fallback line in the skill body ("if the local install is unavailable,
-read `references/symbols.md` before writing any parameter name"), or promoting
-the highest-value symbols back into the body. Verify with item 1 before choosing.
-
-### 5. Propagate the body/`references` split — only after 1–4
-
-`ros2-core` and `gazebo-sim` are the next candidates (high load frequency, real
-reference bulk). The other seven skills are already mostly decision content or
-are rarely loaded; reshaping them would add lines without adding capability.
-
-### 6. Housekeeping
-
-- `assets/eval-chart.svg` still renders the retired `21 → 0` figure and is no
-  longer referenced — regenerate it from a container run or delete it.
-- Commit eval artifacts with relative paths so third parties can re-grade.
+1. **Eval pairs graded inside `ros:jazzy`**, against a live install rather than pinned sources — container recipe in [`evals/README.md`](./evals/README.md).
+2. **Task 5 results** — the task with a binary runtime outcome (does `ros2 topic echo` print data), exercising `ros2-package` and the build/source loop end to end.
+3. **Corrections-to-done as a tracked metric.** How many rounds of "no, not like that" a task takes is the number users actually pay for.
+4. **Deterministic `references/` resolution**, so bulk detail is reached whenever it's relevant.
+5. **Extend the body/`references` split** to `ros2-core` and `gazebo-sim`, the next skills with real reference bulk and high load frequency.
 
 ## Contributing
 
-Short version — skills stay doc-link catalogs (not tutorials), every symbol gets verified against Jazzy docs or `/opt/ros/jazzy/`, scripts keep their pure logic unit-testable without ROS. Full rules, the skill/script checklists, and issue templates: [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Short version — skill bodies stay decision content (gates, loop, failure tables) with bulk detail in `references/`, every symbol gets verified against Jazzy docs or `/opt/ros/jazzy/`, and scripts keep their pure logic unit-testable without ROS. Full rules, the skill/script checklists, and issue templates: [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## License
 
