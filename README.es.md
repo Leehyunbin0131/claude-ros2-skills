@@ -15,9 +15,9 @@ Skills de referencia contra alucinaciones — cada skill enruta a la documentaci
 
 <sub>🌐 Este documento es una traducción automática. El original está en [English](README.md).</sub>
 
-| Skills | Router siempre cargado | Enlaces de doc (comprobados por CI) | Comprobaciones físicas del robot | Evals: parámetros alucinados |
+| Skills | Router siempre cargado | Enlaces de doc (comprobados por CI) | Comprobaciones físicas del robot | Evals: verificó antes de escribir |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 líneas** | **38** | **4 scripts** | **21 → 0** |
+| **11** | **26 líneas** | **38** | **4 scripts** | **0/3 → 3/3** |
 
 </div>
 
@@ -67,12 +67,11 @@ Medido, no afirmado — con una salvedad declarada: las ejecuciones y la calific
 
 | Resultado | Sin skills | Con skills |
 | :--- | ---: | ---: |
-| Parámetros MPPI de Nav2 inventados/erróneos (haiku) | **21** — Nav2 muere al arrancar | **0** |
-| Parámetros MPPI de Nav2 inventados/erróneos (sonnet) | 0 *(memoria sin verificar)* | **0** *(verificado en vivo)* |
+| Claves MPPI de Nav2 erróneas/inventadas (haiku, re-run) | **~30** — sin lista `critics:`, no puede arrancar | **~16–20** — plugin, `motion_model` y namespaces correctos |
 | El callback `/scan` se dispara con un LiDAR BEST_EFFORT real (sonnet) | **nunca** — QoS por defecto incorrecto, en silencio | **sí** |
 | Ejecuciones que verificaron antes de escribir | **0 / 3** | **3 / 3** |
 
-<img src="assets/eval-chart.svg" alt="Parámetros MPPI de Nav2 inventados o erróneos: 21 sin skills, 0 con skills (haiku, una ejecución calificada)" width="720"/>
+> ⚠️ El `21 → 0` publicado antes no se reprodujo. Resultados medidos y próximos pasos en [`evals/RESULTS.md`](./evals/RESULTS.md) y el [Roadmap](README.md#roadmap) del README en inglés.
 
 Tablas de calificación completas, condiciones y todos los artefactos generados: [`evals/RESULTS.md`](./evals/RESULTS.md) · protocolo y listas de verificación: [`evals/README.md`](./evals/README.md) — n=1 por celda de momento; se aceptan PRs con transcripciones calificadas.
 

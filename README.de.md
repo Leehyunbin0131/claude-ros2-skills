@@ -15,9 +15,9 @@ Anti-Halluzinations-Referenz-Skills — jeder Skill routet zur offiziellen Dokum
 
 <sub>🌐 Dieses Dokument ist eine maschinelle Übersetzung. Das Original ist auf [English](README.md).</sub>
 
-| Skills | Stets geladener Router | Doku-Links (CI-geprüft) | Physische Roboter-Checks | Evals: halluzinierte Parameter |
+| Skills | Stets geladener Router | Doku-Links (CI-geprüft) | Physische Roboter-Checks | Evals: vor dem Schreiben verifiziert |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 Zeilen** | **38** | **4 Skripte** | **21 → 0** |
+| **11** | **26 Zeilen** | **38** | **4 Skripte** | **0/3 → 3/3** |
 
 </div>
 
@@ -67,12 +67,11 @@ Gemessen, nicht behauptet — mit einem offengelegten Vorbehalt: Ausführung und
 
 | Ergebnis | Ohne Skills | Mit Skills |
 | :--- | ---: | ---: |
-| Erfundene/falsche Nav2-MPPI-Parameter (haiku) | **21** — Nav2 stirbt beim Start | **0** |
-| Erfundene/falsche Nav2-MPPI-Parameter (sonnet) | 0 *(unverifiziertes Erinnern)* | **0** *(live verifiziert)* |
+| Falsche/erfundene Nav2-MPPI-Keys (haiku, Re-Run) | **~30** — gar keine `critics:`-Liste, nicht startfähig | **~16–20** — Plugin-String, `motion_model` und Namespaces korrekt |
 | `/scan`-Callback feuert bei echtem BEST_EFFORT-LiDAR (sonnet) | **niemals** — falsche Standard-QoS, lautlos | **ja** |
 | Läufe, die vor dem Schreiben verifizierten | **0 / 3** | **3 / 3** |
 
-<img src="assets/eval-chart.svg" alt="Erfundene oder falsche Nav2-MPPI-Parameter: 21 ohne Skills, 0 mit Skills (haiku, ein bewerteter Lauf)" width="720"/>
+> ⚠️ Das früher veröffentlichte `21 → 0` ließ sich nicht reproduzieren. Messergebnisse und nächste Schritte in [`evals/RESULTS.md`](./evals/RESULTS.md) und der [Roadmap](README.md#roadmap) der englischen README.
 
 Vollständige Bewertungstabellen, Bedingungen und jedes erzeugte Artefakt: [`evals/RESULTS.md`](./evals/RESULTS.md) · Protokoll und Checklisten: [`evals/README.md`](./evals/README.md) — bisher n=1 pro Zelle; PRs mit bewerteten Transkripten sind willkommen.
 

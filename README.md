@@ -13,9 +13,9 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 
 **English** | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-| Skills | Always-loaded router | Doc links (CI-checked) | Robot ground-truth checks | Evals: hallucinated params |
+| Skills | Always-loaded router | Doc links (CI-checked) | Robot ground-truth checks | Evals: verified before writing |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 lines** | **38** | **4 scripts** | **21 → 0** |
+| **11** | **26 lines** | **38** | **4 scripts** | **0/3 → 3/3** |
 
 </div>
 
@@ -31,6 +31,7 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 - [Verification scripts](#verification-scripts)
 - [How it works](#how-it-works)
 - [Updating](#updating)
+- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -61,23 +62,33 @@ The trade-off, stated plainly: for topics where official docs are thin (DDS vend
 
 ## Evals
 
-Measured, not claimed — with one disclosed caveat: the runs were executed and graded by the repo author's own agent session, not an independent party. Every artifact is committed for third-party re-grading. Identical prompts ran in fresh headless Claude Code sessions with and without the skills installed (same model per pair); outputs were graded symbol-by-symbol against the pinned Jazzy sources.
+Measured, not claimed — with two disclosed caveats: the runs were executed and graded by the repo author's own agent session rather than an independent party, and **no eval machine so far has had ROS 2 installed**, so grading substitutes the pinned upstream `jazzy` sources for `/opt/ros/jazzy/`. Identical prompts ran in fresh headless Claude Code sessions with and without the skills installed (same model per pair); outputs were graded symbol-by-symbol against those pinned sources.
 
 | Result | Without skills | With skills |
 | :--- | ---: | ---: |
-| Invented/wrong Nav2 MPPI params (haiku) | **21** — Nav2 dies at startup | **0** |
-| Invented/wrong Nav2 MPPI params (sonnet) | 0 *(unverified recall)* | **0** *(live-verified)* |
+| Wrong/invented Nav2 MPPI keys (haiku, re-run) | **~30** — no `critics:` list at all, config cannot run | **~16–20** — plugin string, `motion_model` and checker namespaces correct |
 | `/scan` callback fires on real BEST_EFFORT LiDAR (sonnet) | **never** — wrong default QoS, silently | **yes** |
 | Runs that verified before writing | **0 / 3** | **3 / 3** |
 
-<img src="assets/eval-chart.svg" alt="Invented or wrong Nav2 MPPI parameters: 21 without skills, 0 with skills (haiku, single graded run)" width="720"/>
+**An earlier run of this table reported `21 → 0`. It did not reproduce** — see
+[`evals/RESULTS.md`](./evals/RESULTS.md). The skills move a config that cannot
+start Nav2 to one that gets the plugin string, motion model and namespaces
+right, but they do **not** currently drive MPPI hallucinations to zero. Both
+re-runs also failed to reach `/opt/ros/jazzy/`, so they measured the fallback
+path rather than the intended one; the container re-run is item 1 of the
+[roadmap](#roadmap).
 
-Full grading tables, conditions, and every generated artifact: [`evals/RESULTS.md`](./evals/RESULTS.md) · protocol and checklists: [`evals/README.md`](./evals/README.md) — n=1 per cell so far; PRs adding graded transcripts are welcome.
+Protocol and checklists: [`evals/README.md`](./evals/README.md) — n=1 per cell;
+PRs adding graded transcripts are welcome.
 
 <details>
 <summary>What the numbers mean</summary>
 
-Two patterns worth naming: with a strong model the skills turn "probably right" into "verified right"; with a smaller model they're the difference between a config that cannot start and the correct one. And in a run where verification tools were unavailable, the with-skills agent **refused to emit unverified parameters** rather than guess — the baseline never noticed it hadn't checked anything.
+Two patterns worth naming. With a strong model the skills turn "probably right" into "verified right". With a smaller model they move a config that **cannot start at all** much closer to correct — without getting it all the way there.
+
+The sharper split is behavioural: the baseline consumed **zero** verification tools in every run despite having them available, while every with-skills run loaded the skill and went looking for the shipped defaults first. One re-run also asked its three gate questions (footprint, sim vs hardware, localization source) and stated outright that it could not reach the local install rather than quietly guessing.
+
+One honest caveat found by re-running: when the local install is missing, whether the agent follows the pointer into `references/` is **probabilistic** — one run read both reference files, the next tried three times to find `/opt/ros/jazzy/` and then wrote from memory. Its output was the worse of the two.
 
 </details>
 
@@ -157,6 +168,67 @@ cd claude-ros2-skills
 git pull
 cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 ```
+
+## Roadmap
+
+Ordered by what would most change what this repo can honestly claim. Items 1–2
+need a machine with ROS 2 Jazzy (or Docker); item 3 needs a human in the loop.
+
+### 1. Re-run Task 4 inside `ros:jazzy` — blocks every MPPI accuracy claim
+
+Both graded re-runs failed to reach `/opt/ros/jazzy/`, so they measured the
+skill's *fallback* path. The skill's first instruction is "read the shipped
+defaults", and that step has never actually succeeded in an eval.
+
+```bash
+docker run --rm -it -v "$PWD":/repo ros:jazzy bash
+# inside: install the CLI, then
+mkdir -p /tmp/ev/{baseline,with-skills/.claude/skills}
+cp -r /repo/skills/* /tmp/ev/with-skills/.claude/skills/
+cp /repo/CLAUDE.md /tmp/ev/with-skills/
+
+P="Set up Nav2 with the MPPI controller for a differential-drive robot on Jazzy. Give me the controller server YAML."
+cd /tmp/ev/baseline && claude -p "$P" --model haiku --output-format json \
+  --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > result.json
+cd /tmp/ev/with-skills && claude -p "$P" --model haiku --output-format stream-json --verbose \
+  --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > result.jsonl
+```
+
+Grade against `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` — now
+actually present. Record cost and whether the agent opened the defaults file.
+
+### 2. Run Task 5 — the only binary, runtime-verified task
+
+Never run. Same container; the prompt and checklist are in
+[`evals/README.md`](./evals/README.md#task-5--build-wiring-end-to-end-ros2-package).
+Outcome is one bit: does `ros2 topic echo /greeting` print messages. This is the
+only eval that tests `ros2-package` and the build/source loop at all.
+
+### 3. Measure corrections-to-done (interactive, cannot be headless)
+
+The metric users actually pay for is how many rounds of "no, not like that" a
+task takes. `claude -p` has no one to answer a gate question, so this needs a
+real session, small n, recorded by hand. Ten tasks, with and without skills,
+counting turns until the user accepts the output.
+
+### 4. Make the `references/` pointer reliable
+
+Run 2 never opened `references/symbols.md`. Candidate fixes, cheapest first: an
+explicit fallback line in the skill body ("if the local install is unavailable,
+read `references/symbols.md` before writing any parameter name"), or promoting
+the highest-value symbols back into the body. Verify with item 1 before choosing.
+
+### 5. Propagate the body/`references` split — only after 1–4
+
+`ros2-core` and `gazebo-sim` are the next candidates (high load frequency, real
+reference bulk). The other seven skills are already mostly decision content or
+are rarely loaded; reshaping them would add lines without adding capability.
+
+### 6. Housekeeping
+
+- `assets/eval-chart.svg` still renders the retired `21 → 0` figure and is no
+  longer referenced — regenerate it from a container run or delete it.
+- Commit eval artifacts with relative paths so third parties can re-grade.
 
 ## Contributing
 

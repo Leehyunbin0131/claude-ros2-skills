@@ -79,6 +79,60 @@ message, so haiku's retrieval isn't narrated the way sonnet's was; the
 byte-level match with the pinned source is the evidence. Future runs should
 use `--output-format stream-json` to log tool calls directly.)
 
+---
+
+# Re-run — 2026-07-25 (after the skill restructure)
+
+The skills changed substantially (gates added to `CLAUDE.md`, `ros2-dev` split
+into a decision body + `references/`), so Task 4 was re-run against the pinned
+Jazzy `nav2_bringup/params/nav2_params.yaml`. **The `21 → 0` headline above did
+not reproduce.** Conditions: CLI 2.1.220, `--model haiku`, `--output-format
+json`/`stream-json`, WebFetch/WebSearch/Read/Bash allowed in both cells.
+
+| | Baseline | With skills (run 1) | With skills (run 2) |
+| :--- | :--- | :--- | :--- |
+| Cost (USD) | 0.0283 | 0.0481 | 0.0425 |
+| Turns | 2 | 6 | 6 |
+| Verification tools used | **0** | skill + local defaults + both `references/` | skill + 3 attempts to find local defaults |
+| Plugin string | ✅ `nav2_mppi_controller::MPPIController` | ✅ | ✅ |
+| `motion_model` | ❌ invented `motion_model_type` | ✅ | ✅ |
+| Checker namespace | ❌ `nav2_core::` | ✅ `nav2_controller::` | ✅ |
+| `critics:` list | ❌ **absent entirely** | ⚠️ 5 real + `KeepOutCritic`, `ObstaclesCritic` | ⚠️ 7 real + `MaximumSpeedCritic` |
+| Velocity/accel keys | ❌ `max_velocity_x`, `max_accel_x`, `noise_sigma_*` | ❌ `max_vel_x`, `max_decel_x` | ❌ `max_vel`, `noise_std` |
+| Critic parameter keys | — (no critics) | ⚠️ invented `type:`, `angle_threshold` | ❌ `goal_weight`, `path_align_weight` … (real: all `cost_weight`) |
+| **Wrong/invented keys (approx.)** | **~30** | **~16** | **~20** |
+
+## What this actually shows
+
+1. **The baseline is catastrophically wrong and the skills clearly help.** A
+   config with no `critics:` list and `motion_model_type` cannot run MPPI at
+   all. Both with-skills runs got the plugin string, `motion_model`, and the
+   checker namespaces right.
+2. **But "0 hallucinations" is not reproducible.** Both with-skills runs still
+   invented critic names and parameter keys. The earlier `0` should be read as
+   one lucky run, not a property of the skills.
+3. **Neither eval run could read `/opt/ros/jazzy/`** — there is no ROS on the
+   eval machine. The skill's first instruction is "read the shipped defaults",
+   so both with-skills runs were forced onto their fallback path. **This test
+   measures the degraded path, not the intended one.** Task 4 must be re-run
+   inside a `ros:jazzy` container before any claim about MPPI accuracy stands.
+4. **Progressive disclosure is probabilistic.** Run 1 read both `references/`
+   files; run 2 tried the local install three times and then wrote from memory
+   without ever opening them. A pointer is a suggestion, not a guarantee — and
+   run 2's output was the worse of the two.
+5. **A defect in the repo's own reference file propagated into output.**
+   `references/symbols.md` listed four MPPI critics including `ObstaclesCritic`;
+   Jazzy ships eight, and uses `CostCritic` instead. Run 1 emitted
+   `ObstaclesCritic` verbatim. Fixed and re-verified against the pinned source —
+   a reference file is exactly as dangerous as inline content when it's wrong.
+6. **The behavioral layer worked.** Run 2 asked the three `ros2-dev` gate
+   questions (footprint, sim vs hardware, localization source) and stated
+   plainly that it could not reach the local install — the `CLAUDE.md`
+   "say so if you couldn't verify" rule, visible in the output.
+
+Artifacts for re-grading are not committed for this run (they contain absolute
+scratch paths); the commands to reproduce are in [`README.md`](./README.md).
+
 ## Takeaways
 
 1. Where the base model's memory is good (sonnet × MPPI defaults), skills

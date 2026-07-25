@@ -15,9 +15,9 @@ Skills de référence anti-hallucination — chaque skill route vers la document
 
 <sub>🌐 Ce document est une traduction automatique. L'original est en [English](README.md).</sub>
 
-| Skills | Routeur toujours chargé | Liens doc (vérifiés par CI) | Vérifications physiques du robot | Évals : paramètres hallucinés |
+| Skills | Routeur toujours chargé | Liens doc (vérifiés par CI) | Vérifications physiques du robot | Évals : vérifié avant d'écrire |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 lignes** | **38** | **4 scripts** | **21 → 0** |
+| **11** | **26 lignes** | **38** | **4 scripts** | **0/3 → 3/3** |
 
 </div>
 
@@ -67,12 +67,11 @@ Mesuré, pas affirmé — avec une réserve déclarée : les exécutions et la n
 
 | Résultat | Sans skills | Avec skills |
 | :--- | ---: | ---: |
-| Paramètres MPPI Nav2 inventés/faux (haiku) | **21** — Nav2 meurt au démarrage | **0** |
-| Paramètres MPPI Nav2 inventés/faux (sonnet) | 0 *(rappel non vérifié)* | **0** *(vérifié en direct)* |
+| Clés MPPI Nav2 fausses/inventées (haiku, re-run) | **~30** — aucune liste `critics:`, démarrage impossible | **~16–20** — chaîne de plugin, `motion_model` et namespaces corrects |
 | Callback `/scan` déclenché sur un vrai LiDAR BEST_EFFORT (sonnet) | **jamais** — mauvais QoS par défaut, en silence | **oui** |
 | Exécutions ayant vérifié avant d'écrire | **0 / 3** | **3 / 3** |
 
-<img src="assets/eval-chart.svg" alt="Paramètres MPPI Nav2 inventés ou faux : 21 sans skills, 0 avec skills (haiku, une exécution notée)" width="720"/>
+> ⚠️ Le `21 → 0` publié précédemment ne s'est pas reproduit. Résultats mesurés et prochaines étapes dans [`evals/RESULTS.md`](./evals/RESULTS.md) et la [Roadmap](README.md#roadmap) du README anglais.
 
 Tableaux de notation complets, conditions et chaque artefact généré : [`evals/RESULTS.md`](./evals/RESULTS.md) · protocole et checklists : [`evals/README.md`](./evals/README.md) — n=1 par cellule pour l'instant ; les PRs ajoutant des transcriptions notées sont les bienvenues.
 
