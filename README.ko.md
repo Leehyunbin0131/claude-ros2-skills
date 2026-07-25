@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — ROS 2 Jazzy를 위한 Claude Code 스킬" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — Claude Code skills for ROS 2 Jazzy" width="100%"/>
 
 **Claude Code Skills for ROS 2 Jazzy Jalisco robotics development.**
 
-AI 에이전트의 ROS 2 개발 방식을 혁신하는 스킬: 작업 시작 전 미확인 파라미터 사전 파악, 설치된 패키지 기반 설정 검증, 실제 동작 증거를 통한 실행 확정.
+AI 에이전트의 ROS 2 개발 방식을 혁신하는 스킬: 불명확한 파라미터를 사전에 파악하고, 설치된 패키지를 기준으로 설정을 검증하며, 실제 동작 증거를 통해 실행을 확인합니다.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -15,9 +15,9 @@ AI 에이전트의 ROS 2 개발 방식을 혁신하는 스킬: 작업 시작 전
 
 <sub>🌐 이 문서는 기계 번역본입니다. 원문은 [English](README.md)입니다.</sub>
 
-| 스킬 수 | 항상 로드되는 프로토콜 | 문서 링크 (CI 검증) | 실물 로봇 검증 스크립트 | 실측 평가: 작성 전 검증 |
+| 스킬 | 상시 로드 프로토콜 | 문서 링크 (CI 검증됨) | 로봇 실기 검증 | 실측 평가: Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26줄** | **38개** | **4개** | **0/3 → 3/3** |
+| **11개** | **26줄** | **38개** | **4개 스크립트** | **목표 도달 vs. 브링업 중단** |
 
 </div>
 
@@ -40,71 +40,94 @@ AI 에이전트의 ROS 2 개발 방식을 혁신하는 스킬: 작업 시작 전
 
 ## 비용이 드는 실패들
 
-AI가 생성한 ROS 2 코드에서 가장 비싼 비용을 치르게 하는 오류는 단순한 구문 오류(syntax error)가 아닙니다. 언뜻 보기에는 전혀 문제가 없어 보이는 미묘한 결함들입니다:
+AI가 생성한 ROS 2 코드에서 가장 비싼 비용을 치르게 하는 오류는 단순한 구문(syntax) 실수가 아닙니다. 오히려 겉보기에는 정상처럼 보이는 미묘한 문제입니다.
 
-| 실패 유형 | 표면적 증상 | 에이전트가 이 문제에 직면하는 이유 |
+| 실패 유형 | 현상 | 에이전트가 이 문제에 직면하는 이유 |
 | :--- | :--- | :--- |
-| **조용한 실패 (Silent failure)** | `ros2 topic hz`에는 30 Hz가 출력되지만 콜백 함수가 호출되지 않음 | 기본 설정인 RELIABLE subscriber가 BEST_EFFORT publisher에 연결을 시도함. 코드는 정상 컴파일되고 코드 리뷰를 통과하지만, DDS 미들웨어 수준에서 통신이 실패함. |
-| **잘못된 참값 (Wrong ground truth)** | `/cmd_vel`과 `/odom` 모두 전진으로 표시되지만, 실제 로봇은 **후진**함 | 정적 TF 프레임이 실물 장착 상태와 반대로 뒤집혀 있음. 하위 컴포넌트가 *잘못된 트랜스폼*을 기반으로 정상 계산하므로 겉으로는 오류가 나타나지 않음. |
-| **구버전 API 사용** | 코드가 리뷰를 통과했으나 런타임에 잘못된 메서드를 호출하여 실패함 | 에이전트가 Jazzy에서 이름이 변경되었거나 삭제된 Foxy 또는 Humble의 더 이상 사용되지 않는(deprecated) API 메서드를 사용함. |
-| **잘못된 전제** | 한 문장이면 바로잡을 수 있었을 추측을 바탕으로 에이전트가 200줄의 코드를 작성함 | 코드 생성 전에 누락된 정보를 확인하도록 에이전트에 요청하는 메커니즘이 없음. |
+| **소리 없는 실패** | `ros2 topic hz`에는 30 Hz로 출력되지만 콜백이 전혀 실행되지 않음 | 기본값인 RELIABLE 구독자가 BEST_EFFORT 발행자에 연결을 시도함. 코드는 정상적으로 컴파일되고 코드 리뷰도 통과하지만 DDS 미들웨어 수준에서 실패함. |
+| **잘못된 기준 좌표** | `/cmd_vel`은 전진을 나타내고 `/odom`도 전진을 보고하지만, 실제 로봇은 **후진**함 | 고정 TF 프레임이 실제 물리적 장착 상태와 반대로 뒤집혀 있음. 하위 구성 요소가 *잘못된 트랜스폼을 사용하여* 계산을 정상 수행하므로 명시적인 오류가 발생하지 않음. |
+| **구버전 API 사용** | 코드 리뷰는 통과하지만 런타임에 잘못된 메서드를 호출하여 실패함 | 에이전트가 Jazzy에서 이름이 변경되거나 제거된 Foxy 또는 Humble의 더 이상 사용되지 않는(deprecated) API 메서드를 사용함. |
+| **잘못된 전제** | 한 문장으로 바로잡을 수 있었을 전제를 바탕으로 에이전트가 200줄의 코드를 작성함 | 코드 생성 전에 누락된 세부 정보를 검증하도록 에이전트에 요청하는 메커니즘이 없음. |
 
-컴파일러, 린터, 로그 분석 도구 모두 이러한 숨겨진 문제들을 감지하지 못합니다. 이러한 오류를 하나 해결할 때마다 출력 검토, 원인 진단, 수정 사항 설명, 코드 재생성이라는 피드백 주기를 추가로 거쳐야 합니다.
+컴파일러, 린터, 로그 분석기 그 무엇도 이러한 숨겨진 문제를 감지하지 못합니다. 이러한 오류를 하나 해결할 때마다 출력 검토, 원인 진단, 수정 사항 설명, 코드 재생성이라는 추가 피드백 주기가 소모됩니다.
 
 ## 이 스킬들의 설계 원칙
 
-본 리포지토리의 모든 스킬은 다음 4가지 설계 원칙을 따릅니다:
+이 리포지토리의 모든 스킬은 4가지 설계 원칙을 따릅니다.
 
-**1. 작업 시작 전 미확인 변수 우선 식별.** 실기기인지 시뮬레이션 환경인지, 기존 워크스페이스를 확장할지 신규 생성할지, 특정 트랜스폼을 이미 발행 중인 노드가 있는지, 로봇의 정확한 형상이 어떠한지 등 주요 운용 정보는 문서에 명시되어 있지 않은 경우가 많습니다. [`CLAUDE.md`](./CLAUDE.md)는 에이전트가 코드를 생성하기 전에 이러한 불확실한 사항을 먼저 확인하도록 지시합니다. 도메인 특화 스킬은 세부 파라미터를 관리합니다. 예를 들어 `ros2-dev`는 Nav2 파라미터를 설정하기 전에 로봇의 Footprint, 구동 역학(kinematics), 위치 추정(localization) 소스를 먼저 확인합니다.
+**1. 불명확한 변수를 사전에 파악합니다.** 실제 하드웨어인지 시뮬레이션 환경인지, 기존 워크스페이스를 확장할지 새 워크스페이스를 생성할지, 어떤 노드가 이미 트랜스폼을 발행 중인지, 로봇의 정확한 형상이 어떠한지 등 주요 운용 세부 사항은 문서에 명시되어 있지 않은 경우가 많습니다. [`CLAUDE.md`](./CLAUDE.md)는 에이전트가 코드를 생성하기 전에 이러한 미지의 항목을 명확히 하도록 지시합니다. 도메인 특화 스킬은 타깃 파라미터를 관리합니다. 예를 들어 `ros2-dev`는 Nav2 파라미터를 설정하기 전에 로봇 footprint, 구동 키네마틱스(drive kinematics), 위치 추정 소스(localization source)를 요청합니다.
 
-**2. 명확한 종료 조건을 갖춘 구조화된 루프 실행.** 모든 스킬은 *검증(verify) → 작성(write) → 증명(prove)* 주기를 따릅니다. 설치된 환경에서 시스템 기본값을 점검하고, 점진적으로 변경 사항을 적용하며, 실행 상태를 확인합니다. 단순히 코드 파일을 작성하는 것에 그치지 않고, 성공적인 빌드, `ros2 topic echo`의 실시간 데이터 수신, 검증 스크립트 통과 등 관측된 증거가 확보되어야만 작업이 완료됩니다.
+**2. 명확한 종료 조건이 있는 구조화된 루프를 실행합니다.** 모든 스킬은 *검증(verify) → 작성(write) → 증명(prove)* 주기를 따릅니다. 설치된 환경에서 시스템 기본값을 검사하고, 단계적 변경 사항을 적용하며, 실행을 확인합니다. 단순히 코드 파일을 생성하는 것이 아니라 빌드 성공, `ros2 topic echo`의 실시간 데이터 수집, 검증 스크립트 통과 등 관찰된 증거가 뒷받침될 때만 작업이 완료됩니다.
 
-**3. 장문의 설명보다 구조화된 실패 대응표 우선.** 증상 → 근본 원인 → 조치 사항을 매핑한 구조화된 테이블은 공식 문서에서 놓치기 쉬운 명확하고 지속 가능한 지침을 제공하며, 버전이 바뀌어도 높은 신뢰성을 유지합니다:
+**3. 긴 설명보다 구조화된 실패 대응 표를 우선시합니다.** 증상 → 근본 원인 → 시정 조치를 매핑한 구조화된 표는 공식 문서에 부족한 명확하고 지속 가능한 지침을 제공하며, 버전에 관계없이 높은 신뢰성을 유지합니다.
 
-> `[`는 GZ→ROS, `]`는 ROS→GZ · `16UC1`은 밀리미터 단위, `32FC1`은 미터 단위 · `joint_state_broadcaster`는 자동 생성되지 않음 · `raytrace_max_range` ≤ `obstacle_max_range` 설정 시 장애물이 제거되지 않음 · rclc는 크기 미지정(unbounded) 메시지 필드를 자동 할당하지 않음
+> `[`는 GZ→ROS, `]`는 ROS→GZ · `16UC1`은 밀리미터, `32FC1`은 미터 · `joint_state_broadcaster`는 자동 스폰되지 않음 · `raytrace_max_range` ≤ `obstacle_max_range`이면 장애물이 삭제되지 않음 · rclc는 바운드되지 않은 메시지 필드를 자동 할당하지 않음
 
-**4. 3계층 아키텍처를 통한 컨텍스트 사용 최적화.** 각 스킬은 컨텍스트 효율성의 균형을 맞춥니다. 스킬 설명은 상시 컨텍스트에 유지되고, 스킬 본문은 호출 시 로드되며, `references/` 하위의 심층 참조 파일은 필요할 때만 로드됩니다. 방대한 기호(symbol) 카탈로그와 세부 파라미터 튜닝 테이블은 `references/`에 위치하므로 컨텍스트 낭비를 방지하고, 특정 컴포넌트(예: AMCL)를 디버깅할 때 불필요한 문서(예: 행동 트리 노드)가 로드되지 않도록 합니다.
+**4. 3계층 아키텍처로 컨텍스트 사용을 최적화합니다.** 각 스킬은 컨텍스트 효율성의 균형을 맞춥니다. 스킬 설명은 컨텍스트에 유지되고, 스킬 본문은 호출될 때 로드되며, `references/`의 심층 참조 파일은 필요한 경우에만 로드됩니다. 방대한 심볼 카탈로그와 세부 파라미터 튜닝 표는 `references/`에 위치하므로, 컨텍스트를 절약하고 특정 구성 요소(예: AMCL)를 디버깅할 때 불필요한 문서(예: 행동 트리 노드)가 로드되지 않도록 합니다.
 
 ## 무엇이 다른가
 
-대부분의 로보틱스 스킬 팩은 정적 API 지식을 스킬 파일에 직접 포함합니다. 처음에는 사용하기 쉽지만, 바탕이 되는 패키지가 업데이트되면 구버전 스니펫이 남아 조용한 실패를 일으키게 됩니다. 본 리포지토리는 동적이고 문서 중심적인(documentation-driven) 방식을 채택합니다:
+대부분의 로보틱스 스킬 팩은 정적 API 지식을 스킬 파일에 직접 내장합니다. 초기 사용은 쉬울지 몰라도, 기반 패키지가 업데이트되면 이 방식은 무너지며 소리 없이 실패하는 구버전 코드 조각(snippet)을 남기게 됩니다. 본 리포지토리는 동적 문서 기반 접근 방식을 취합니다.
 
-| 기능 / 특징 | 기존의 내용 집약형 스킬 팩 | **claude-ros2-skills** |
+| 기능 | 콘텐츠 중심의 스킬 팩 | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| 지식 저장 위치 | 스킬 파일 내 직접 포함 (**스킬당 400~1,800줄**) | 공식 문서와 연결 (**약 60줄**의 스킬 본문); 세부 참조 문서는 **필요시에만** 조회 |
-| 상시 로드되는 컨텍스트 | `SKILL.md` 파일 전체 | **26줄** 분량의 핵심 프로토콜 |
-| Jazzy API 업데이트 대응 | 스니펫이 감지 없이 구버전화됨; 지속적인 수동 테스트 업데이트 필요 | 구버전 스니펫 위험이 진입점 링크 및 기호 이름 수준으로 최소화됨 — **38개 문서 링크**를 CI로 매주 검증 |
-| 검증 방식 | 정적 코드 분석 또는 로그 확인 | **실물 및 런타임 검증**: IMU 중력 검증, 오도메트리 방향 테스트, TF 프레임 정렬, DDS QoS 호환성 검증 |
-| 지원 배포판 범위 | 단일 배포판만 대상으로 하면서 여러 ROS 배포판 지원을 주장 | **ROS 2 Jazzy 전용**, 명확하게 설계 및 검증됨 |
+| 지식 저장 위치 | 스킬 파일 내에 내장 (**스킬당 400~1,800줄**) | 공식 문서와 연결 (**~60줄**의 스킬 본문); 세부 참조 문서는 **필요할 때만** 로드 |
+| 상시 로드 컨텍스트 | 전체 `SKILL.md` 파일 | **26줄** 핵심 프로토콜 |
+| Jazzy API 업데이트 대응 | 스니펫이 눈에 띄지 않게 오래됨; 지속적인 수동 테스트 업데이트 필요 | 구버전 스니펫 위험이 진입점 링크 및 심볼 이름 수준으로 최소화됨 — **38개 문서 링크**를 CI로 매주 검증 |
+| 검증 방식 | 정적 코드 분석 또는 로그 확인 | **물리 및 런타임 검증**: IMU 중력 검사, 방향성 오도메트리 테스트, TF 프레임 정렬, DDS QoS 호환성 |
+| 지원 범위 | 단일 배포판만 지원하면서 여러 ROS 배포판을 지원한다고 주장 | **ROS 2 Jazzy 전용**, 명시적으로 설계 및 검증됨 |
 
-본 리포지토리는 단 하나의 목적에 최적화되어 있습니다: 그럴듯해 보이지만 ROS 2 Jazzy에서 실행되지 않는 코드가 생성될 위험을 최소화하는 것입니다.
+본 리포지토리는 하나의 결과에 최적화되어 있습니다. 바로 ROS 2 Jazzy에서 실행 시 실패하는 '그럴듯해 보이는 코드'가 생성될 위험을 최소화하는 것입니다.
 
 ## 실측 평가
 
-성능 평가를 위해 동일한 프롬프트를 이 스킬 설치 전후의 깨끗한 헤드리스(headless) Claude Code 세션에서 각각 실행했습니다. 각 평가 쌍은 동일한 모델을 사용했으며, 고정된(pinned) 업스트림 ROS 2 Jazzy 소스 리포지토리를 기준으로 기호 단위(symbol-by-symbol) 검증을 수행했습니다.
+아래의 모든 결과는 측정된 A/B 쌍에서 도출되었습니다. 동일한 도구가 모두 비활성화된 상태가 아닌, **동일한 모델**을 사용하는 새로 시작된 헤드리스(headless) Claude Code 세션에서 **동일한 프롬프트**를 스킬 미적용과 적용 상태로 각각 실행했습니다. 생성 결과물은 고정된 상류(upstream) Jazzy 소스 코드, `ros:jazzy` Docker 컨테이너 내부의 실제 `/opt/ros/jazzy` 설치본, 그리고 두 결과물을 **실제 Gazebo 시뮬레이션**에 로드하여 심볼 단위로 평가되었습니다. 전체 트랜스크립트와 아티팩트는 [`evals/runs/`](./evals/runs/)에 커밋되어 있으므로 누구나 직접 재평가할 수 있습니다.
 
-| 지표 / 테스트 항목 | 스킬 미적용 | 스킬 적용 |
-| :--- | ---: | ---: |
-| 잘못되거나 환각(fabrication)된 Nav2 MPPI 키 수 (Haiku) | **약 30개** — 필수 `critics:` 목록 누락; 설정 실행 실패 | **약 16~20개** — 올바른 플러그인 문자열, `motion_model` 및 checker 네임스페이스 사용 |
-| 실물 BEST_EFFORT LiDAR에서 `/scan` 콜백 실행 여부 (Sonnet) | **실패** — QoS 기본값 불일치로 인한 조용한 실패 | **성공** — 정상적으로 연결됨 |
-| 코드 작성 전 환경을 먼저 검증한 실행 횟수 | **0 / 3** | **3 / 3** |
+### Nav2 MPPI 설정 — Haiku, 실제 Jazzy 설치 환경
 
-가장 눈에 띄는 결과는 행동 방식의 변화입니다. 스킬이 없는 베이스라인 세션은 검증 도구가 제공되어도 **단 하나도** 사용하지 않은 반면, 본 스킬을 갖춘 세션은 관련 지침을 로드하고 시스템 기본값을 먼저 점검했습니다. 한 테스트에서 에이전트는 작업 시작 전 핵심 명확화 질문을 던지고, 확인된 파라미터와 확인되지 않은 가정을 명시적으로 구분하여 보고함으로써 근거 없는 추측을 방지했습니다.
+*프롬프트: Jazzy 환경의 차동 구동(differential-drive) 로봇을 위해 MPPI 컨트롤러로 Nav2를 설정하고 controller server YAML을 생성하세요.*
 
-전체 평가 테이블, 테스트 환경 및 개별 실행 분석 결과는 [`evals/RESULTS.md`](./evals/RESULTS.md)에서 확인하실 수 있습니다. 평가 프로토콜, 작업 체크리스트 및 컨테이너 설정에 대한 자세한 내용은 [`evals/README.md`](./evals/README.md)를 참조하세요. 추가 평가 트랜스크립트를 포함한 Pull Request를 환영합니다.
+| | 스킬 미적용 | 스킬 적용 |
+| :--- | :--- | :--- |
+| 진행 과정 | 도구가 제공되었음에도 검증 없이 기억에만 의존하여 즉시 답변함 | footprint, 기존 설정, 위치 추정(localization), 속도 제한을 **먼저** 질의한 후 `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml`에 배포된 기본값을 읽음 |
+| 플러그인 문자열 | `mppi_generic::ControllerServer` — 존재하지 않음 | `nav2_mppi_controller::MPPIController` — 올바름 |
+| `critics:` 목록 | 전혀 없음 | 8개 전체 제공, 올바른 이름 |
+| 날조된 파라미터 키 | **~16개** | **0개** — 설치된 기본값과 비교하여 모든 키를 기계적으로 검증함 |
+| **실제 Gazebo 시뮬레이션 로드** | **`[FATAL] Failed to create controller … does not exist` — 브링업 단계에서 Nav2 중단; 로봇이 전혀 움직이지 않음** | **MPPI 및 8개 critics 모두 로드됨; 로봇이 (−2.0, −0.5) → (0.5, 0.5)로 주행; `NavigateToPose`가 `SUCCEEDED` 반환** |
+
+### 실제 실행되어야 하는 패키지 생성 — Haiku, 컨테이너 내부
+
+*프롬프트: `/greeting` 토픽으로 1 Hz 주기로 `std_msgs/msg/String`을 발행하는 Python 패키지 `demo_pkg`와 런치 파일을 생성하고, 이를 빌드한 뒤 `ros2 topic echo /greeting`을 보여주세요.*
+
+| | 스킬 미적용 | 스킬 적용 |
+| :--- | :--- | :--- |
+| `ros2 run` / `ros2 launch` / `topic echo` | **3가지 모두 실패** — 패키지가 ament 인덱스에 등록되지 않음 | **3가지 모두 통과**, 각 명령의 독립적인 재실행을 통해 확인됨 |
+| 결과 도달 비용 | $0.17 · 36턴 · 178초 | **$0.08 · 18턴 · 61초** — 첫 시도에 성공했으며 **2.2배 저렴함** |
+
+### 센서 구독 — Sonnet
+
+| | 스킬 미적용 | 스킬 적용 |
+| :--- | :--- | :--- |
+| 물리 BEST_EFFORT LiDAR의 `/scan` 콜백 | **전혀 실행되지 않음** — 기본 RELIABLE QoS가 DDS 수준에서 소리 없이 불일치함 | **정상 동작** — `qos_profile_sensor_data` 적용 및 범위 필터링 포함 |
+
+### 모든 비교 쌍에서 나타난 패턴
+
+베이스라인 세션은 WebFetch, Read, Bash 도구 사용이 명시적으로 허용되었음에도 불구하고 모든 실행에서 검증 도구를 **단 한 번도** 사용하지 않았으며, 한 베이스라인은 `ros2 run`으로 찾을 수 없는 패키지에 대해 완벽히 동작하는 빌드라고 보고했습니다. 반면 이 스킬을 적용한 세션은 **모든** 실행에서 코드 작성 전에 검증을 수행했으며, 그 주장은 독립적인 재실행 결과와 일치했습니다. 스킬의 검증 스크립트 자체도 실제 시뮬레이션에서 입증되었습니다. TF 트리, QoS 호환성, 오도메트리 방향 검사가 실제 데이터에서 모두 통과되었으며, 뒤집힌 LiDAR 시나리오도 의도한 대로 정확히 지적되었습니다.
+
+[`evals/RESULTS.md`](./evals/RESULTS.md)에서 전체 평가 표, 테스트 환경 및 개별 실행 분석을 확인하세요. 평가 프로토콜, 작업 체크리스트 및 컨테이너 설정에 대한 자세한 내용은 [`evals/README.md`](./evals/README.md)를 참조하세요. 추가 평가 트랜스크립트를 포함한 Pull Request를 환영합니다.
 
 ## 빠른 시작
 
-**방법 A — 플러그인 마켓플레이스 (권장):**
+**옵션 A — 플러그인 마켓플레이스 (권장):**
 
 ```
 /plugin marketplace add Leehyunbin0131/claude-ros2-skills
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-설치된 플러그인은 언제든지 `/plugin marketplace update`로 업데이트할 수 있습니다.
+언제든지 `/plugin marketplace update` 명령어로 설치된 플러그인을 업데이트할 수 있습니다.
 
-**방법 B — 수동 설치:**
+**옵션 B — 수동 설치:**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
@@ -123,46 +146,46 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 
 ## 스킬 목록
 
-| 스킬 | 경로 | 다루는 범위 |
+| 스킬 | 경로 | 커버리지 |
 | :--- | :--- | :--- |
-| **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, EKF odometry, QoS profiles, parameters |
-| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`, CMakeLists/setup.py wiring, colcon build & source, custom interfaces |
+| **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, EKF 오도메트리, QoS 프로필, 파라미터 |
+| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`, CMakeLists/setup.py 연결, colcon 빌드 및 소스 적용, 커스텀 인터페이스 |
 | **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2 (AMCL, costmaps, MPPI/Smac), SLAM Toolbox, RTAB-Map, Isaac ROS |
-| **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic, ros_gz_bridge, ros_gz_sim, SDFormat modeling |
-| **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control hardware abstraction, controller manager, URDF tags |
-| **ros2-moveit** | `skills/ros2-moveit/SKILL.md` | MoveIt 2, MoveGroup C++/Python API, IK solvers, OMPL, MoveIt Servo |
+| **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic, ros_gz_bridge, ros_gz_sim, SDFormat 모델링 |
+| **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control 하드웨어 추상화, controller manager, URDF 태그 |
+| **ros2-moveit** | `skills/ros2-moveit/SKILL.md` | MoveIt 2, MoveGroup C++/Python API, IK 솔버, OMPL, MoveIt Servo |
 | **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
-| **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python APIs, ros2trace |
-| **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc client API, custom transports, static memory |
-| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, PKI keystore generation, access control, DDS Security |
-| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 ground-truth TF tree, LiDAR/IMU alignment, physical verification |
+| **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python API, ros2trace |
+| **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc 클라이언트 API, 커스텀 트랜스포트, 정적 메모리 |
+| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, PKI 키스토어 생성, 접근 제어, DDS Security |
+| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 기준 좌표 TF 트리, LiDAR/IMU 정렬, 물리 검증 |
 
 ## 검증 스크립트
 
-이 검증 스크립트들은 `ros2-troubleshooting` 스킬(`skills/ros2-troubleshooting/scripts/`)에 번들로 포함되어 있으며 모든 설치에 함께 제공됩니다. 실물 하드웨어 점검 항목을 실행 가능한 성공/실패 검증 단계로 전환합니다 (ROS 2 환경이 소스(source)되어 있어야 함; 반환 코드: 0 = PASS, 1 = FAIL, 2 = NO DATA):
+이 검증 스크립트들은 `ros2-troubleshooting` 스킬(`skills/ros2-troubleshooting/scripts/`)에 번들로 포함되어 있으며 모든 설치에 함께 제공됩니다. 물리 하드웨어 검사를 실행 가능한 성공/실패 검증 단계로 변환합니다(ROS 2 환경 소싱 필요; 반환 코드: 0 = PASS, 1 = FAIL, 2 = NO DATA):
 
-| 스크립트 | 검증 항목 |
+| 스크립트 | 검증 내용 |
 | :--- | :--- |
-| `check_imu_gravity.py` | 정지 상태의 로봇이 **+Z**축 방향으로 ~+9.81 m/s²의 중력을 측정하는지 검증합니다 (REP 103). 뒤집히거나 정렬이 잘못된 IMU 장착 상태를 감지합니다. |
-| `check_odom_direction.py` | 로봇을 앞으로 밀었을 때 진행 방향으로 양(+)의 오도메트리 변위가 발생하는지 검증합니다. 모터 회전 방향 반전, 엔코더 극성 문제, 뒤집힌 TF 설정을 감지합니다. |
-| `check_tf_tree.py` | `map→odom→base_link` 트리가 올바르게 구성되었는지 검증하며, 각 센서의 장착 오프셋을 RPY 도(degree) 단위로 표시하고 180° 방향 오류 가능성을 강조합니다. |
-| `check_qos_compat.py` | DDS 규칙을 기반으로 토픽의 모든 publisher/subscriber 쌍 간 QoS 호환성을 검증합니다. 조용한 실패(BEST_EFFORT publisher와 RELIABLE subscriber의 조합, 또는 durability, deadline, liveliness 불일치 등)를 방지합니다. |
+| `check_imu_gravity.py` | 정지 상태의 로봇이 **+Z** 축을 따라 ~+9.81 m/s²의 중력을 측정하는지 검증합니다(REP 103). 뒤집히거나 잘못 정렬된 IMU 장착을 감지합니다. |
+| `check_odom_direction.py` | 로봇을 앞으로 밀었을 때 헤딩(heading) 방향을 따라 양(+)의 오도메트리 변위가 발생하는지 검증합니다. 모터 방향 반전, 인코더 극성 문제 또는 뒤집힌 TF 설정을 감지합니다. |
+| `check_tf_tree.py` | `map→odom→base_link`가 올바르게 확인(resolve)되는지 검증합니다. 각 센서의 장착 오프셋을 RPY 도(degree) 단위로 표시하고 잠재적인 180° 방향 오류를 강조합니다. |
+| `check_qos_compat.py` | DDS 규칙을 사용하여 토픽의 모든 발행자/구독자 쌍 간의 QoS 호환성을 검증합니다. 소리 없는 실패(BEST_EFFORT 발행자와 RELIABLE 구독자의 조합, 또는 내구성, 마감일, 생동성 불일치 등)를 방지합니다. |
 
-핵심 결정 로직은 ROS 독립적으로 단체 테스트(unit test)를 거치며 (`python3 skills/ros2-troubleshooting/scripts/test_checks.py`), 매 push 시 지속적 통합(CI)을 통해 실행됩니다.
+핵심 결정 로직은 ROS와 독립적으로 단위 테스트되며(`python3 skills/ros2-troubleshooting/scripts/test_checks.py`), 푸시할 때마다 지속적 통합(CI)을 통해 실행됩니다.
 
 ## 동작 방식
 
 ```mermaid
 flowchart LR
-    A["사용자 요청"] --> B["CLAUDE.md<br/>프로토콜 + 게이트,<br/>API 세부 정보 없음"]
-    B --> C["skills/&lt;name&gt;/SKILL.md<br/>게이트, 루프,<br/>실패 대응표"]
+    A["사용자의 요청"] --> B["CLAUDE.md<br/>프로토콜 + 게이트,<br/>API 세부정보 없음"]
+    B --> C["skills/&lt;name&gt;/SKILL.md<br/>게이트, 루프,<br/>실패 대응 표"]
     C --> D["/opt/ros/jazzy/<br/>또는 공식 Jazzy 문서"]
-    C -.필요시에만.-> R["references/<br/>기호 카탈로그,<br/>튜닝 테이블"]
-    D --> E["코드 작성 후 실행 증명"]
+    C -.필요한 경우만.-> R["references/<br/>심볼 카탈로그,<br/>튜닝 표"]
+    D --> E["코드 작성 후 실행 결과 증명"]
     R --> E
 ```
 
-`CLAUDE.md`에는 구체적인 API 세부 정보가 포함되어 있지 않습니다. 대신 운용 프로토콜을 정립하고 코드 작성 전 명확화 질문에 답변하도록 요구합니다. 각 `SKILL.md` 파일은 미확인 변수 식별, 검증-작성-증명 루프 실행, 실패 대응표 참조 등 도메인 특화 결정을 관리합니다. 세부 참조 자료는 `references/` 디렉터리에 별도로 저장됩니다. 자세한 내용은 [`CLAUDE.md`](./CLAUDE.md)를 참조하세요.
+`CLAUDE.md`에는 구체적인 API 세부 정보가 포함되어 있지 않습니다. 대신 운용 프로토콜을 수립하고 코드를 작성하기 전에 불명확한 질문에 답하도록 요구합니다. 각 `SKILL.md` 파일은 불명확한 변수 식별, 검증-작성-증명 루프 실행, 실패 대응 표 참조 등 도메인 특화 결정을 관리합니다. 세부 참조 자료는 `references/` 디렉토리에 별도로 저장됩니다. 자세한 내용은 [`CLAUDE.md`](./CLAUDE.md)를 참조하세요.
 
 ## 업데이트
 
@@ -174,15 +197,16 @@ cp -r skills/* ~/.claude/skills/   # 또는 프로젝트의 .claude/skills/
 
 ## 로드맵
 
-1. **`ros:jazzy` 컨테이너 내 평가 쌍 자동화**를 통한 실제 설치 베이스라인 구축 — 컨테이너 설정 세부 사항은 [`evals/README.md`](./evals/README.md) 참조.
-2. **Task 5 실측 평가 결과 공개** — `ros2-package` 빌드 및 워크스페이스 소싱 주기 전반에 걸쳐 이분법적 결과(`ros2 topic echo` 데이터 출력 여부 확인)로 런타임 성능 검증.
-3. **"완료까지의 수정 횟수(corrections-to-completion)"를 핵심 지표로 추적** — 코드가 성공적으로 실행될 때까지 필요한 피드백 반복 횟수 측정.
-4. **결정론적 `references/` 조회 구현**을 통해 관련성이 있을 때마다 세부 참조 문서가 확실히 로드되도록 개선.
-5. **본문/`references` 분리 구조를 `ros2-core` 및 `gazebo-sim`으로 확대**하여 참조 문서 비중이 높은 고빈도 사용 스킬의 컨텍스트 효율성 최적화.
+1. ~~`ros:jazzy` 컨테이너 내부의 평가 쌍 자동화~~ — **완료 (2026-07-25):** 실제 `/opt/ros/jazzy` 설치본 대상 Task 4 재실행; 결과는 [`evals/RESULTS.md`](./evals/RESULTS.md) 참조.
+2. ~~Task 5 평가 결과 게시~~ — **완료 (2026-07-25):** 컨테이너 내부에서 측정된 바이너리 빌드/실행/echo 결과; 결과는 [`evals/RESULTS.md`](./evals/RESULTS.md) 참조.
+3. **컨테이너 평가를 Tasks 1–3으로 확장**하여 제품군 내 모든 작업에 실제 설치 측정값을 확보.
+4. **핵심 지표로 "완료까지의 수정 횟수(corrections-to-completion)" 추적** — 코드가 성공적으로 실행되기까지 필요한 피드백 반복 횟수 측정.
+5. **결정론적 `references/` 조회 구현**을 통해 관련 세부 참조 문서가 필요한 시점에 항상 로드되도록 보장.
+6. **본문/`references` 분리를 `ros2-core` 및 `gazebo-sim`으로 확장**하여 방대한 참조 문서를 가진 고빈도 스킬의 컨텍스트 효율성 최적화.
 
 ## 기여하기
 
-요약: 스킬 파일은 결정 로직(검증 게이트, 루프 단계, 실패 대응표)에 집중해야 하며, 세부 문서는 `references/`에 유지되어야 합니다. 모든 API 기호(symbol)는 공식 Jazzy 문서 또는 `/opt/ros/jazzy/` 설치 환경을 바탕으로 검증되어야 합니다. 검증 스크립트는 ROS 의존성 없이 단체 테스트가 가능한 순수 로직을 유지해야 합니다. 전체 지침, 스킬 및 스크립트 체크리스트, 이슈 템플릿은 [`CONTRIBUTING.md`](./CONTRIBUTING.md)를 참조하세요.
+요약: 스킬 파일은 결정 로직(검증 게이트, 루프 단계, 실패 대응 표)에 집중해야 하며, 세부 문서는 `references/`에 유지되어야 합니다. 모든 API 심볼은 공식 Jazzy 문서 또는 `/opt/ros/jazzy/` 설치 환경을 기준으로 검증되어야 합니다. 검증 스크립트는 ROS 의존성 없이 단위 테스트가 가능한 순수 로직을 유지해야 합니다. 전체 가이드라인, 스킬 및 스크립트 체크리스트, 이슈 템플릿은 [`CONTRIBUTING.md`](./CONTRIBUTING.md)를 참조하세요.
 
 ## 라이선스
 
