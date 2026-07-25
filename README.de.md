@@ -81,7 +81,7 @@ Dieses Repository ist auf ein einziges Ziel hin optimiert: das Risiko zu minimie
 
 ## Evaluationen
 
-Jedes unten stehende Ergebnis stammt aus einem gemessenen A/B-Paar: Der **identische Prompt** wurde in frischen, headless Claude Code-Sitzungen ausgeführt – einmal ohne diese Skills, einmal mit ihnen – unter Verwendung desselben **gleichen Modells** in beiden Durchläufen. Die Ausgaben wurden Symbol für Symbol gegen gepinnte Upstream-Jazzy-Quellen abgeglichen, anschließend gegen die Live-Installation unter `/opt/ros/jazzy` in einem `ros:jazzy` Docker-Container und schließlich durch Laden beider Ausgaben in eine **Live-Gazebo-Simulation**. Vollständige Transkripte und Artefakte sind unter [`evals/runs/`](./evals/runs/) hinterlegt, sodass jeder die Ergebnisse unabhängig nachprüfen kann.
+Jedes unten stehende Ergebnis stammt aus einem gemessenen A/B-Paar: Der **identische Prompt** wurde in frischen, headless Claude Code-Sitzungen ausgeführt – einmal ohne diese Skills, einmal mit ihnen – unter Verwendung **desselben Modells** in beiden Durchläufen. Die Ausgaben wurden Symbol für Symbol gegen gepinnte Upstream-Jazzy-Quellen abgeglichen, anschließend gegen die Live-Installation unter `/opt/ros/jazzy` in einem `ros:jazzy` Docker-Container und schließlich durch Laden beider Ausgaben in eine **Live-Gazebo-Simulation**. Vollständige Transkripte und Artefakte sind unter [`evals/runs/`](./evals/runs/) hinterlegt, sodass jeder die Ergebnisse unabhängig nachprüfen kann.
 
 ### Nav2 MPPI-Konfiguration — Haiku, Live-Jazzy-Installation
 
@@ -93,16 +93,16 @@ Jedes unten stehende Ergebnis stammt aus einem gemessenen A/B-Paar: Der **identi
 | Plugin-String | `mppi_generic::ControllerServer` — existiert nicht | `nav2_mppi_controller::MPPIController` — korrekt |
 | `critics:`-Liste | Fehlt vollständig | Alle 8 vorhanden, korrekte Namen |
 | Erfundene Parameter-Keys | **~16** | **0** — jeder Schlüssel mechanisch gegen die installierten Standardwerte verglichen |
-| **In eine Live-Gazebo-Simulation geladen** | **`[FATAL] Failed to create controller … does not exist` — Nav2 bricht beim Bringup ab; der Roboter bewegt sich nie** | **MPPI + alle 8 Critics werden geladen; Roboter fährt (−2,0, −0,5) → (0,5, 0,5); `NavigateToPose` gibt `SUCCEEDED` zurück** |
+| **In eine Live-Gazebo-Simulation geladen** | **`[FATAL] Failed to create controller … does not exist` — Nav2 bricht beim Bringup ab; der Roboter bewegt sich nie** | **MPPI + alle 8 Critics werden geladen; Roboter fährt (−2.0, −0.5) → (0.5, 0.5); `NavigateToPose` gibt `SUCCEEDED` zurück** |
 
 ### Ein Paket, das tatsächlich laufen muss — Haiku, im Container
 
-*Prompt: erstelle ein Python-Paket `demo_pkg`, das `std_msgs/msg/String` auf `/greeting` mit 1 Hz über eine Launch-Datei publiziert; baue es und zeige `ros2 topic echo /greeting`.*
+*Prompt: erstelle ein Python-Paket `demo_pkg`, das `std_msgs/msg/String` auf `/greeting` mit 1 Hz publiziert, samt einer Launch-Datei; baue es und zeige `ros2 topic echo /greeting`.*
 
 | | Ohne Skills | Mit Skills |
 | :--- | :--- | :--- |
 | `ros2 run` / `ros2 launch` / `topic echo` | **Alle drei schlagen fehl** — das Paket wird nie im ament index registriert | **Alle drei erfolgreich**, bestätigt durch unabhängige erneute Ausführung jedes Befehls |
-| Kosten für dieses Ergebnis | 0,17 $ · 36 Aufrufe · 178 s | **0,08 $ · 18 Aufrufe · 61 s** — im ersten Anlauf korrekt und **2,2-mal günstiger** |
+| Kosten für dieses Ergebnis | 0,17 $ · 36 Turns · 178 s | **0,08 $ · 18 Turns · 61 s** — im ersten Anlauf korrekt und **2,2-mal günstiger** |
 
 ### Sensor-Abonnement — Sonnet
 

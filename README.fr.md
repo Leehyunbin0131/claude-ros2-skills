@@ -197,8 +197,8 @@ cp -r skills/* ~/.claude/skills/   # ou dans le répertoire .claude/skills/ de v
 
 ## Feuille de route
 
-1. ~~Automatiser les paires d'évaluation au sein de conteneurs `ros:jazzy`~~ — **terminé (25-07-2026) :** réexécution de la tâche 4 sur une installation en direct sous `/opt/ros/jazzy` ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
-2. ~~Publier les résultats d'évaluation de la tâche 5~~ — **terminé (25-07-2026) :** résultat binaire build/run/echo mesuré dans le conteneur ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
+1. ~~Automatiser les paires d'évaluation au sein de conteneurs `ros:jazzy`~~ — **terminé (2026-07-25) :** réexécution de la tâche 4 sur une installation en direct sous `/opt/ros/jazzy` ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
+2. ~~Publier les résultats d'évaluation de la tâche 5~~ — **terminé (2026-07-25) :** résultat binaire build/run/echo mesuré dans le conteneur ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
 3. **Étendre les évaluations en conteneur aux tâches 1 à 3**, afin que chaque tâche de la suite dispose d'une mesure sur installation en direct.
 4. **Suivre les « corrections jusqu'à finalisation » comme métrique principale** — mesurer le nombre d'itérations de retour nécessaires avant que le code ne s'exécute avec succès.
 5. **Implémenter des recherches déterministes dans `references/`** pour garantir que les documents de référence détaillés se chargent chaque fois que cela est pertinent.

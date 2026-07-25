@@ -71,7 +71,7 @@ La mayoría de los paquetes de skills de robótica incluyen conocimiento estáti
 
 | Característica | Paquetes de skills recargados de contenido | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Ubicación del conocimiento | Integrado en los archivos del skill (**400–1,800 líneas/skill**) | Enlazado a la documentación oficial (cuerpo de skill de **~60 líneas**); las referencias detalladas se leen **solo cuando es necesario** |
+| Ubicación del conocimiento | Integrado en los archivos del skill (**400–1.800 líneas/skill**) | Enlazado a la documentación oficial (cuerpo de skill de **~60 líneas**); las referencias detalladas se leen **solo cuando es necesario** |
 | Contexto siempre cargado | Archivos `SKILL.md` completos | Protocolo principal de **26 líneas** |
 | Gestión de actualizaciones de la API en Jazzy | Los fragmentos quedan obsoletos silenciosamente; requiere actualizaciones manuales continuas de pruebas | El riesgo de fragmentos obsoletos se minimiza a enlaces de punto de entrada y nombres de símbolos; **38 enlaces a documentación** se verifican semanalmente vía CI |
 | Método de verificación | Análisis estático de código o verificación de logs | **Verificación física y en tiempo de ejecución**: comprobaciones de gravedad en IMU, pruebas de odometría direccional, alineación de frames TF, compatibilidad de QoS en DDS |
@@ -85,7 +85,7 @@ Cada resultado presentado a continuación proviene de una prueba comparativa A/B
 
 ### Configuración de Nav2 MPPI — Haiku, instalación en vivo de Jazzy
 
-*Prompt: set up Nav2 with the MPPI controller for a differential-drive robot on Jazzy and produce the controller server YAML.*
+*Prompt: configura Nav2 con el controlador MPPI para un robot de tracción diferencial en Jazzy y produce el YAML del controller server.*
 
 | | Sin skills | Con skills |
 | :--- | :--- | :--- |
@@ -97,7 +97,7 @@ Cada resultado presentado a continuación proviene de una prueba comparativa A/B
 
 ### Un paquete que debe ejecutarse realmente — Haiku, dentro del contenedor
 
-*Prompt: create a Python package `demo_pkg` publishing `std_msgs/msg/String` on `/greeting` at 1 Hz with a launch file; build it and show `ros2 topic echo /greeting`.*
+*Prompt: crea un paquete Python `demo_pkg` que publique `std_msgs/msg/String` en `/greeting` a 1 Hz, junto con un archivo launch; compílalo y muestra `ros2 topic echo /greeting`.*
 
 | | Sin skills | Con skills |
 | :--- | :--- | :--- |
@@ -132,12 +132,12 @@ Actualiza los plugins instalados en cualquier momento con `/plugin marketplace u
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
-# Project-level installation (applies to the current project only)
+# Instalación a nivel de proyecto (se aplica solo al proyecto actual)
 mkdir -p your-project/.claude/skills
 cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
 cp claude-ros2-skills/CLAUDE.md your-project/
 
-# User-level installation (applies across all projects)
+# Instalación a nivel de usuario (se aplica a todos los proyectos)
 mkdir -p ~/.claude/skills
 cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 ```
@@ -192,7 +192,7 @@ flowchart LR
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
+cp -r skills/* ~/.claude/skills/   # o el .claude/skills/ de tu proyecto
 ```
 
 ## Hoja de ruta
