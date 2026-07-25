@@ -13,6 +13,7 @@ Exit codes: 0 PASS, 1 FAIL, 2 could not sample (no data / no ROS).
 import argparse
 import math
 import sys
+import time
 
 
 def yaw_from_quat(x, y, z, w):
@@ -54,6 +55,9 @@ def main():
                    help="approximate distance you will move the robot (m)")
     p.add_argument("--timeout", type=float, default=10.0,
                    help="seconds to wait for each odometry sample")
+    p.add_argument("--wait-secs", type=float, default=None,
+                   help="non-interactive mode: wait this many seconds for the "
+                        "motion instead of prompting for Enter (headless/CI)")
     args = p.parse_args()
 
     try:
@@ -95,8 +99,18 @@ def main():
         rclpy.shutdown()
         return 2
 
-    input(f">>> Physically push or drive the robot FORWARD about "
-          f"{args.dist:.1f} m, then press Enter... ")
+    prompt = (f">>> Physically push or drive the robot FORWARD about "
+              f"{args.dist:.1f} m, then press Enter... ")
+    if args.wait_secs is not None:
+        print(prompt + f"(non-interactive: waiting {args.wait_secs:.0f}s)")
+        time.sleep(args.wait_secs)
+    else:
+        try:
+            input(prompt)
+        except EOFError:
+            print(f"(stdin closed — waiting {args.timeout:.0f}s instead; "
+                  "use --wait-secs for headless runs)")
+            time.sleep(args.timeout)
 
     end = sample()
     node.destroy_node()

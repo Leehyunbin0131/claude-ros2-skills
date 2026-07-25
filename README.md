@@ -86,6 +86,7 @@ To evaluate performance, identical prompts were executed in fresh, headless Clau
 | Fabricated Nav2 MPPI parameter keys — live Jazzy install (Haiku) | **~16**, plus a nonexistent plugin string and no `critics:` list — the configuration cannot start | **0** — every key mechanically diffed against the installed defaults |
 | `demo_pkg` end to end: build → `ros2 run` / `ros2 launch` / `topic echo` (Haiku) | **Fails all three** — the package never registers in the ament index | **Passes all three**, confirmed by independent re-runs of each command |
 | Cost to reach that package outcome | $0.17 / 36 turns | **$0.08 / 18 turns** — correct on the first pass and 2.2× cheaper |
+| The same MPPI config loaded into a live Gazebo simulation (Haiku) | **Nav2 aborts at bringup** — the configured plugin class does not exist | **Robot navigates to the goal** — `NavigateToPose` returns `SUCCEEDED` |
 | `/scan` callback executes on a physical BEST_EFFORT LiDAR (Sonnet) | **Never** — fails silently due to mismatched QoS defaults | **Yes** — connects successfully |
 | Verification before writing | **Zero** verification tools used in any baseline run | Used in **every** run |
 
