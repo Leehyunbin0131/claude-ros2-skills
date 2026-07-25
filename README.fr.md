@@ -71,8 +71,6 @@ Mesuré, pas affirmé — avec une réserve déclarée : les exécutions et la n
 | Callback `/scan` déclenché sur un vrai LiDAR BEST_EFFORT (sonnet) | **jamais** — mauvais QoS par défaut, en silence | **oui** |
 | Exécutions ayant vérifié avant d'écrire | **0 / 3** | **3 / 3** |
 
-> ⚠️ Le `21 → 0` publié précédemment ne s'est pas reproduit. Résultats mesurés et prochaines étapes dans [`evals/RESULTS.md`](./evals/RESULTS.md) et la [Roadmap](README.md#roadmap) du README anglais.
-
 Tableaux de notation complets, conditions et chaque artefact généré : [`evals/RESULTS.md`](./evals/RESULTS.md) · protocole et checklists : [`evals/README.md`](./evals/README.md) — n=1 par cellule pour l'instant ; les PRs ajoutant des transcriptions notées sont les bienvenues.
 
 <details>

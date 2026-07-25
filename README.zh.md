@@ -71,8 +71,6 @@
 | 真实 BEST_EFFORT LiDAR 上 `/scan` 回调触发 (sonnet) | **永不触发** — 错误默认 QoS，无声失败 | **正常触发** |
 | 写代码前做了验证的运行 | **0 / 3** | **3 / 3** |
 
-> ⚠️ 先前公布的 `21 → 0` 未能复现。测量结果与后续任务见 [`evals/RESULTS.md`](./evals/RESULTS.md) 及英文 README 的 [Roadmap](README.md#roadmap)。
-
 完整评分表、条件和所有生成产物：[`evals/RESULTS.md`](./evals/RESULTS.md) · 协议与检查清单：[`evals/README.md`](./evals/README.md) — 目前每格 n=1；欢迎提交附带评分记录的 PR。
 
 <details>

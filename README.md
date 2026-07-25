@@ -70,14 +70,6 @@ Measured, not claimed — with two disclosed caveats: the runs were executed and
 | `/scan` callback fires on real BEST_EFFORT LiDAR (sonnet) | **never** — wrong default QoS, silently | **yes** |
 | Runs that verified before writing | **0 / 3** | **3 / 3** |
 
-**An earlier run of this table reported `21 → 0`. It did not reproduce** — see
-[`evals/RESULTS.md`](./evals/RESULTS.md). The skills move a config that cannot
-start Nav2 to one that gets the plugin string, motion model and namespaces
-right, but they do **not** currently drive MPPI hallucinations to zero. Both
-re-runs also failed to reach `/opt/ros/jazzy/`, so they measured the fallback
-path rather than the intended one; the container re-run is item 1 of the
-[roadmap](#roadmap).
-
 Protocol and checklists: [`evals/README.md`](./evals/README.md) — n=1 per cell;
 PRs adding graded transcripts are welcome.
 

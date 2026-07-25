@@ -71,8 +71,6 @@
 | 실제 BEST_EFFORT LiDAR에서 `/scan` 콜백 동작 (sonnet) | **영원히 안 불림** — 잘못된 기본 QoS, 무증상 | **동작** |
 | 작성 전 검증을 수행한 런 | **0 / 3** | **3 / 3** |
 
-> ⚠️ 이전에 게시된 `21 → 0`은 재현되지 않았습니다. 측정 결과와 다음 작업 목록은 [`evals/RESULTS.md`](./evals/RESULTS.md)와 영문 README의 [Roadmap](README.md#roadmap)을 참고하세요.
-
 전체 채점표·조건·생성 산출물: [`evals/RESULTS.md`](./evals/RESULTS.md) · 프로토콜과 체크리스트: [`evals/README.md`](./evals/README.md) — 아직 셀당 n=1이며, 채점된 트랜스크립트를 추가하는 PR을 환영합니다.
 
 <details>

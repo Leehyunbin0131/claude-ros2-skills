@@ -71,8 +71,6 @@ Medido, no afirmado — con una salvedad declarada: las ejecuciones y la calific
 | El callback `/scan` se dispara con un LiDAR BEST_EFFORT real (sonnet) | **nunca** — QoS por defecto incorrecto, en silencio | **sí** |
 | Ejecuciones que verificaron antes de escribir | **0 / 3** | **3 / 3** |
 
-> ⚠️ El `21 → 0` publicado antes no se reprodujo. Resultados medidos y próximos pasos en [`evals/RESULTS.md`](./evals/RESULTS.md) y el [Roadmap](README.md#roadmap) del README en inglés.
-
 Tablas de calificación completas, condiciones y todos los artefactos generados: [`evals/RESULTS.md`](./evals/RESULTS.md) · protocolo y listas de verificación: [`evals/README.md`](./evals/README.md) — n=1 por celda de momento; se aceptan PRs con transcripciones calificadas.
 
 <details>

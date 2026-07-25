@@ -71,8 +71,6 @@
 | 実際の BEST_EFFORT LiDAR で `/scan` コールバックが発火 (sonnet) | **永遠に発火せず** — 誤ったデフォルト QoS、無音 | **発火する** |
 | 書く前に検証した実行 | **0 / 3** | **3 / 3** |
 
-> ⚠️ 以前掲載していた `21 → 0` は再現しませんでした。測定結果と次の作業は [`evals/RESULTS.md`](./evals/RESULTS.md) と英語 README の [Roadmap](README.md#roadmap) を参照してください。
-
 完全な採点表、条件、生成された全アーティファクト：[`evals/RESULTS.md`](./evals/RESULTS.md) · プロトコルとチェックリスト：[`evals/README.md`](./evals/README.md) — 現時点でセルあたり n=1；採点済みトランスクリプトを追加する PR を歓迎します。
 
 <details>
