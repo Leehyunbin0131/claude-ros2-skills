@@ -5,38 +5,24 @@ description: "Gazebo Harmonic simulation: ros_gz_bridge, ros_gz_sim, SDF modelin
 
 # Gazebo Simulation & ROS 2 Integration Instructions (Ubuntu 24.04 LTS)
 
-## 1. Core Principles & Distro Pairings
-- **Target OS & Distro Pairings**:
-  - **Ubuntu 24.04 LTS & ROS 2 Jazzy**: Officially paired with **Gazebo Harmonic** (`https://gazebosim.org/docs/harmonic/`).
-  - *(Legacy reference: Ubuntu 22.04 LTS & ROS 2 Humble pair with Gazebo Fortress `https://gazebosim.org/docs/fortress/`)*.
-- **Modern Gazebo Architecture**: Strictly use modern Gazebo Sim (formerly Ignition Gazebo / `gz`) and `ros_gz`. Do not mix legacy Gazebo Classic (`gazebo_ros_pkgs` / `gazebo_ros`) unless explicitly requested for older legacy systems.
-- **Zero-Hallucination Policy**: Always verify plugin system filenames (e.g., `gz-sim-diff-drive-system`), SDF tags, and `ros_gz_bridge` topic syntax against official documentation.
+## 1. Architecture Rule
 
-## 2. Official Documentation Reference Directives
-Whenever creating simulation worlds, URDF/SDF models, Gazebo sensor plugins, or `ros_gz` launch files:
+Jazzy pairs with **Gazebo Harmonic**. Use modern Gazebo Sim (`gz`, formerly Ignition) and `ros_gz` only — never mix legacy Gazebo Classic (`gazebo_ros_pkgs` / `gazebo_ros`), whose tags and plugin names look similar and do not work here.
 
-### A. Master Gazebo Documentation Portals
-- **Gazebo Sim Master Docs**: `https://gazebosim.org/docs`
-- **Gazebo Harmonic Docs (Jazzy)**: `https://gazebosim.org/docs/harmonic/`
-- **Gazebo Fortress Docs (Humble)**: `https://gazebosim.org/docs/fortress/`
-- **SDFormat Specification**: `https://sdformat.org/`
+## 2. Documentation Entry Points
 
-### B. ROS 2 & Gazebo Integration (`ros_gz`)
-- **`ros_gz` Repository & Integration Guide**: `https://github.com/gazebosim/ros_gz`
-- **`ros_gz_bridge` Topic Bridge**: `https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_bridge`
-  - *Description*: Bidirectional topic bridging between Gazebo Transport and ROS 2 topics (`/scan`, `/odom`, `/cmd_vel`, `/camera/image_raw`, `/imu`).
-  - *Bridge Syntax*: `ros2 run ros_gz_bridge parameter_bridge /scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan` or YAML bridge config files.
-- **`ros_gz_sim` Launch & Spawning**: `https://github.com/gazebosim/ros_gz/tree/ros2/ros_gz_sim`
-  - *Description*: Launching Gazebo world files (`.sdf`), spawning robot models using `ros_gz_sim create -topic robot_description` or `gz_sim.launch.py`.
+| For | Entry point |
+| :--- | :--- |
+| Gazebo Harmonic (the Jazzy pairing) | `https://gazebosim.org/docs/harmonic/` |
+| SDF tag reference | `https://sdformat.org/` |
+| `ros_gz` bridge + sim launch/spawn | `https://github.com/gazebosim/ros_gz` |
+| Nav2's Gazebo bringup walkthrough (URDF, SDF world, odom, sensors) | `https://docs.nav2.org/setup_guides/gazebo.html` |
 
-### C. Nav2 Simulation Setup Guides
-- **Nav2 Setup Guide for Gazebo**: `https://docs.nav2.org/setup_guides/gazebo.html`
-- **URDF & Robot State Publisher Setup**: `https://docs.nav2.org/setup_guides/urdf/setup_urdf.html`
-- **SDF World & Model Setup**: `https://docs.nav2.org/setup_guides/sdf/setup_sdf.html`
-- **Simulating Odometry in Gazebo**: `https://docs.nav2.org/setup_guides/odom/setup_odom_gz.html`
-  - *Description*: Differential drive plugin (`gz-sim-diff-drive-system`) setup and broadcasting `odom` -> `base_link`.
-- **Simulating Sensors in Gazebo**: `https://docs.nav2.org/setup_guides/sensors/setup_sensors_gz.html`
-  - *Description*: Configuring GPU Lidar (`gpu_lidar`), IMU (`imu`), and Depth Camera sensors in Gazebo Sim.
+**Bridge syntax** (direction char is the thing people get wrong — see the symptom table):
+```bash
+ros2 run ros_gz_bridge parameter_bridge /scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan
+```
+Spawning: `ros_gz_sim create -topic robot_description`, or `gz_sim.launch.py`. YAML bridge config files are supported for anything non-trivial.
 
 ## 3. Sensor & Motion Plugins Reference (SDF)
 
@@ -90,7 +76,7 @@ Whenever creating simulation worlds, URDF/SDF models, Gazebo sensor plugins, or 
 | IMU topic silent in sim | `gz-sim-imu-system` world plugin missing | Add the IMU system plugin to the world SDF |
 | TF extrapolation errors as soon as sim starts | `/clock` not bridged, or nodes missing `use_sim_time: true` | Bridge `/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock`; set `use_sim_time` on every node |
 | Sensor data arrives in an unknown/prefixed frame | Gazebo composes frame as `<model>/<link>/<sensor>` while URDF expects the bare link name | Set explicit `<gz_frame_id>`/frame remapping, or align `frame_id` with the URDF link |
-| Sim odometry perfect but Nav2 behaves differently on the real robot | Sim plugin uses ideal kinematics; real `wheel_radius`/friction differ | Never tune Nav2 solely in sim; re-verify on hardware with `scripts/check_odom_direction.py` |
+| Sim odometry perfect but Nav2 behaves differently on the real robot | Sim plugin uses ideal kinematics; real `wheel_radius`/friction differ | Never tune Nav2 solely in sim; re-verify on hardware with `check_odom_direction.py` (bundled in `ros2-troubleshooting`) |
 
 ## 5. Local System Verification
 Check installed Gazebo & ROS 2 bridge packages locally:

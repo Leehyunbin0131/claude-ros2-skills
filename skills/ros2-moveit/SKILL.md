@@ -5,22 +5,17 @@ description: "MoveIt 2: MoveGroup C++/Python API, IK solvers, OMPL planning, Mov
 
 # MoveIt 2 Motion Planning Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-## 1. Core Principles & Architecture
-- **Target OS & ROS Distro**: **Ubuntu 24.04 LTS & ROS 2 Jazzy Jalisco**.
-- **Manipulation Stack**: MoveIt 2 provides motion planning, inverse kinematics (IK), collision checking, 3D perception (OctoMap), and real-time arm servoing via `moveit_servo` (`MoveItServo` / `servo_node`), with path planning managed via `MoveGroupInterface`.
-- **Zero-Hallucination Policy**: Never speculate about MoveIt 2 C++ methods (`setPoseTarget`, `plan`, `execute`), planning scene monitors, or SRDF tag configurations. Verify all signatures against official MoveIt 2 documentation.
+## 1. Architecture
 
-## 2. Official Documentation Catalog
+MoveIt 2 provides motion planning, IK, collision checking, 3D perception (OctoMap), and real-time servoing via `moveit_servo` (`servo_node`); path planning goes through `MoveGroupInterface`.
 
-### A. Master Documentation Portals
-- **MoveIt 2 Main Portal**: `https://moveit.picknik.ai/main/index.html`
-- **MoveIt 2 Core Concepts**: `https://moveit.picknik.ai/main/doc/concepts/concepts.html`
-- **MoveGroup Architecture**: `https://moveit.picknik.ai/main/doc/concepts/move_group.html`
-- **Kinematics & IK Solvers**: `https://moveit.picknik.ai/main/doc/concepts/kinematics.html`
-- **Motion Planning & OMPL**: `https://moveit.picknik.ai/main/doc/concepts/motion_planning.html`
-- **Code Examples Index**: `https://moveit.picknik.ai/main/doc/examples/examples.html`
-- **MoveIt 2 C++ API Reference**: `https://moveit.picknik.ai/main/doc/api/cpp_api/api.html`
-- **MoveIt 2 Python API Reference**: `https://moveit.picknik.ai/main/doc/api/python_api/api.html`
+## 2. Documentation Entry Points
+
+| For | Entry point |
+| :--- | :--- |
+| Concepts (move_group, kinematics, motion planning) + examples | `https://moveit.picknik.ai/main/index.html` |
+| C++ API reference | `https://moveit.picknik.ai/main/doc/api/cpp_api/api.html` |
+| Python API reference | `https://moveit.picknik.ai/main/doc/api/python_api/api.html` |
 
 ## 3. Key C++ Usage Patterns
 

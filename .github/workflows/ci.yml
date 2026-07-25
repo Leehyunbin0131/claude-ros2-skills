@@ -16,9 +16,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: Compile scripts
-        run: python3 -m py_compile scripts/*.py
+        run: python3 -m py_compile skills/ros2-troubleshooting/scripts/*.py
       - name: Unit tests (pure logic, no ROS required)
-        run: python3 scripts/test_checks.py
+        run: python3 skills/ros2-troubleshooting/scripts/test_checks.py
 
   links:
     runs-on: ubuntu-latest

@@ -17,7 +17,7 @@
 
 | 스킬 | 상시 로드 라우터 | 문서 링크(CI 점검) | 로봇 그라운드트루스 체크 | Evals: 환각 파라미터 |
 | :---: | :---: | :---: | :---: | :---: |
-| **11개** | **30줄** | **101개** | **4개 스크립트** | **21 → 0** |
+| **11개** | **13줄** | **38개** | **4개 스크립트** | **21 → 0** |
 
 </div>
 
@@ -53,9 +53,9 @@
 
 | | 콘텐츠 중심 스킬 팩 | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| 지식의 위치 | 스킬 파일에 박제, **스킬당 400–1,800줄** | 공식 문서로 라우팅, **스킬당 50–120줄** |
-| 상시 로드 컨텍스트 | SKILL.md 전체 | **30줄** 라우터 |
-| Jazzy API가 바뀌면 | 스니펫이 조용히 썩음; 자기 문서 회귀 테스트를 영원히 | 썩을 표면이 링크 + 심볼 이름으로 축소 — **101개 링크**를 주간 CI가 검사(생존 여부만), 죽은 링크는 빌드 실패 |
+| 지식의 위치 | 스킬 파일에 박제, **스킬당 400–1,800줄** | 공식 문서로 라우팅, **스킬당 45–130줄** |
+| 상시 로드 컨텍스트 | SKILL.md 전체 | **13줄** 라우터 |
+| Jazzy API가 바뀌면 | 스니펫이 조용히 썩음; 자기 문서 회귀 테스트를 영원히 | 썩을 표면이 링크 + 심볼 이름으로 축소 — **38개 링크**를 주간 CI가 검사(생존 여부만), 죽은 링크는 빌드 실패 |
 | 검증 방식 | 정적 / 로그 기반 | **물리적**: IMU 중력, 밀기 테스트, 실제 하드웨어 대비 TF 마운트, DDS QoS 매칭 |
 | distro 표기 | 한 distro만 겨냥한 예제 위에 "4개 지원" | **Jazzy 단일**, 처음부터 명시 |
 
@@ -115,8 +115,8 @@ Claude Code를 재시작(또는 새 세션 시작)하면 스킬이 반영됩니�
 
 | 스킬 | 경로 | 커버리지 |
 | :--- | :--- | :--- |
-| **ros2** | `skills/ros2/SKILL.md` | 마스터 라우터 — 아래의 알맞은 도메인 스킬로 안내 |
 | **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, EKF 오도메트리, QoS 프로파일, 파라미터 |
+| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`, CMakeLists/setup.py 배선, colcon 빌드 및 소싱, 커스텀 인터페이스 |
 | **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2 (AMCL, 코스트맵, MPPI/Smac), SLAM Toolbox, RTAB-Map, Isaac ROS |
 | **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic, ros_gz_bridge, ros_gz_sim, SDFormat 모델링 |
 | **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control 하드웨어 추상화, 컨트롤러 매니저, URDF 태그 |
@@ -129,7 +129,7 @@ Claude Code를 재시작(또는 새 세션 시작)하면 스킬이 반영됩니�
 
 ## 검증 스크립트
 
-`scripts/`는 물리적 확인을 실행 가능한 pass/fail 사실로 바꿉니다 (소싱된 ROS 2 환경 필요; 종료 코드 0 = PASS, 1 = FAIL, 2 = 데이터 없음):
+`ros2-troubleshooting` 스킬 안에 번들되어(`skills/ros2-troubleshooting/scripts/`) 어떤 설치 경로로도 함께 따라옵니다. 물리적 확인을 실행 가능한 pass/fail 사실로 바꿉니다 (소싱된 ROS 2 환경 필요; 종료 코드 0 = PASS, 1 = FAIL, 2 = 데이터 없음):
 
 | 스크립트 | 검증 내용 |
 | :--- | :--- |
@@ -138,13 +138,13 @@ Claude Code를 재시작(또는 새 세션 시작)하면 스킬이 반영됩니�
 | `check_tf_tree.py` | `map→odom→base_link` 해석 확인; 각 센서 마운트를 RPY 도 단위로 출력하고 ~180° 선언을 표시해 실제 장착과 비교하게 합니다. |
 | `check_qos_compat.py` | 토픽의 모든 퍼블리셔/서브스크라이버 쌍이 DDS 매칭 규칙상 QoS 호환인지 확인. "토픽은 30 Hz인데 내 콜백은 안 불림"이라는 무증상 실패(BEST_EFFORT pub vs RELIABLE sub, durability/deadline/liveliness 불일치)를 잡아냅니다. |
 
-순수 판정 로직은 ROS 없이 단위 테스트되며(`python3 scripts/test_checks.py`) 모든 푸시마다 CI에서 실행됩니다.
+순수 판정 로직은 ROS 없이 단위 테스트되며(`python3 skills/ros2-troubleshooting/scripts/test_checks.py`) 모든 푸시마다 CI에서 실행됩니다.
 
 ## 동작 방식
 
 ```mermaid
 flowchart LR
-    A["요청"] --> B["CLAUDE.md<br/>30줄 라우터,<br/>API 세부사항 없음"]
+    A["요청"] --> B["CLAUDE.md<br/>13줄 라우터,<br/>API 세부사항 없음"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>문서 링크 +<br/>검증된 심볼 이름"]
     C --> D["공식 Jazzy 문서<br/>또는 /opt/ros/jazzy/"]
     D --> E["코드"]

@@ -5,20 +5,24 @@ description: "Testing: launch_testing, gtest/pytest, rosbag2 C++/Python APIs, ro
 
 # ROS 2 Testing, Rosbag2 & Tracing Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-## 1. Core Principles & Architecture
-- **Target OS & ROS Distro**: **Ubuntu 24.04 LTS & ROS 2 Jazzy Jalisco**.
-- **Quality & Diagnostics Stack**: Integration testing via `launch_testing`, unit testing via `ament_cmake_gtest` / `pytest`, data recording/playback programmatically via `rosbag2` C++/Python APIs, and performance profiling via `ros2trace`.
-- **Zero-Hallucination Policy**: Never speculate about `rosbag2` C++/Python API methods (`open`, `write`, `create_topic`) or `launch_testing` assertions. Verify all signatures against official ROS 2 Jazzy documentation.
+## 1. Documentation Entry Points
 
-## 2. Official Documentation Catalog
+| For | Entry point |
+| :--- | :--- |
+| Testing tutorials (CLI, gtest, pytest, integration) | `https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Testing/` |
+| `launch_testing` / `rosbag2_cpp` / `rosbag2_py` API | `https://docs.ros.org/en/jazzy/p/<package>/` |
+| rosbag2 source of truth | `https://github.com/ros2/rosbag2` |
 
-### A. Master Documentation & Tutorials
-- **Writing Integration Tests with `launch_testing`**: `https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Testing/Integration.html`
-- **`launch_testing` API Docs**: `https://docs.ros.org/en/jazzy/p/launch_testing/`
-- **`rosbag2_cpp` API Docs**: `https://docs.ros.org/en/jazzy/p/rosbag2_cpp/`
-- **`rosbag2_py` API Docs**: `https://docs.ros.org/en/jazzy/p/rosbag2_py/`
-- **ROS 2 Tracing Guide (`ros2_tracing`)**: `https://docs.ros.org/en/jazzy/Tutorials/Advanced/ROS2-Tracing-Trace-and-Analyze.html`
-- **Rosbag2 Official Repository**: `https://github.com/ros2/rosbag2`
+## 2. Running Tests
+
+```bash
+colcon test --packages-select my_package
+colcon test-result --all --verbose     # without --verbose you don't see WHICH case failed
+```
+
+`colcon test` reports a summary; the failing assertion lives in `colcon test-result`.
+A test that was never registered in the build is indistinguishable from a passing
+one in that summary — always confirm the expected test count, not just the exit code.
 
 ## 3. Key Concepts & Code Patterns
 
@@ -57,3 +61,18 @@ class TestShutdown(unittest.TestCase):
     def test_exit_code(self, proc_info):
         launch_testing.asserts.assertExitCodes(proc_info)
 ```
+
+`ReadyToTest()` marks the boundary: everything before it is launch setup, the active
+tests run after it, and `@launch_testing.post_shutdown_test()` classes run once the
+processes have exited.
+
+## 4. Symptom -> Root Cause -> Action
+
+| Symptom | Likely root cause | Action |
+| :--- | :--- | :--- |
+| `colcon test` passes but nothing actually ran | Tests never registered with the build (no `ament_add_gtest`/pytest hook, or not inside `if(BUILD_TESTING)`) | `colcon test-result --all` and check the test count is what you expect, not just the exit code |
+| Test fails but the output says nothing useful | Assertion detail is only in the result files | `colcon test-result --all --verbose` |
+| `launch_testing` test hangs forever | `ReadyToTest()` never reached — a launch action blocks, or a required node never starts | Run the launch file standalone first; confirm every node in the description actually comes up |
+| Tests pass locally, fail in CI | Test depends on a node/topic from a previously sourced workspace, or on wall-clock timing | Run in a clean shell; replace sleeps with explicit wait-for-message/service conditions |
+| Node under test never receives the test publisher's messages | QoS mismatch between test fixture and node — same silent DDS failure as production | Match the node's QoS in the fixture; see `ros2-troubleshooting` (`check_qos_compat.py`) |
+| Rosbag2 playback in a test produces no callbacks | Bag recorded with `use_sim_time` semantics but the test runs on wall clock, or `/clock` not published during playback | Align `use_sim_time` across the test nodes; play with `--clock` when the bag drives time |

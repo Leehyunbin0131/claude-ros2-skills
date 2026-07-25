@@ -5,17 +5,16 @@ description: "SROS2: ros2 security CLI, PKI keystore, enclaves, access-control X
 
 # ROS 2 Security (SROS2) Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-## 1. Core Principles & Architecture
-- **Target OS & ROS Distro**: **Ubuntu 24.04 LTS & ROS 2 Jazzy Jalisco**.
-- **Cyber-Physical Security**: SROS2 integrates OMG DDS-Security standards (Fast DDS, Cyclone DDS) to enforce node authentication (X.509 PKI), access control (Governance/Permissions XML), and topic/service encryption (AES-GCM-GMAC 128/256-bit).
-- **Zero-Hallucination Policy**: Always verify `ros2 security` CLI subcommands, environment variable names (`ROS_SECURITY_ENABLE`, `ROS_SECURITY_STRATEGY`, `ROS_SECURITY_KEYSTORE`), and policy XML tags against official documentation.
+## 1. Architecture
 
-## 2. Official Documentation Catalog
+SROS2 applies OMG DDS-Security (Fast DDS, Cyclone DDS) for node authentication (X.509 PKI), access control (Governance/Permissions XML), and topic/service encryption (AES-GCM-GMAC 128/256).
 
-### A. Master Documentation & Tutorials
-- **ROS 2 Security Concepts**: `https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Security.html`
-- **Introducing ros2-security Tutorial**: `https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Introducing-ros2-security.html`
-- **Setting Access Control Policies**: `https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Access-Controls.html`
+## 2. Documentation Entry Points
+
+- Concepts: `https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Security.html`
+- Tutorials (setup + access control): `https://docs.ros.org/en/jazzy/Tutorials/Advanced/Security/Introducing-ros2-security.html`
+
+Verify `ros2 security` subcommands and the env vars `ROS_SECURITY_ENABLE` / `ROS_SECURITY_STRATEGY` / `ROS_SECURITY_KEYSTORE` there before use.
 
 ## 3. Key Concepts & Workflows
 

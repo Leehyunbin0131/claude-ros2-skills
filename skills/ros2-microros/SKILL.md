@@ -5,19 +5,17 @@ description: "micro-ROS: agent, rclc client API, micro_ros_setup, custom transpo
 
 # micro-ROS Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-## 1. Core Principles & Architecture
-- **Target OS & ROS Distro**: **Ubuntu 24.04 LTS & ROS 2 Jazzy Jalisco**.
-- **Embedded Integration**: micro-ROS connects resource-constrained microcontrollers (STM32, ESP32, FreeRTOS, Zephyr) to the ROS 2 DDS graph via `micro_ros_agent` and `rclc` client library using Micro XRCE-DDS protocol.
-- **Zero Dynamic Allocation**: Uses compile-time static memory pools (`rmw_microxrcedds`) to guarantee zero heap allocation during steady-state execution when dynamic allocation fallback (`RMW_UXRCE_ALLOW_DYNAMIC_ALLOCATIONS=OFF`) is configured.
+## 1. Architecture
 
-## 2. Official Documentation Catalog
+micro-ROS connects constrained MCUs (STM32, ESP32, FreeRTOS, Zephyr) to the ROS 2 DDS graph via `micro_ros_agent` + the `rclc` client library over Micro XRCE-DDS. Static memory pools (`rmw_microxrcedds`) give zero steady-state heap allocation when `RMW_UXRCE_ALLOW_DYNAMIC_ALLOCATIONS=OFF`.
 
-### A. Master Documentation & Repositories
-- **Official micro-ROS Portal**: `https://micro.ros.org/`
-- **micro-ROS GitHub Organization**: `https://github.com/micro-ROS`
-- **micro-ROS Agent Repository**: `https://github.com/micro-ROS/micro-ros-agent`
-- **micro_ros_setup Build System**: `https://github.com/micro-ROS/micro_ros_setup`
-- **rclc Client Library**: `https://github.com/ros2/rclc`
+## 2. Documentation Entry Points
+
+| For | Entry point |
+| :--- | :--- |
+| Tutorials, supported boards, transports | `https://micro.ros.org/` |
+| Firmware build system (`micro_ros_setup`) | `https://github.com/micro-ROS/micro_ros_setup` |
+| `rclc` executor / node API source | `https://github.com/ros2/rclc` |
 
 ## 3. Key Concepts & Patterns
 

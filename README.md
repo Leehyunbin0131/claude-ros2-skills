@@ -15,7 +15,7 @@ Anti-hallucination reference skills — every skill routes to official docs inst
 
 | Skills | Always-loaded router | Doc links (CI-checked) | Robot ground-truth checks | Evals: hallucinated params |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **30 lines** | **101** | **4 scripts** | **21 → 0** |
+| **11** | **13 lines** | **38** | **4 scripts** | **21 → 0** |
 
 </div>
 
@@ -51,9 +51,9 @@ Most robotics skill packs bake API knowledge into the skill files. That works un
 
 | | Content-heavy skill packs | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Knowledge lives | baked into skill files, **400–1,800 lines/skill** | routed to official docs, **50–120 lines/skill** |
-| Always-loaded context | full SKILL.md | **30-line** router |
-| When a Jazzy API changes | snippets rot silently; needs doc regression tests forever | rot surface shrinks to links + symbol names — **101 links** CI-checked weekly (liveness only), dead link fails the build |
+| Knowledge lives | baked into skill files, **400–1,800 lines/skill** | routed to official docs, **45–130 lines/skill** |
+| Always-loaded context | full SKILL.md | **13-line** router |
+| When a Jazzy API changes | snippets rot silently; needs doc regression tests forever | rot surface shrinks to entry-point links + symbol names — **38 links** CI-checked weekly (liveness only), dead link fails the build |
 | Verification | static / log-based | **physical**: IMU gravity, push test, TF mounts vs. real hardware, DDS QoS matching |
 | Distro claim | "covers 4 distros" over examples targeting one | **Jazzy only**, stated up front |
 
@@ -113,8 +113,8 @@ Restart Claude Code (or start a new session) to pick up the skills.
 
 | Skill | Path | Coverage |
 | :--- | :--- | :--- |
-| **ros2** | `skills/ros2/SKILL.md` | Master router — points to the right domain skill below |
 | **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, EKF odometry, QoS profiles, parameters |
+| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`, CMakeLists/setup.py wiring, colcon build & source, custom interfaces |
 | **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2 (AMCL, costmaps, MPPI/Smac), SLAM Toolbox, RTAB-Map, Isaac ROS |
 | **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic, ros_gz_bridge, ros_gz_sim, SDFormat modeling |
 | **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control hardware abstraction, controller manager, URDF tags |
@@ -127,7 +127,7 @@ Restart Claude Code (or start a new session) to pick up the skills.
 
 ## Verification scripts
 
-`scripts/` turns the physical checks into runnable pass/fail facts (needs a sourced ROS 2 env; each exits 0 = PASS, 1 = FAIL, 2 = no data):
+Bundled inside the `ros2-troubleshooting` skill (`skills/ros2-troubleshooting/scripts/`), so they travel with any install. These turn the physical checks into runnable pass/fail facts (needs a sourced ROS 2 env; each exits 0 = PASS, 1 = FAIL, 2 = no data):
 
 | Script | Verifies |
 | :--- | :--- |
@@ -136,13 +136,13 @@ Restart Claude Code (or start a new session) to pick up the skills.
 | `check_tf_tree.py` | `map→odom→base_link` resolves; prints each sensor mount as RPY degrees and flags ~180° declarations to compare against the physical mounting. |
 | `check_qos_compat.py` | Every publisher/subscriber pair on a topic is QoS-compatible per DDS matching rules. Catches the silent "topic shows 30 Hz but my callback never fires" failure (BEST_EFFORT pub vs RELIABLE sub, and durability/deadline/liveliness mismatches). |
 
-The pure decision logic is unit-tested without ROS (`python3 scripts/test_checks.py`) and runs in CI on every push.
+The pure decision logic is unit-tested without ROS (`python3 skills/ros2-troubleshooting/scripts/test_checks.py`) and runs in CI on every push.
 
 ## How it works
 
 ```mermaid
 flowchart LR
-    A["your request"] --> B["CLAUDE.md<br/>30-line router,<br/>no API details"]
+    A["your request"] --> B["CLAUDE.md<br/>13-line protocol,<br/>no API details"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>doc links +<br/>verified symbol names"]
     C --> D["official Jazzy docs<br/>or /opt/ros/jazzy/"]
     D --> E["code"]

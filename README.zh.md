@@ -17,7 +17,7 @@
 
 | 技能 | 常驻路由器 | 文档链接（CI 检查） | 机器人地面真值检查 | 评估：幻觉参数 |
 | :---: | :---: | :---: | :---: | :---: |
-| **11 个** | **30 行** | **101 个** | **4 个脚本** | **21 → 0** |
+| **11 个** | **13 行** | **38 个** | **4 个脚本** | **21 → 0** |
 
 </div>
 
@@ -53,9 +53,9 @@
 
 | | 内容密集型技能包 | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| 知识所在 | 固化在技能文件中，**每技能 400–1,800 行** | 路由到官方文档，**每技能 50–120 行** |
-| 常驻上下文 | 完整 SKILL.md | **30 行**路由器 |
-| Jazzy API 变更时 | 片段悄悄腐烂；需要永远做文档回归测试 | 腐烂面缩小为链接 + 符号名 — **101 个链接**每周 CI 检查（仅存活性），死链即构建失败 |
+| 知识所在 | 固化在技能文件中，**每技能 400–1,800 行** | 路由到官方文档，**每技能 45–130 行** |
+| 常驻上下文 | 完整 SKILL.md | **13 行**路由器 |
+| Jazzy API 变更时 | 片段悄悄腐烂；需要永远做文档回归测试 | 腐烂面缩小为链接 + 符号名 — **38 个链接**每周 CI 检查（仅存活性），死链即构建失败 |
 | 验证方式 | 静态 / 基于日志 | **物理层面**：IMU 重力、推动测试、TF 安装 vs 真实硬件、DDS QoS 匹配 |
 | 发行版声明 | 示例只针对一个却标注"支持 4 个" | **仅 Jazzy**，开门见山 |
 
@@ -115,8 +115,8 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 
 | 技能 | 路径 | 覆盖范围 |
 | :--- | :--- | :--- |
-| **ros2** | `skills/ros2/SKILL.md` | 主路由器 — 指向下方正确的领域技能 |
 | **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp、rclpy、TF2、EKF 里程计、QoS 配置、参数 |
+| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`、CMakeLists/setup.py 接线、colcon 构建与 source、自定义接口 |
 | **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2（AMCL、代价地图、MPPI/Smac）、SLAM Toolbox、RTAB-Map、Isaac ROS |
 | **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic、ros_gz_bridge、ros_gz_sim、SDFormat 建模 |
 | **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control 硬件抽象、控制器管理器、URDF 标签 |
@@ -129,7 +129,7 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 
 ## 验证脚本
 
-`scripts/` 把物理检查变成可运行的通过/失败事实（需要已 source 的 ROS 2 环境；退出码 0 = PASS，1 = FAIL，2 = 无数据）：
+这些脚本捆绑在 `ros2-troubleshooting` 技能内（`skills/ros2-troubleshooting/scripts/`），因此随任何安装方式一同分发。它们把物理检查变成可运行的通过/失败事实（需要已 source 的 ROS 2 环境；退出码 0 = PASS，1 = FAIL，2 = 无数据）：
 
 | 脚本 | 验证内容 |
 | :--- | :--- |
@@ -138,13 +138,13 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 | `check_tf_tree.py` | 确认 `map→odom→base_link` 可解析；以 RPY 角度打印每个传感器安装并标记约 180° 的声明，以便与物理安装对比。 |
 | `check_qos_compat.py` | 检查话题上每对发布者/订阅者是否符合 DDS 匹配规则的 QoS 兼容。捕捉"话题显示 30 Hz 但我的回调从不触发"的无声失败（BEST_EFFORT 发布 vs RELIABLE 订阅，以及 durability/deadline/liveliness 不匹配）。 |
 
-纯判定逻辑无需 ROS 即可单元测试（`python3 scripts/test_checks.py`），并在每次推送时于 CI 中运行。
+纯判定逻辑无需 ROS 即可单元测试（`python3 skills/ros2-troubleshooting/scripts/test_checks.py`），并在每次推送时于 CI 中运行。
 
 ## 工作原理
 
 ```mermaid
 flowchart LR
-    A["你的请求"] --> B["CLAUDE.md<br/>30 行路由器，<br/>无 API 细节"]
+    A["你的请求"] --> B["CLAUDE.md<br/>13 行路由器，<br/>无 API 细节"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>文档链接 +<br/>已验证的符号名"]
     C --> D["官方 Jazzy 文档<br/>或 /opt/ros/jazzy/"]
     D --> E["代码"]

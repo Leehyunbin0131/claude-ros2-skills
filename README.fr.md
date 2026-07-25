@@ -17,7 +17,7 @@ Skills de référence anti-hallucination — chaque skill route vers la document
 
 | Skills | Routeur toujours chargé | Liens doc (vérifiés par CI) | Vérifications physiques du robot | Évals : paramètres hallucinés |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **30 lignes** | **101** | **4 scripts** | **21 → 0** |
+| **11** | **13 lignes** | **38** | **4 scripts** | **21 → 0** |
 
 </div>
 
@@ -53,9 +53,9 @@ La plupart des packs de skills robotiques figent la connaissance des API dans le
 
 | | Packs de skills riches en contenu | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Où vit la connaissance | figée dans les fichiers de skill, **400–1 800 lignes/skill** | routée vers la doc officielle, **50–120 lignes/skill** |
-| Contexte toujours chargé | SKILL.md complet | routeur de **30 lignes** |
-| Quand une API Jazzy change | les snippets pourrissent en silence ; tests de régression de la doc pour toujours | la surface de pourrissement se réduit aux liens + noms de symboles — **101 liens** vérifiés chaque semaine par CI (vitalité seulement), lien mort = build cassé |
+| Où vit la connaissance | figée dans les fichiers de skill, **400–1 800 lignes/skill** | routée vers la doc officielle, **45–130 lignes/skill** |
+| Contexte toujours chargé | SKILL.md complet | routeur de **13 lignes** |
+| Quand une API Jazzy change | les snippets pourrissent en silence ; tests de régression de la doc pour toujours | la surface de pourrissement se réduit aux liens + noms de symboles — **38 liens** vérifiés chaque semaine par CI (vitalité seulement), lien mort = build cassé |
 | Vérification | statique / basée sur les logs | **physique** : gravité IMU, test de poussée, montages TF vs matériel réel, matching QoS DDS |
 | Annonce de distribution | « couvre 4 distributions » sur des exemples qui n'en visent qu'une | **Jazzy uniquement**, annoncé d'emblée |
 
@@ -115,8 +115,8 @@ Redémarrez Claude Code (ou démarrez une nouvelle session) pour charger les ski
 
 | Skill | Chemin | Couverture |
 | :--- | :--- | :--- |
-| **ros2** | `skills/ros2/SKILL.md` | Routeur maître — pointe vers le bon skill de domaine ci-dessous |
 | **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, odométrie EKF, profils QoS, paramètres |
+| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`, câblage CMakeLists/setup.py, colcon build et source, interfaces personnalisées |
 | **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2 (AMCL, costmaps, MPPI/Smac), SLAM Toolbox, RTAB-Map, Isaac ROS |
 | **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic, ros_gz_bridge, ros_gz_sim, modélisation SDFormat |
 | **ros2-control** | `skills/ros2-control/SKILL.md` | Abstraction matérielle ros2_control, controller manager, balises URDF |
@@ -129,7 +129,7 @@ Redémarrez Claude Code (ou démarrez une nouvelle session) pour charger les ski
 
 ## Scripts de vérification
 
-`scripts/` transforme les vérifications physiques en faits exécutables pass/fail (nécessite un environnement ROS 2 sourcé ; chacun sort avec 0 = PASS, 1 = FAIL, 2 = pas de données) :
+Embarqués dans le skill `ros2-troubleshooting` (`skills/ros2-troubleshooting/scripts/`), ils suivent donc n'importe quelle installation. Ils transforment les vérifications physiques en faits exécutables pass/fail (nécessite un environnement ROS 2 sourcé ; chacun sort avec 0 = PASS, 1 = FAIL, 2 = pas de données) :
 
 | Script | Vérifie |
 | :--- | :--- |
@@ -138,13 +138,13 @@ Redémarrez Claude Code (ou démarrez une nouvelle session) pour charger les ski
 | `check_tf_tree.py` | `map→odom→base_link` se résout ; imprime chaque montage de capteur en degrés RPY et signale les déclarations à ~180° pour comparaison avec le montage physique. |
 | `check_qos_compat.py` | Chaque paire éditeur/souscripteur d'un topic est compatible QoS selon les règles de matching DDS. Détecte l'échec silencieux « le topic affiche 30 Hz mais mon callback ne se déclenche jamais » (pub BEST_EFFORT vs sub RELIABLE, et désaccords durability/deadline/liveliness). |
 
-La logique de décision pure est testée unitairement sans ROS (`python3 scripts/test_checks.py`) et tourne en CI à chaque push.
+La logique de décision pure est testée unitairement sans ROS (`python3 skills/ros2-troubleshooting/scripts/test_checks.py`) et tourne en CI à chaque push.
 
 ## Fonctionnement
 
 ```mermaid
 flowchart LR
-    A["votre requête"] --> B["CLAUDE.md<br/>routeur 30 lignes,<br/>pas de détails API"]
+    A["votre requête"] --> B["CLAUDE.md<br/>routeur 13 lignes,<br/>pas de détails API"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>liens docs +<br/>symboles vérifiés"]
     C --> D["docs officielles Jazzy<br/>ou /opt/ros/jazzy/"]
     D --> E["code"]

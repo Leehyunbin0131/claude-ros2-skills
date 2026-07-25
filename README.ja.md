@@ -17,7 +17,7 @@
 
 | スキル | 常時ロードルーター | ドキュメントリンク（CI チェック） | ロボット実機チェック | 評価：ハルシネーションパラメータ |
 | :---: | :---: | :---: | :---: | :---: |
-| **11 個** | **30 行** | **101 個** | **4 スクリプト** | **21 → 0** |
+| **11 個** | **13 行** | **38 個** | **4 スクリプト** | **21 → 0** |
 
 </div>
 
@@ -53,9 +53,9 @@
 
 | | コンテンツ重厚型スキルパック | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| 知識の所在 | スキルファイルに焼き込み、**スキルあたり 400–1,800 行** | 公式ドキュメントへルーティング、**スキルあたり 50–120 行** |
-| 常時ロードコンテキスト | SKILL.md 全体 | **30 行**のルーター |
-| Jazzy API が変わったら | スニペットが静かに腐る；自分のドキュメントを永遠にリグレッションテスト | 腐る表面がリンク + シンボル名に縮小 — **101 リンク**を週次 CI が検査（生存確認のみ）、デッドリンクはビルド失敗 |
+| 知識の所在 | スキルファイルに焼き込み、**スキルあたり 400–1,800 行** | 公式ドキュメントへルーティング、**スキルあたり 45–130 行** |
+| 常時ロードコンテキスト | SKILL.md 全体 | **13 行**のルーター |
+| Jazzy API が変わったら | スニペットが静かに腐る；自分のドキュメントを永遠にリグレッションテスト | 腐る表面がリンク + シンボル名に縮小 — **38 リンク**を週次 CI が検査（生存確認のみ）、デッドリンクはビルド失敗 |
 | 検証方式 | 静的 / ログベース | **物理的**：IMU 重力、押しテスト、実機と TF マウントの照合、DDS QoS マッチング |
 | ディストリビューション表記 | 1つだけを対象にした例の上に「4つ対応」 | **Jazzy のみ**、最初から明記 |
 
@@ -115,8 +115,8 @@ Claude Code を再起動（または新しいセッションを開始）する�
 
 | スキル | パス | カバレッジ |
 | :--- | :--- | :--- |
-| **ros2** | `skills/ros2/SKILL.md` | マスタールーター — 下の適切なドメインスキルへ誘導 |
 | **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp、rclpy、TF2、EKF オドメトリ、QoS プロファイル、パラメータ |
+| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`、CMakeLists/setup.py の配線、colcon ビルドと source、カスタムインターフェース |
 | **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2（AMCL、コストマップ、MPPI/Smac）、SLAM Toolbox、RTAB-Map、Isaac ROS |
 | **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic、ros_gz_bridge、ros_gz_sim、SDFormat モデリング |
 | **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control ハードウェア抽象化、コントローラーマネージャ、URDF タグ |
@@ -129,7 +129,7 @@ Claude Code を再起動（または新しいセッションを開始）する�
 
 ## 検証スクリプト
 
-`scripts/` は物理チェックを実行可能な pass/fail の事実に変えます（source 済み ROS 2 環境が必要；終了コード 0 = PASS、1 = FAIL、2 = データなし）：
+`ros2-troubleshooting` スキル内（`skills/ros2-troubleshooting/scripts/`）に同梱され、どのインストール方法でも一緒に配布されます。これらは物理チェックを実行可能な pass/fail の事実に変えます（source 済み ROS 2 環境が必要；終了コード 0 = PASS、1 = FAIL、2 = データなし）：
 
 | スクリプト | 検証内容 |
 | :--- | :--- |
@@ -138,13 +138,13 @@ Claude Code を再起動（または新しいセッションを開始）する�
 | `check_tf_tree.py` | `map→odom→base_link` の解決を確認；各センサーマウントを RPY 度で出力し、約 180° の宣言をフラグして物理的な取り付けと比較。 |
 | `check_qos_compat.py` | トピック上のすべてのパブリッシャ/サブスクライバのペアが DDS マッチングルール上 QoS 互換かを確認。「トピックは 30 Hz なのにコールバックが発火しない」という無音の失敗（BEST_EFFORT pub vs RELIABLE sub、durability/deadline/liveliness の不一致）を捕捉。 |
 
-純粋な判定ロジックは ROS なしでユニットテストされ（`python3 scripts/test_checks.py`）、プッシュのたびに CI で実行されます。
+純粋な判定ロジックは ROS なしでユニットテストされ（`python3 skills/ros2-troubleshooting/scripts/test_checks.py`）、プッシュのたびに CI で実行されます。
 
 ## 仕組み
 
 ```mermaid
 flowchart LR
-    A["リクエスト"] --> B["CLAUDE.md<br/>30行ルーター、<br/>API詳細なし"]
+    A["リクエスト"] --> B["CLAUDE.md<br/>13行ルーター、<br/>API詳細なし"]
     B --> C["skills/&lt;name&gt;/SKILL.md<br/>ドキュメントリンク +<br/>検証済みシンボル名"]
     C --> D["公式 Jazzy ドキュメント<br/>または /opt/ros/jazzy/"]
     D --> E["コード"]

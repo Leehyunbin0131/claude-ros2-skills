@@ -13,12 +13,18 @@ description: "Troubleshooting: REP 103/105 ground-truth checks, TF/IMU/LiDAR mis
   - `+Z`: Always points **Up**.
   - `+Yaw`: Counter-clockwise rotation (turning left).
 
-## 1a. Runnable Ground-Truth Checks (`scripts/`)
-Run these before manual diagnosis — they turn the physical checks below into pass/fail facts (source ROS 2 first):
-- `python3 scripts/check_imu_gravity.py [--topic /imu/data]` — robot at rest: gravity must be ~+9.81 on +Z (REP 103). Catches flipped/rotated IMU mounts.
-- `python3 scripts/check_odom_direction.py [--topic /odom]` — push the robot forward ~1 m; odometry displacement must be positive along heading. Catches inverted motors/encoders/TF.
-- `python3 scripts/check_tf_tree.py --sensors laser_frame,imu_link` — verifies `map->odom->base_link` resolves and prints each sensor mount as RPY degrees to compare against the physical mounting. Flags ~180 deg declarations.
-- `python3 scripts/check_qos_compat.py --topic /scan` — checks every publisher/subscriber pair on a topic for DDS QoS incompatibility. Catches the silent "topic publishes at 30 Hz but my subscriber receives nothing" case (BEST_EFFORT pub vs RELIABLE sub, VOLATILE pub vs TRANSIENT_LOCAL sub).
+## 1a. Runnable Ground-Truth Checks
+
+These ship **next to this SKILL.md in `scripts/`** — resolve the path from this
+skill's own directory, not the user's CWD (plugin install:
+`${CLAUDE_PLUGIN_ROOT}/skills/ros2-troubleshooting/scripts/`). Source ROS 2
+first. Exit code 0 = PASS, 1 = FAIL, 2 = no data.
+
+Run these before manual diagnosis — they turn the physical checks below into pass/fail facts:
+- `check_imu_gravity.py [--topic /imu/data]` — robot at rest: gravity must be ~+9.81 on +Z (REP 103). Catches flipped/rotated IMU mounts.
+- `check_odom_direction.py [--topic /odom]` — push the robot forward ~1 m; odometry displacement must be positive along heading. Catches inverted motors/encoders/TF.
+- `check_tf_tree.py --sensors laser_frame,imu_link` — verifies `map->odom->base_link` resolves and prints each sensor mount as RPY degrees to compare against the physical mounting. Flags ~180 deg declarations.
+- `check_qos_compat.py --topic /scan` — checks every publisher/subscriber pair on a topic for DDS QoS incompatibility. Catches the silent "topic publishes at 30 Hz but my subscriber receives nothing" case (BEST_EFFORT pub vs RELIABLE sub, VOLATILE pub vs TRANSIENT_LOCAL sub).
 
 ## 2. Physical Sensor & Motion Misalignment Diagnosis
 

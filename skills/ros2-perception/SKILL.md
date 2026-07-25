@@ -5,21 +5,13 @@ description: "Perception: image_transport, cv_bridge, vision_msgs, depth_image_p
 
 # ROS 2 Perception & Computer Vision Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-## 1. Core Principles & Architecture
-- **Target OS & ROS Distro**: **Ubuntu 24.04 LTS & ROS 2 Jazzy Jalisco**.
-- **Perception Pipeline**: Handles image streams, OpenCV conversions (`cv_bridge`), 2D/3D object detections (`vision_msgs`), depth image processing (`depth_image_proc`), LiDAR scan projection (`laser_geometry`), 3D-to-2D scan conversion (`pointcloud_to_laserscan`), and Point Cloud Library processing (`pcl_ros`).
-- **Zero-Hallucination Policy**: Always verify C++ and Python class names, message fields, and plugin encodings against official ROS 2 Jazzy documentation.
+## 1. Documentation Entry Points
 
-## 2. Official Documentation Catalog
+Any Jazzy package's API docs live at **`https://docs.ros.org/en/jazzy/p/<package>/`** — build the URL from the package name rather than looking one up.
 
-### A. Master Documentation & Package Indices
-- **image_transport Package**: `https://docs.ros.org/en/jazzy/p/image_transport/`
-- **cv_bridge Package**: `https://docs.ros.org/en/jazzy/p/cv_bridge/`
-- **vision_msgs Package**: `https://docs.ros.org/en/jazzy/p/vision_msgs/`
-- **depth_image_proc Package**: `https://docs.ros.org/en/jazzy/p/depth_image_proc/`
-- **pointcloud_to_laserscan Package**: `https://docs.ros.org/en/jazzy/p/pointcloud_to_laserscan/`
-- **laser_geometry Package**: `https://index.ros.org/p/laser_geometry/`
-- **pcl_ros Package**: `https://docs.ros.org/en/jazzy/p/pcl_ros/`
+Packages in this domain: `image_transport` (transport plugins, compressed), `cv_bridge` (OpenCV conversion), `vision_msgs` (2D/3D detections), `depth_image_proc` (depth→cloud, registration), `pointcloud_to_laserscan`, `laser_geometry` (scan projection), `pcl_ros` (PCL bridge).
+
+Verify message field names against the installation itself: `ros2 interface show sensor_msgs/msg/Image`.
 
 ## 3. Key Concepts & Patterns
 

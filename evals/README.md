@@ -8,19 +8,34 @@ welcome.
 
 ## Protocol
 
-1. `mkdir baseline && cd baseline && claude` → paste the task prompt. Save the
-   transcript.
+1. `mkdir baseline && cd baseline` → run the task prompt headlessly, capturing cost:
+   ```bash
+   claude -p "<task prompt>" --output-format json > result.json
+   ```
+   The result object carries token usage and `total_cost_usd` alongside the reply.
+   Use `--output-format stream-json` when you also need the tool calls (which docs
+   the agent actually fetched) rather than only the final message.
 2. `mkdir with-skills`, install the skills + `CLAUDE.md` there
-   (see [Quickstart](../README.md#quickstart)), `claude` → paste the same
-   prompt. Save the transcript.
+   (see [Quickstart](../README.md#quickstart)), run the same prompt the same way.
 3. Grade both with the task's checklist. Every symbol (class, method, message
    field, parameter) the agent wrote must be verified against
    `/opt/ros/jazzy/` (`ros2 interface show`, `python3 -c "import ..."`) or the
    linked Jazzy docs — a symbol that doesn't exist there counts as a
    hallucination regardless of how plausible it looks.
 
-Score per task: `hallucinated symbols (count)`, `checklist items met (n/N)`,
-`did the agent verify before writing (yes/no)`.
+Score per task:
+
+| Metric | Why it's here |
+| :--- | :--- |
+| hallucinated symbols (count) | the failure the skills exist to prevent |
+| checklist items met (n/N) | output quality |
+| verified before writing (yes/no) | process, not luck |
+| **tokens in / out, `total_cost_usd`** | a skill that buys +2% quality for +5k tokens is a bad trade — without this number, "should this content stay?" is opinion |
+
+**Cost is a first-class result.** Report it in both conditions even when quality
+ties: the with-skills run paying for doc fetches is the honest price of
+verification, and a change that grows it without moving the other columns should
+be reverted.
 
 ## Task 1 — sensor subscription (`ros2-core`)
 
@@ -69,3 +84,22 @@ Score per task: `hallucinated symbols (count)`, `checklist items met (n/N)`,
 | Every parameter name exists in Jazzy MPPI docs (critics list, `motion_model`, etc.) | https://docs.nav2.org/configuration/packages/configuring-mppic.html |
 | No Humble/Iron-era leftovers or renamed params | same page |
 | `motion_model` matches diff-drive (`DiffDrive`) | same page |
+
+## Task 5 — build wiring, end to end (`ros2-package`)
+
+The only task here with a **binary, runtime** outcome. Run it inside a container
+that has Jazzy installed (`ros:jazzy`), so the agent can actually build and run.
+
+> In this workspace, create a ROS 2 Jazzy Python package `demo_pkg` with a node
+> that publishes `std_msgs/msg/String` on `/greeting` at 1 Hz, plus a launch file
+> that starts it. Build it and show me the output of `ros2 topic echo /greeting`.
+
+| Check | Verify with |
+| :--- | :--- |
+| **`ros2 topic echo /greeting` prints messages** — the whole task in one bit | run it |
+| `ros2 run demo_pkg <node>` works (console_scripts wired) | run it |
+| `ros2 launch demo_pkg <file>` works (launch file installed, not just written) | run it |
+| Agent rebuilt and re-sourced before declaring success | transcript |
+
+Unlike Tasks 1–4, nothing here depends on a grader's judgement: either the topic
+carries data or it doesn't.

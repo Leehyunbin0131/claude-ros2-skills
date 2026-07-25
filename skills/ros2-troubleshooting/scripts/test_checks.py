@@ -2,7 +2,7 @@
 """Unit tests for the pure logic in the check_* scripts.
 
 Runs WITHOUT ROS (rclpy is only imported inside each script's main()):
-    python3 scripts/test_checks.py
+    python3 skills/ros2-troubleshooting/scripts/test_checks.py
 """
 import math
 import sys
