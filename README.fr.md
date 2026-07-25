@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — skills Claude Code zéro hallucination pour ROS 2 Jazzy" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — skills Claude Code anti-hallucination pour ROS 2 Jazzy" width="100%"/>
 
 **Claude Code Skills pour le développement robotique ROS 2 Jazzy Jalisco.**
 
-Skills de référence zéro hallucination — chaque skill route vers la documentation officielle au lieu de deviner les noms d'API.
+Skills de référence anti-hallucination — chaque skill route vers la documentation officielle au lieu de deviner les noms d'API.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -15,7 +15,7 @@ Skills de référence zéro hallucination — chaque skill route vers la documen
 
 <sub>🌐 Ce document est une traduction automatique. L'original est en [English](README.md).</sub>
 
-| Skills | Routeur toujours chargé | Liens doc vérifiés | Vérifications physiques du robot | Évals : paramètres hallucinés |
+| Skills | Routeur toujours chargé | Liens doc (vérifiés par CI) | Vérifications physiques du robot | Évals : paramètres hallucinés |
 | :---: | :---: | :---: | :---: | :---: |
 | **11** | **30 lignes** | **101** | **4 scripts** | **21 → 0** |
 

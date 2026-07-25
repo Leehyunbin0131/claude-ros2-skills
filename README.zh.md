@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — 面向 ROS 2 Jazzy 的零幻觉 Claude Code 技能" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — 面向 ROS 2 Jazzy 的抗幻觉 Claude Code 技能" width="100%"/>
 
 **面向 ROS 2 Jazzy Jalisco 机器人开发的 Claude Code Skills。**
 
-零幻觉参考技能 — 每个技能都路由到官方文档，而不是猜测 API 名称。
+抗幻觉参考技能 — 每个技能都路由到官方文档，而不是猜测 API 名称。
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -15,7 +15,7 @@
 
 <sub>🌐 本文档为机器翻译。原文请参阅 [English](README.md)。</sub>
 
-| 技能 | 常驻路由器 | 已验证文档链接 | 机器人地面真值检查 | 评估：幻觉参数 |
+| 技能 | 常驻路由器 | 文档链接（CI 检查） | 机器人地面真值检查 | 评估：幻觉参数 |
 | :---: | :---: | :---: | :---: | :---: |
 | **11 个** | **30 行** | **101 个** | **4 个脚本** | **21 → 0** |
 

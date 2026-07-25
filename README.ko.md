@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — ROS 2 Jazzy를 위한 환각 제로 Claude Code 스킬" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — ROS 2 Jazzy를 위한 환각 방지 Claude Code 스킬" width="100%"/>
 
 **ROS 2 Jazzy Jalisco 로봇 개발을 위한 Claude Code Skills.**
 
-환각 제로 레퍼런스 스킬 — 모든 스킬이 API 이름을 추측하는 대신 공식 문서로 라우팅합니다.
+환각 방지 레퍼런스 스킬 — 모든 스킬이 API 이름을 추측하는 대신 공식 문서로 라우팅합니다.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -15,7 +15,7 @@
 
 <sub>🌐 이 문서는 기계 번역본입니다. 원문은 [English](README.md)입니다.</sub>
 
-| 스킬 | 상시 로드 라우터 | 검증된 문서 링크 | 로봇 그라운드트루스 체크 | Evals: 환각 파라미터 |
+| 스킬 | 상시 로드 라우터 | 문서 링크(CI 점검) | 로봇 그라운드트루스 체크 | Evals: 환각 파라미터 |
 | :---: | :---: | :---: | :---: | :---: |
 | **11개** | **30줄** | **101개** | **4개 스크립트** | **21 → 0** |
 

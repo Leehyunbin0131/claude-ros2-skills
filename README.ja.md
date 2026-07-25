@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — ROS 2 Jazzy のためのゼロハルシネーション Claude Code スキル" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — ROS 2 Jazzy のためのハルシネーション対策 Claude Code スキル" width="100%"/>
 
 **ROS 2 Jazzy Jalisco ロボット開発のための Claude Code Skills。**
 
-ゼロハルシネーションのリファレンススキル — すべてのスキルが API 名を推測する代わりに公式ドキュメントへルーティングします。
+ハルシネーション対策のリファレンススキル — すべてのスキルが API 名を推測する代わりに公式ドキュメントへルーティングします。
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -15,7 +15,7 @@
 
 <sub>🌐 本ドキュメントは機械翻訳です。原文は [English](README.md) をご覧ください。</sub>
 
-| スキル | 常時ロードルーター | 検証済みドキュメントリンク | ロボット実機チェック | 評価：ハルシネーションパラメータ |
+| スキル | 常時ロードルーター | ドキュメントリンク（CI チェック） | ロボット実機チェック | 評価：ハルシネーションパラメータ |
 | :---: | :---: | :---: | :---: | :---: |
 | **11 個** | **30 行** | **101 個** | **4 スクリプト** | **21 → 0** |
 

@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — skills de Claude Code sin alucinaciones para ROS 2 Jazzy" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — skills de Claude Code contra alucinaciones para ROS 2 Jazzy" width="100%"/>
 
 **Claude Code Skills para el desarrollo robótico con ROS 2 Jazzy Jalisco.**
 
-Skills de referencia con cero alucinaciones — cada skill enruta a la documentación oficial en lugar de adivinar nombres de API.
+Skills de referencia contra alucinaciones — cada skill enruta a la documentación oficial en lugar de adivinar nombres de API.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -15,7 +15,7 @@ Skills de referencia con cero alucinaciones — cada skill enruta a la documenta
 
 <sub>🌐 Este documento es una traducción automática. El original está en [English](README.md).</sub>
 
-| Skills | Router siempre cargado | Enlaces de doc verificados | Comprobaciones físicas del robot | Evals: parámetros alucinados |
+| Skills | Router siempre cargado | Enlaces de doc (comprobados por CI) | Comprobaciones físicas del robot | Evals: parámetros alucinados |
 | :---: | :---: | :---: | :---: | :---: |
 | **11** | **30 líneas** | **101** | **4 scripts** | **21 → 0** |
 

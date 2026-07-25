@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="claude-ros2-skills — zero-hallucination Claude Code skills for ROS 2 Jazzy" width="100%"/>
+<img src="assets/hero.png" alt="claude-ros2-skills — anti-hallucination Claude Code skills for ROS 2 Jazzy" width="100%"/>
 
 **Claude Code Skills for ROS 2 Jazzy Jalisco robotics development.**
 
-Zero-hallucination reference skills — every skill routes to official docs instead of guessing API names.
+Anti-hallucination reference skills — every skill routes to official docs instead of guessing API names.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -13,7 +13,7 @@ Zero-hallucination reference skills — every skill routes to official docs inst
 
 **English** | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-| Skills | Always-loaded router | Verified doc links | Robot ground-truth checks | Evals: hallucinated params |
+| Skills | Always-loaded router | Doc links (CI-checked) | Robot ground-truth checks | Evals: hallucinated params |
 | :---: | :---: | :---: | :---: | :---: |
 | **11** | **30 lines** | **101** | **4 scripts** | **21 → 0** |
 
