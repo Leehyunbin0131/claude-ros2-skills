@@ -13,9 +13,9 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 **English** | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-| Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks | Evals: verified before writing |
+| Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks | Evals: Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 lines** | **38** | **4 scripts** | **0/3 → 3/3** |
+| **11** | **26 lines** | **38** | **4 scripts** | **goal reached vs. bringup abort** |
 
 </div>
 
@@ -79,18 +79,38 @@ This repository optimizes for a single outcome: minimizing the risk of generatin
 
 ## Evals
 
-To evaluate performance, identical prompts were executed in fresh, headless Claude Code sessions both with and without these skills installed. Each pair used the same model and was graded symbol-by-symbol against pinned upstream ROS 2 Jazzy sources — and, for the container runs, against the live `/opt/ros/jazzy` installation inside a `ros:jazzy` Docker container where the agent can actually build and run its output.
+Every result below comes from a measured A/B pair: the **identical prompt** run in fresh, headless Claude Code sessions — once without these skills, once with them — using the **same model** in both cells. Outputs were graded symbol-by-symbol against pinned upstream Jazzy sources, then against the live `/opt/ros/jazzy` installation inside a `ros:jazzy` Docker container, and finally by loading both outputs into a **live Gazebo simulation**. Full transcripts and artifacts are committed under [`evals/runs/`](./evals/runs/) so anyone can re-grade without trusting us.
 
-| Metric / Test | Without skills | With skills |
-| :--- | ---: | ---: |
-| Fabricated Nav2 MPPI parameter keys — live Jazzy install (Haiku) | **~16**, plus a nonexistent plugin string and no `critics:` list — the configuration cannot start | **0** — every key mechanically diffed against the installed defaults |
-| `demo_pkg` end to end: build → `ros2 run` / `ros2 launch` / `topic echo` (Haiku) | **Fails all three** — the package never registers in the ament index | **Passes all three**, confirmed by independent re-runs of each command |
-| Cost to reach that package outcome | $0.17 / 36 turns | **$0.08 / 18 turns** — correct on the first pass and 2.2× cheaper |
-| The same MPPI config loaded into a live Gazebo simulation (Haiku) | **Nav2 aborts at bringup** — the configured plugin class does not exist | **Robot navigates to the goal** — `NavigateToPose` returns `SUCCEEDED` |
-| `/scan` callback executes on a physical BEST_EFFORT LiDAR (Sonnet) | **Never** — fails silently due to mismatched QoS defaults | **Yes** — connects successfully |
-| Verification before writing | **Zero** verification tools used in any baseline run | Used in **every** run |
+### Nav2 MPPI configuration — Haiku, live Jazzy install
 
-The container runs also captured the designed workflow end to end: before writing any Nav2 config, the agent asked the four questions the skill front-loads (footprint, existing vs. fresh params, localization source, velocity limits), then read the shipped defaults from `/opt/ros/jazzy` and produced a YAML whose answer-dependent values match the user's stated limits exactly. On the package task, the skills condition was simultaneously the correct one and the substantially cheaper one — a single prescribed create → wire → build → source → prove sequence, executed once.
+*Prompt: set up Nav2 with the MPPI controller for a differential-drive robot on Jazzy and produce the controller server YAML.*
+
+| | Without skills | With skills |
+| :--- | :--- | :--- |
+| Process | Answered instantly from memory; **zero** verification despite tools being available | Asked footprint, existing-config, localization, and velocity limits **first**, then read the shipped defaults at `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` |
+| Plugin string | `mppi_generic::ControllerServer` — does not exist | `nav2_mppi_controller::MPPIController` — correct |
+| `critics:` list | Absent entirely | All 8, correct names |
+| Fabricated parameter keys | **~16** | **0** — every key mechanically diffed against the installed defaults |
+| **Loaded into a live Gazebo simulation** | **`[FATAL] Failed to create controller … does not exist` — Nav2 aborts at bringup; the robot never moves** | **MPPI + all 8 critics load; the robot drives (−2.0, −0.5) → (0.5, 0.5); `NavigateToPose` returns `SUCCEEDED`** |
+
+### A package that must actually run — Haiku, in-container
+
+*Prompt: create a Python package `demo_pkg` publishing `std_msgs/msg/String` on `/greeting` at 1 Hz with a launch file; build it and show `ros2 topic echo /greeting`.*
+
+| | Without skills | With skills |
+| :--- | :--- | :--- |
+| `ros2 run` / `ros2 launch` / `topic echo` | **All three fail** — the package never registers in the ament index | **All three pass**, confirmed by independent re-runs of each command |
+| Cost to that outcome | $0.17 · 36 turns · 178 s | **$0.08 · 18 turns · 61 s** — correct on the first pass and **2.2× cheaper** |
+
+### Sensor subscription — Sonnet
+
+| | Without skills | With skills |
+| :--- | :--- | :--- |
+| `/scan` callback on a physical BEST_EFFORT LiDAR | **Never fires** — default RELIABLE QoS mismatches silently at the DDS level | **Works** — `qos_profile_sensor_data`, plus bounds filtering |
+
+### The pattern across every pair
+
+Baseline sessions used **zero** verification tools in every run, even when WebFetch, Read, and Bash were explicitly allowed — and one baseline reported a fully working build for a package `ros2 run` cannot find. Sessions with these skills verified before writing in **every** run, and their claims matched independent re-execution. The skills' verification scripts were themselves validated against the live simulation: TF-tree, QoS-compatibility, and odometry-direction checks all passed on real data, and the inverted-LiDAR scenario was flagged exactly as designed.
 
 Review full evaluation tables, test environments, and individual run analyses in [`evals/RESULTS.md`](./evals/RESULTS.md). For details on the evaluation protocol, task checklists, and container setup, see [`evals/README.md`](./evals/README.md). Pull requests containing additional graded transcripts are welcome.
 
