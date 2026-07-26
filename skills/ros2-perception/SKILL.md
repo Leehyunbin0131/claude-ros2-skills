@@ -13,7 +13,7 @@ Packages in this domain: `image_transport` (transport plugins, compressed), `cv_
 
 Verify message field names against the installation itself: `ros2 interface show sensor_msgs/msg/Image`.
 
-## 3. Key Concepts & Patterns
+## 2. Key Concepts & Patterns
 
 ### A. `cv_bridge` OpenCV Conversion (C++)
 ```cpp
@@ -52,7 +52,7 @@ void filter_cloud(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 }
 ```
 
-## 4. Symptom -> Root Cause -> Action
+## 3. Symptom -> Root Cause -> Action
 
 | Symptom | Likely root cause | Action |
 | :--- | :--- | :--- |

@@ -1,553 +1,69 @@
-# Eval results
+# Verification status
 
-Measured A/B pairs: the identical prompt run in a fresh, headless Claude Code
-session twice — once without these skills, once with them — using the same model
-in both cells. Only runs graded against a **live ROS 2 Jazzy install** are kept
-here; earlier pairs measured on a machine with no ROS installed have been
-superseded by the runs below and removed rather than carried along.
+**This file is the record of what is finished.** It is the first thing to read
+before working on a skill, and the last thing to update after — the final stage of
+a verification run writes its own row here, so the record cannot drift from the
+runs behind it.
 
-All artifacts and final responses are committed under [`runs/`](./runs/), and the
-harness that produces the Task 1-3 pairs is in [`harness/`](./harness/).
+## What "verified" means here
 
-## Conditions & disclosure
+A skill is not verified because it is correct. Correct is the floor. It is
+verified when both of these are answered:
 
-| | |
+- **Effect** — does it change what the agent produces on a task that exercises
+  *its own* content, measured against a live ROS 2 Jazzy install?
+- **Efficiency** — is this body the *smallest* one that produces that effect?
+  Fewer tokens and less text may buy the same result, and until that is tested,
+  "the agent used it" is only half an answer.
+
+Both are measured by A/B runs graded mechanically — does the symbol exist in the
+install, does the command succeed when re-run, does the generated node print the
+right number against a live publisher — not by review.
+
+## Status
+
+| Skill | Status | Evidence |
+| :--- | :--- | :--- |
+| `ros2-core` | 🔄 In progress | — |
+| `ros2-package` | 🔄 In progress | — |
+| `ros2-dev` | 🔄 In progress | — |
+| `ros2-troubleshooting` | 🔄 In progress | — |
+| `ros2-perception` | 🔄 In progress | — |
+| `gazebo-sim` | 🔄 In progress | — |
+| `ros2-control` | 🔄 In progress | — |
+| `ros2-moveit` | 🔄 In progress | — |
+| `ros2-testing` | 🔄 In progress | — |
+| `ros2-microros` | 🔄 In progress | — |
+| `ros2-security` | 🔄 In progress | — |
+
+Status vocabulary — a skill is only ✅ when **both** axes have passed:
+
+| | Meaning |
 | :--- | :--- |
-| Harness | Claude Code CLI 2.1.220, headless (`claude -p`), fresh directory per cell |
-| Grading | Mechanical wherever possible: does the symbol exist in the installed package (`ros2 pkg prefix`, `ros2 interface show`, grep over the installed sources)? does the command succeed when re-run by the grader? |
-| Sample size | **n=1 per cell.** These are single honest runs, not statistics. |
-| Independence | **None — disclosed conflict of interest.** The protocol was designed, the runs executed, and the outputs graded by the same project that publishes them. Mitigations: artifacts are committed under `runs/` and grading is mechanical, so anyone can re-grade without trusting us. Independent re-grades and adversarial task PRs are the point of the protocol. |
+| 🔄 In progress | not yet measured, or measured on one axis only |
+| ✅ Verified | effect **and** efficiency, at n≥5, with the run linked |
+| ❌ Did not clear | measured and failed — recorded, not hidden |
 
----
+**No skill has completed verification.** Results are published here per skill as
+each one clears both axes — not before, and including the ones that fail.
 
-# Container run — 2026-07-25 (live `/opt/ros/jazzy`)
+Interim measurements are deliberately not published. An earlier round of this work
+produced a plausible conclusion from a single run that a controlled re-run then
+disconfirmed; publishing partial results invites exactly that error to spread
+before it can be caught.
 
-Task 4 and Task 5, executed inside
-an `osrf/ros:jazzy-desktop` container with `ros-jazzy-nav2-bringup` installed,
-so `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` physically
-exists and `ros2`/`colcon` actually run. CLI 2.1.220, `--model haiku` both
-cells, `--output-format stream-json` (tool calls logged), WebFetch/WebSearch/
-Read/Glob/Grep/Write/Bash allowed in both cells, fresh directory per cell.
-Artifacts committed under [`runs/2026-07-25-container/`](./runs/2026-07-25-container/).
+## Before measuring a skill: is it even runnable here?
 
-## Task 4 — MPPI YAML, graded against the installed file
+The effect axis needs the skill's packages actually installed — a skill whose
+first instruction is "read the installed defaults" cannot be measured where those
+defaults do not exist. Checked on the eval machine
+(`ros-jazzy-ros-base`, 204 packages):
 
-The with-skills agent did not answer on the first turn: it asked the four
-`ros2-dev` gate questions (footprint, existing vs fresh params, localization
-source, velocity limits) and named the exact file it would read next. The
-session was resumed once with the answers — that second turn is part of the
-measured cost below. The baseline answered immediately.
-
-| | Baseline | With skills |
-| :--- | :--- | :--- |
-| Cost (USD) / wall time | 0.0196 / 11 s | 0.0517 total (0.0255 + 0.0262) / 35 s |
-| Verification tools used | **0** | **Read `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml`** — the live install, not a doc fetch |
-| Plugin string | ❌ `mppi_generic::ControllerServer` (does not exist) | ✅ `nav2_mppi_controller::MPPIController` |
-| `controller_plugins` wiring | ❌ absent — the `FollowPath` block would be ignored | ✅ |
-| `critics:` list | ❌ absent entirely | ✅ all eight, correct names |
-| `motion_model` | ❌ invented `motion_model_type` + `model_name` | ✅ |
-| Invented/wrong keys | **~16** (`model_name`, `wz_min`, `path_tracking_cost`, `goal_cost`, `smooth_cost`, optimizer-level `collision_cost`, `near_goal_max_lin_vel`, `map_downsample_factor`, `visualize_scale`, `prune_plan`, `use_feedforward`, `allow_reversing`, a `parameters:` nesting level, a `controller_out:` node — each absence confirmed by grep over the pinned `nav2_mppi_controller` sources) | **0 — graded mechanically**: a script diffed every key in the output against the installed `controller_server` section; the extra-key set is empty |
-
-## Task 5 — build wiring, end to end (first run of this task)
-
-Binary outcome. All three commands were re-executed independently by the
-grader in each workspace after the agent finished — the grades below are from
-those re-runs, not from the agents' own claims.
-
-| Check | Baseline | With skills |
-| :--- | :--- | :--- |
-| `ros2 run demo_pkg …` | ❌ `Package 'demo_pkg' not found` | ✅ publishes at 1 Hz |
-| `ros2 launch demo_pkg …` | ❌ `package 'demo_pkg' not found, searching: ['/opt/ros/jazzy']` | ✅ node starts |
-| `ros2 topic echo /greeting` | ❌ topic never published | ✅ data flowing |
-| Cost / turns / wall time | **0.172 USD / 36 turns / 178 s** (35 tool calls) | **0.079 USD / 18 turns / 61 s** (15 tool calls) |
-| Final report accuracy | claimed "✅ Build & Test Results … functioning correctly" — none of the three commands work | claims match the independent re-run |
-
-The transcripts explain the cost gap. The baseline nested `launch/` inside the
-Python module, then added a `CMakeLists.txt` to an `ament_python` package,
-rebuilt three times, fell back to `PYTHONPATH` hacks and `pkill -9 -f ros` —
-and the package never registered in the ament index. The with-skills run
-loaded `ros2-package`, ran `ros2 pkg create --build-type ament_python`, wired
-`console_scripts` and the launch `data_files`, built once, sourced, and proved
-it with `ros2 topic echo` — the sequence the skill prescribes, executed once.
-
-## What the container run establishes
-
-1. **The intended path is what was measured.** With `/opt/ros/jazzy` readable,
-   the with-skills agent read the shipped defaults directly and produced a
-   config with **zero invented keys, verified by mechanical diff**. The skill's
-   first instruction is "read the installed defaults", so this — not a run on a
-   machine without ROS — is the condition the design assumes.
-2. **The gates fired in the wild.** Unprompted, the agent asked exactly the
-   questions `ros2-dev` §1 lists before writing anything — and the second
-   turn's output honored the answers (0.5 m/s and 1.9 rad/s appear in the YAML).
-3. **On the only task with a binary outcome, skills were correct *and* 2.2×
-   cheaper.** The baseline spent its extra $0.09 and 25 turns on corrections
-   that never converged. "One correct pass beats many corrections" is now a
-   number, not a slogan.
-4. **The baseline reported success on a broken deliverable.** Its final message
-   asserts working build-and-test results for a package `ros2 run` cannot even
-   find. This — not exotic API hallucination — is the failure mode the
-   "prove it ran" rule exists to catch.
-
----
-
-# Simulation run — 2026-07-25 (Gazebo Harmonic, headless)
-
-The last gap: "0 invented keys" proves the YAML is *spelled* correctly, not
-that a robot obeys it. So both Task 4 outputs from the container run were
-loaded into a live simulation. Environment: `osrf/ros:jazzy-desktop` container
-+ `ros-jazzy-nav2-bringup`, `ros-jazzy-nav2-minimal-tb3-sim`, `ros_gz`
-(Gazebo Sim 8.11), `gz sim` server-only (no GUI, software rendering).
-Each YAML was spliced verbatim into the shipped `nav2_params.yaml` — the
-`controller_server:` section replaced wholesale — and launched with
-`nav2_bringup tb3_simulation_launch.py headless:=True`. Artifacts (params
-files, launch logs) in [`runs/2026-07-25-sim/`](./runs/2026-07-25-sim/).
-
-## A/B: do the two YAMLs actually drive a robot?
-
-| | Baseline YAML | With-skills YAML |
-| :--- | :--- | :--- |
-| Controller plugin load | **`[FATAL] Failed to create controller … class mppi_generic::ControllerServer … does not exist`** — Nav2 aborts bringup; nothing ever moves | `Created controller : FollowPath of type nav2_mppi_controller::MPPIController`, all **8 critics loaded** |
-| `NavigateToPose` (−2.0, −0.5) → (0.5, 0.5) | unreachable — no controller server | **`Goal finished with status: SUCCEEDED`**; final AMCL pose (0.15, 0.53), inside the goal checker's tolerance |
-| Sensor pipeline during the run | — | `/scan` 5 Hz, `/odom` 28 Hz through `ros_gz_bridge`, MPPI consuming both |
-
-One incident during with-skills bringup, honestly noted: `global_costmap`
-activation timed out on its first attempt because the operator (this session)
-published the AMCL initial pose *after* the 60 s activation window — a launch
-sequencing issue, not a parameter issue. After publishing the pose and
-re-activating the remaining lifecycle nodes, the same params file ran to
-`SUCCEEDED` with no further intervention. The baseline failure, by contrast,
-is unrecoverable: the plugin class it names does not exist in the registry.
-
-## Verification scripts against live data — first time
-
-Until now `skills/ros2-troubleshooting/scripts/` had only pure-logic unit
-tests. Run against the live simulation:
-
-| Script | Result | What it means |
-| :--- | :--- | :--- |
-| `check_tf_tree.py --sensors base_scan` | **[OK]** — resolved `map → odom → base_link`, printed the real TB3 mount (x −0.064 m, z +0.122 m, level) | works on a live tree |
-| `check_tf_tree.py --sensors rear_lidar` (Task 2 scenario: static TF published with roll 180°, yaw 180°) | **flagged both**: "declared UPSIDE-DOWN … declared FACING BACKWARD … If the sensor is NOT physically mounted that way, this TF is the bug" | the Task 2 diagnostic works end to end |
-| `check_qos_compat.py --topic /scan` | **[PASS] × 4** endpoint pairs (`ros_gz_bridge` → amcl, collision_monitor, both costmaps) | live endpoint introspection works |
-| `check_odom_direction.py` while driving forward | **[PASS]** "+1.64 m along the initial heading" over a 14 s non-interactive window — sign and magnitude match the commanded forward motion ([`odom_check2.log`](./runs/2026-07-25-sim/odom_check2.log)) | direction logic confirmed against real motion |
-| `check_imu_gravity.py --topic /imu` | **[FAIL]** `|a| = 0.01` — and that verdict is *correct*: the sim's IMU publishes gravity-free acceleration, which violates the REP 103/145 expectation the script tests (gravity must appear as ~+9.81 m/s² on +Z at rest) | the check catches a genuinely non-physical sensor config, which is its job |
-
-**Defect found and fixed.** `check_odom_direction.py` blocked on `input()` and
-died with `EOFError` when run without a terminal — unusable headless/CI. Fixed
-in the same commit: `--wait-secs N` for non-interactive use, and a closed-stdin
-fallback that waits instead of crashing. Re-verified in the sim ([PASS],
-`odom_check2.log`) and the pure-logic unit tests still pass (7 groups).
-
-## What the simulation run establishes
-
-1. **The chain is now closed end to end**: skill → gate questions → read the
-   installed defaults → 0 invented keys → plugin loads → **robot reaches the
-   goal**. Every link measured, none assumed.
-2. **The baseline's ~16 invented keys were never the whole story** — its single
-   wrong plugin string alone kills the entire Nav2 stack at bringup, before any
-   other key is even parsed.
-3. **The verification scripts survived first contact with live data**, caught a
-   real non-physical sensor config, and the one defect the exercise exposed was
-   in *our* tooling — found because we ran it, fixed, and re-verified.
-
----
-
-# Native-install run — 2026-07-26 (Tasks 1–3, live `/opt/ros/jazzy`)
-
-Roadmap item 3: the three remaining tasks, measured against a live install for
-the first time. No container this time — `ros-jazzy-ros-base` installed natively
-on Ubuntu 24.04 (WSL2), which satisfies the same grading criterion (the agent can
-read the real install and actually run nodes). Artifacts under
-[`runs/2026-07-26-native/`](./runs/2026-07-26-native/); the harness that produced
-them is committed in [`harness/`](./harness/) so the pairs are re-runnable.
-
-| | |
+| Runnable now | Blocked until installed |
 | :--- | :--- |
-| Harness | CLI 2.1.220, `claude -p`, `--output-format stream-json` in **both** cells (so "tools used" is counted from the transcript, not recalled), `acceptEdits`, `--allowedTools WebFetch WebSearch Read Glob Grep Write Bash`, fresh `mktemp -d` per cell |
-| Model | `haiku` in both cells |
-| Environment | native `ros-jazzy-ros-base`, `rmw_fastrtps_cpp`, 194 packages |
-| Live scenario | up for both cells: a BEST_EFFORT `/scan` publisher (Task 1), `map→odom→base_link` only (Task 2 — writing the sensor TF is the agent's job), a 30 Hz BEST_EFFORT camera + default-RELIABLE subscriber (Task 3) |
-| Sample size | **n=1 per cell**, same disclosed conflict of interest as above |
+| `ros2-core`, `ros2-package`, `ros2-troubleshooting`, `ros2-testing`, `ros2-security` | `ros2-dev` (`nav2-bringup`, `slam-toolbox`) · `gazebo-sim` (`ros-gz` + Gazebo Harmonic) · `ros2-control` (`ros2-controllers`) · `ros2-moveit` (`moveit`) · `ros2-perception` (`cv-bridge`, `image-transport`) · `ros2-microros` (`micro-ros-agent`, source build) |
 
-## Task 1 — `/scan` monitor, graded by running it
+Re-check with `ros2 pkg prefix <pkg>` rather than trusting this table — it is a
+snapshot of one machine.
 
-Both agents wrote a node; both nodes were then run for 6 s against the live
-publisher. The scan contains `inf`, `nan`, a below-`range_min` value (0.02) and
-an above-`range_max` value (99.0); **the correct in-bounds minimum is 0.45 m.**
-
-| Check | Baseline | With skills |
-| :--- | :--- | :--- |
-| Subscription QoS | ❌ `create_subscription(..., 10)` → RELIABLE | ✅ `qos_profile_sensor_data` |
-| **Messages actually received** | ❌ **zero.** rclpy itself logged `New publisher discovered on topic '/scan', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | ✅ receives at 5 Hz |
-| Reported minimum | — (never received; logged `Awaiting first scan message...` every second) | ⚠️ **`0.020 m` — wrong**, the below-`range_min` reading |
-| `range_min`/`range_max` bounds filter | ❌ absent (`r > 0 and r != inf`) | ❌ absent (`not float('inf') == r`) |
-| `nan` handling | ✅ incidentally excluded by `r > 0` | ❌ `nan` passes the filter |
-| Independent 1 Hz timer | ✅ | ✅ |
-| Says something when no data | ✅ | ✅ |
-| Turns / cost / tool calls | 2 / $0.0307 / 1 | 4 / $0.0344 / 2 (`Skill: ros2-core`, `Write`) |
-
-**Honest read: skills win the decisive bit and both fail the numeric one.** Only
-the with-skills node connects at all — that is the difference between a working
-sensor pipeline and a node that will never fire, and it is what the skill's QoS
-rule exists to produce. But neither node filters against `range_min`/`range_max`,
-so the with-skills node confidently reports `0.020 m` instead of `0.45 m`. The
-baseline's identical bug is merely invisible because it never receives data.
-
-**One nuance worth stating precisely.** The QoS failure is silent *at the DDS
-level*, which is where it matters — but it is not necessarily silent in the logs.
-This baseline logs on a timer, so it repeats `Awaiting first scan message...`
-forever, and Jazzy's rclpy prints an incompatible-QoS warning of its own. The
-argument for the skill's QoS rule rests on the middleware behavior (zero messages
-delivered), not on the claim that nothing is printed.
-
-## Task 2 — inverted LiDAR TF
-
-Graded on the transcript **and** by publishing each agent's transform verbatim
-and running the diagnostic on it ([`t2_agent_output_check.log`](./runs/2026-07-26-native/t2_agent_output_check.log)).
-
-| Check | Baseline | With skills |
-| :--- | :--- | :--- |
-| Asks about the physical mounting before writing | ❌ answered in one turn | ✅ **asked the back-distance / offset question first**, before emitting the transform |
-| RPY encodes roll≈180° **and** yaw≈180° | ✅ | ✅ |
-| REP 105 parent/child (`base_link` → sensor) | ✅ | ✅ |
-| Published output flagged by `check_tf_tree.py` | ✅ both roll and yaw flagged | ✅ both flagged |
-| Jazzy argument form | ✅ named args | ⚠️ named args in the launch file, but the "one-liner" uses the **positional form**, which the install answers with `[WARN] Old-style arguments are deprecated` |
-| Invented symbols | ❌ a `static_transforms:` YAML schema no core node consumes | ❌ **`ros2 run ros2_troubleshooting_helpers check_tf_tree.py` — no such package** (`ros2 pkg prefix` → `Package not found`) |
-| Physical-confirmation advice | ⚠️ RViz, but a **PointCloud2** display for a LiDAR | ✅ `tf2_echo` + a **LaserScan** display + "points should wrap around the back" |
-| Turns / cost / tool calls | 1 / $0.0254 / **0** | 3 / $0.0475 / 1 (`Skill: ros2-troubleshooting`) |
-
-**The gate fired, and the skills still hallucinated.** The behavioral win is
-real and reproducible — with skills the agent stopped and asked for the mounting
-geometry, which is the checklist's first item and the thing that prevents 200
-wrong lines. But the same answer invented a package name **for the skill's own
-script**, and told the user the check "should show RPY matching your physical
-mount without flagging ~180° as suspicious" — the opposite of what the script
-does (it flags ~180° every time, by design). A skill that ships tooling has to
-state how to invoke it, or the model will invent a plausible `ros2 run`.
-
-## Task 3 — silent QoS mismatch
-
-The premise was made real first: `ros2 topic hz /camera/image_raw` reported
-**30.000 Hz** while the RELIABLE subscriber logged `images received: 0`
-([`t3_hz.log`](./runs/2026-07-26-native/t3_hz.log),
-[`t3_sub.log`](./runs/2026-07-26-native/t3_sub.log)).
-
-| Check | Baseline | With skills |
-| :--- | :--- | :--- |
-| Names reliability mismatch as prime suspect, first attempt | ✅ | ✅ |
-| Recommends inspecting real endpoint QoS | ✅ `ros2 topic info --verbose` | ✅ `ros2 topic info -v` |
-| **Actually inspected the live system** | ❌ 0 tool calls | ❌ loaded the skill, then answered — never ran the command it recommended |
-| Fix uses a real QoS API | ✅ | ✅ |
-| Factual accuracy of the QoS claim | ✅ | ❌ calls the default `(Reliable, **Transient Local**)`; the installed default is RELIABLE + **VOLATILE** (`QoSProfile(depth=10)` → `RELIABLE`, `VOLATILE`) |
-| Turns / cost / tool calls | 1 / $0.0194 / 0 | 3 / $0.0271 / 1 (`Skill: ros2-core`) |
-
-**Honest read: a tie the skills slightly lost.** Diagnosis is the one thing haiku
-already knows cold — this is the single most-written-about ROS 2 failure, so both
-cells nailed it in one turn. The with-skills cell added a wrong durability claim
-and, despite a live reproduction sitting right there with `Bash` allowed,
-recommended a command it did not run. Task 3 as written cannot separate the
-conditions; a fair version would have to require the answer be *demonstrated*
-against the live endpoints, not asserted.
-
-## Verification scripts — the FAIL path, first time
-
-Every previous live run of `check_qos_compat.py` returned PASS. The Task 3
-scenario produced its first real failure:
-
-```
-[FAIL] fake_camera_pub -> reliable_image_sub
-       reliability: publisher offers BEST_EFFORT, subscriber requests RELIABLE —
-       subscriber will receive NOTHING; use qos_profile_sensor_data or a
-       BEST_EFFORT subscription for sensor streams
-exit code = 1
-```
-
-`check_tf_tree.py` was also tested for **specificity**, not just sensitivity: run
-against a tree carrying both an inverted rear sensor and a correctly-mounted
-forward one, it flagged the first for roll and yaw and left the second alone
-([`t2_tf_check.log`](./runs/2026-07-26-native/t2_tf_check.log)).
-
-## What this run establishes
-
-1. **Tasks 1–3 now have live-install measurements.** Roadmap item 3 is closed;
-   every task in the suite has been run against a real ROS 2 install.
-2. **The QoS result is now a runtime fact, not a code review.** The baseline node
-   received zero messages from a publisher visibly running at 5 Hz, and the
-   middleware said why. This is the repo's central claim and it reproduces.
-3. **The pre-write gate reproduces too** — third independent run in which the
-   with-skills agent asked for physical/geometric facts before writing.
-4. **Skills do not stop hallucination; they move it.** Two invented symbols in
-   with-skills output across three tasks (`ros2_troubleshooting_helpers`, a wrong
-   default durability), one of them about the repo's own tooling. Routing to docs
-   raises the floor; it does not make the model correct.
-5. **On tasks the model already knows, skills cost ~1.4× and buy little.**
-   Baseline total $0.0755 vs with-skills $0.1090 across the three pairs. Task 3
-   is the clear case: same answer, more money, one extra error.
-
-## Follow-ups this run created
-
-**Read the tables above as measurements of the skills as they were *before* these
-fixes.** Everything marked applied below landed after the run, in the same commit
-as this write-up; whether the fixes work is an open question until Tasks 1–3 are
-re-run.
-
-- ✅ **Applied.** `ros2-troubleshooting` §1a now gives the literal invocation
-  (`python3 <skill-dir>/scripts/<name>.py`) and names `ros2 run
-  ros2_troubleshooting_helpers` as a known failure mode. A skill that ships a
-  script must state how to run it, or the model invents a package.
-- ✅ **Applied.** `ros2-core` now carries the bounds rule as both a
-  symptom→cause→action row and a strict rule: a `LaserScan` reading is usable only
-  when finite **and** within `[range_min, range_max]`. "Filter `inf`" is what the
-  model already does, and it produces a confidently wrong minimum.
-- ✅ **Applied.** `ros2-core` gained the shutdown pattern — both agents' nodes died
-  with `rcl_shutdown already called` / `ExternalShutdownException` on SIGTERM.
-- ✅ **Applied.** `ros2-troubleshooting` now states that `check_tf_tree.py` always
-  prints the `VERIFY PHYSICALLY` advisory for a ~180° roll or yaw, even when the
-  mounting is intentional — the with-skills run told the user the opposite.
-- ⏳ **Open.** Task 3's checklist should require a *demonstrated* inspection, not a
-  recommended one, or it will keep scoring as a tie.
-- ⏳ **Open.** Re-run Tasks 1–3 against the patched skills. The specific
-  regressions to watch: does the Task 1 node now filter bounds, and does the
-  Task 2 answer stop inventing a package?
-
----
-
-# Post-fix re-run — 2026-07-26 (do the patches actually work?)
-
-The previous section ended with four skill defects and applied fixes for all of
-them. This is the run that tests whether the patches change behaviour, rather
-than assuming they do. Identical protocol, identical prompts, same machine, same
-model, fresh directories. Artifacts under
-[`runs/2026-07-26-postfix/`](./runs/2026-07-26-postfix/).
-
-**Verdict: two tasks fixed and verified at runtime, one task regressed — and the
-regression has a specific, reproducible cause.**
-
-## Task 1 — fixed, and now correct at runtime
-
-| | Pre-fix (with skills) | Post-fix (with skills) | Post-fix baseline |
-| :--- | :--- | :--- | :--- |
-| Skill routed | `ros2-core` | `ros2-core` | — |
-| Verification tool calls | 0 | **1** — ran `ros2 interface show sensor_msgs/msg/LaserScan` | 0 |
-| Bounds filter | ❌ absent | ✅ `math.isfinite(r) and msg.range_min <= r <= msg.range_max` | ❌ absent |
-| **Minimum reported, live** | `0.020 m` ❌ | **`0.450 m` ✅ correct** | never received a message |
-| Shutdown on SIGTERM | ❌ traceback | ✅ clean, 0 tracebacks | ❌ traceback |
-| Turns / cost | 4 / $0.0344 | 6 / $0.0438 | 2 / $0.0266 |
-
-Both patched rules appear in the generated code close to verbatim, and the node
-was executed against the live BEST_EFFORT publisher to confirm it. The baseline
-is unchanged: rclpy still reports `Last incompatible policy: RELIABILITY` and the
-node still receives nothing. **This is the first task in the suite where the
-with-skills output is fully correct rather than merely better.**
-
-## Task 2 — both defects fixed
-
-The first turn asked four gate questions and deliberately withheld the transform,
-so the session was resumed once with answers (the container-run pattern); the
-resumed turn is where the fixed material appears.
-
-| | Pre-fix | Post-fix |
-| :--- | :--- | :--- |
-| Script invocation | ❌ `ros2 run ros2_troubleshooting_helpers check_tf_tree.py` — no such package | ✅ `python3 ~/.claude/skills/ros2-troubleshooting/scripts/check_tf_tree.py --sensors rear_lidar` |
-| What it says the check does | ❌ "should show RPY … **without** flagging ~180° as suspicious" | ✅ "**It will flag the ~180° roll/yaw as a `VERIFY PHYSICALLY` prompt** — that's expected; compare it against your actual mounted hardware" |
-| Argument form | ⚠️ named args, plus a deprecated positional one-liner | ✅ named args only |
-| Gate questions | 1 (back distance) | 4 (frame names, orientation decomposition, hardware vs sim, existing URDF/launch) |
-| Turns / cost | 3 / $0.0475 | 3 + 1 / $0.0350 + $0.0372 |
-
-## Task 3 — regressed, and worse than baseline
-
-| | Pre-fix (with skills) | Post-fix (with skills) | Post-fix baseline |
-| :--- | :--- | :--- | :--- |
-| **Skill routed** | `ros2-core` | **`ros2-perception`** | — |
-| Diagnosis correct, first turn | ✅ | ✅ | ✅ |
-| Wrong durability claim | ❌ `TRANSIENT_LOCAL` | not made — **the patched skill was never loaded** | not made |
-| Python QoS API | ✅ correct | ❌ **`rclcpp.qos.QoSProfile` in Python code** — `import rclcpp` raises `ModuleNotFoundError`; the snippet cannot run | ✅ correct |
-| Inspected the live endpoints | ❌ | ❌ | ❌ |
-| Turns / cost | 3 / $0.0271 | 3 / $0.0265 | 1 / $0.0186 |
-
-## Why Task 3 regressed — mechanism, not speculation
-
-Three findings, each checked against the install and the skill sources:
-
-1. **Skill routing is non-deterministic across identical runs.** Same prompt,
-   same model, same machine: the pre-fix run loaded `ros2-core`, the post-fix run
-   loaded `ros2-perception`. The `/camera/image_raw` topic makes both plausible.
-   Nothing about the fix caused this — it is variance that was always there and
-   that the pre-fix run happened to hide.
-2. **The fix was in a skill the router did not pick.** The durability correction
-   went into `ros2-core`. `ros2-perception` has no QoS-policy guidance beyond one
-   symptom row, so the patched text was never in context. A fix placed in one
-   skill does not protect a task that routes elsewhere.
-3. ~~**The loaded skill actively caused the new defect.**~~ **Retracted — see the
-   isolation run below.** The original reading was that `ros2-perception`'s
-   exclusively-C++ examples (`#include <rclcpp/rclcpp.hpp>`, cv_bridge and
-   pcl_ros in C++) contaminated a Python answer, since it is the only skill with
-   no Python content and `ros2-core` is the only one of 11 that mentions `rclpy`.
-   That is a real content gap, but it is **not** an established cause: a
-   controlled run that forces `ros2-perception` to be the only skill, using the
-   pre-patch body as a true control, failed to reproduce the error in any cell.
-   The inference was drawn from a single occurrence and does not survive testing.
-
-## What this run establishes
-
-1. **The fixes work where they are loaded.** Task 1 went from a wrong number to
-   the right one, verified by running the node, and Task 2's two defects are gone.
-   Patching a skill body does change output, reproducibly and near-verbatim.
-2. **Coverage of a rule matters as much as its content.** Two of three tasks
-   improved; the third was untouched because the rule lived in the wrong file.
-3. **One with-skills answer was worse than baseline** — Python code using a module
-   that does not exist. Whether the pack caused it is answered below: no.
-4. **The post-write verification gap did not close.** Across pre- and post-fix
-   runs, **0 of 4** with-skills cells ran the QoS inspection command they
-   recommended, with a live reproduction running and `Bash` allowed. `CLAUDE.md`'s
-   "done means it ran" governs code tasks; it does not reach diagnosis answers.
-   Task 1 is the counter-example that shows the mechanism can work: there the
-   agent did run `ros2 interface show` before writing.
-5. **Cost:** baseline $0.0684 total across the three pairs, with-skills $0.1425
-   including the resumed Task 2 turn (~2.1×), or $0.1053 excluding it (~1.5×).
-
-## Follow-ups this run created
-
-- ⏳ Duplicate the language guardrail. `rclpy` appears in exactly one of 11
-  skills. Every skill that shows client-library code needs the C++/Python
-  separation stated locally, or a shared rule must be promoted into `CLAUDE.md`
-  where routing cannot miss it.
-- ⏳ `ros2-perception` needs Python examples (`cv_bridge` in `rclpy`), not only
-  C++ ones — it is routed for camera-topic questions that are frequently Python.
-- ⏳ Re-run Task 3 several times to measure the routing distribution. With n=1 per
-  cell, "which skill gets picked" is currently unmeasured variance sitting
-  underneath every other number in this file.
-- ⏳ Task 3 still cannot separate the conditions on diagnosis quality; require a
-  demonstrated inspection.
-
----
-
-# Guardrail run — 2026-07-26 (testing the fix for a defect that turned out not to reproduce)
-
-The previous section blamed the `rclcpp.qos`-in-Python error on routing to a
-C++-only skill, and two fixes were written for that diagnosis:
-
-- `CLAUDE.md` gained two lines stating that `rclcpp` is C++ only and `rclpy` is
-  Python only, so the rule is in context regardless of which skill routes
-  (26 → 28 lines of always-loaded protocol).
-- `ros2-perception`'s QoS row now names **both** symbols — `rclcpp::SensorDataQoS()`
-  and `rclpy.qos.qos_profile_sensor_data` — where it previously named only the
-  C++ one.
-
-Then the fix was tested properly, and the diagnosis did not survive.
-Artifacts in [`runs/2026-07-26-guardrail/`](./runs/2026-07-26-guardrail/); the
-isolation harness is [`harness/isolate_guardrail.sh`](./harness/isolate_guardrail.sh).
-
-## Step 1 — repeat the normal pair three times
-
-| Repeat | Skill routed | `rclcpp` in Python | Cost |
-| :--- | :--- | :--- | :--- |
-| 1 | `ros2-core` | clean | $0.0283 |
-| 2 | `ros2-troubleshooting` | clean | $0.0325 |
-| 3 | `ros2-core` | clean | $0.0285 |
-
-Clean, but **uninformative**: `ros2-perception` — the condition under suspicion —
-was never selected. Combined with the two earlier runs, the routing distribution
-for this one prompt is `ros2-core` ×3, `ros2-perception` ×1,
-`ros2-troubleshooting` ×1. Roadmap item 7 has its first data: **the skill chosen
-for an identical prompt is genuinely variable.**
-
-## Step 2 — force the suspected condition, with a real control
-
-Four cells, each given `ros2-perception` as its **only** skill, ×2 repeats. The
-control uses the **pre-patch skill body read out of git**, so it is the original
-failing configuration rather than the current file:
-
-| Cell | Skill body | `CLAUDE.md` | Result (×2) |
-| :--- | :--- | :--- | :--- |
-| A control | pre-patch | absent | **clean, clean** |
-| B protocol only | pre-patch | present | clean, clean |
-| C skill only | patched | absent | clean, clean |
-| D both (shipped) | patched | present | clean, clean |
-
-**8/8 clean, including both controls.** The configuration that produced the error
-does not produce it again.
-
-## What this actually shows
-
-1. **The causal claim was wrong and is retracted.** Across every Task 3
-   with-skills cell measured — 13 of them — the `rclcpp.qos` error occurred
-   **once (~8%)**. `ros2-perception` was in context for 5 of those cells and the
-   error appeared in 1. A forced-perception design with a true control does not
-   reproduce it. This was low-frequency stochastic hallucination, not a
-   structural consequence of skill content.
-2. **The fixes therefore have no measured effect on the thing they targeted**, and
-   cannot be credited with the clean results. They are kept on separate grounds:
-   `ros2-perception` genuinely named only the C++ symbol, naming both is correct,
-   and the cost is one table row plus two protocol lines with no regression across
-   8 cells. That is the honest claim — a closed content gap, not a fixed bug.
-3. **Skill activation is not guaranteed, and that is the bigger finding.** In the
-   isolated cells, **4 of 8 made zero tool calls** — the agent never loaded the
-   one skill available to it. Two of those four had `CLAUDE.md` present, whose
-   first instruction is "Load the matching `ros2-*` skill." In the full 11-skill
-   install something was always loaded (5/5); with only a weakly-matching skill
-   offered, the router often preferred nothing. **A skill that does not load
-   cannot help, and the always-loaded protocol does not reliably make it load.**
-4. **n=1 was hiding more than it revealed.** A single run produced a defect, a
-   plausible mechanism, and a fix — and 12 further cells showed the mechanism was
-   imagined. Any single-run claim in this file, including the favourable ones,
-   should be read with that in mind.
-
-## Follow-ups this run created
-
-- ⏳ Measure skill-activation rate as a first-class metric, per task and per
-  skill. It is upstream of every other number here: routing variance and
-  non-activation both determine whether skill content is even in context.
-- ⏳ Repeat the favourable results too. Task 1's fix verification is currently
-  n=1 in the same way the retracted claim was.
-- ⏳ `ros2-perception` still has no Python examples (only C++ `cv_bridge` and
-  `pcl_ros`). That remains a real gap even though it did not cause the observed
-  error; it was left unwritten here because `cv_bridge` is not installed on this
-  machine and the project's rules forbid writing its API from memory.
-
-## Takeaways
-
-1. Where the base model already knows the answer (haiku × QoS diagnosis), skills
-   convert "probably right" into "verified right" at the cost of a few doc
-   fetches — and sometimes buy nothing at all.
-2. Where the base model's *habit* is wrong (default QoS on sensor topics), skills
-   prevent a silent functional failure that no compiler, linter, or log
-   inspection would catch — measured twice now, and on 2026-07-26 confirmed at
-   runtime: the baseline node received **zero** messages from a publisher running
-   at 5 Hz.
-3. Where the base model's memory is weak (haiku × Nav2 MPPI), skills are the
-   difference between a config that aborts bringup and one whose every key matches
-   the installed defaults — and the simulation run shows what that difference is
-   worth: a robot that reaches the goal versus one that never moves.
-4. **Knowing the answer and demonstrating it are different axes.** haiku
-   diagnosed the QoS mismatch perfectly from memory (Task 3) and neither cell ran
-   the one command that would have proven it. Skills reliably change what the
-   agent *asks* before writing; they do not reliably change what it *checks*
-   after.
-5. No baseline cell in any run verified against the install or the docs *before*
-   writing, despite WebFetch and Bash being allowed. The one baseline that used
-   tools heavily — Task 5, 35 calls — spent them on corrections after the fact
-   that never converged.
-6. **Skills raise the floor; they do not make the model correct.** With-skills
-   output has contained invented symbols in every measured round —
-   `ros2_troubleshooting_helpers`, a wrong default durability, missing
-   `range_min`/`range_max` bounds, `rclcpp.qos` in Python. The reproducible wins
-   are structural — correct QoS, correct plugin strings, gate questions asked,
-   claims that match an independent re-run — not "no hallucinations".
-7. **Patching a skill body demonstrably changes output.** The 2026-07-26 post-fix
-   run is the direct test: two of three defects were corrected near-verbatim, and
-   Task 1's node went from a wrong minimum to the right one, confirmed by running
-   it. This pack's content is causally connected to what the agent produces — the
-   mechanism works.
-8. **A rule only exists if the skill carrying it is actually loaded — and loading
-   is not guaranteed.** For one identical prompt the router picked three different
-   skills across five runs, and in a stripped install where only a
-   weakly-matching skill was offered the agent loaded nothing in 4 of 8 cells,
-   `CLAUDE.md`'s "load the matching skill" instruction notwithstanding. Rule
-   placement is a correctness concern, not tidiness.
-9. **Single runs generate mechanisms that do not survive testing.** One cell
-   produced a `rclcpp.qos`-in-Python error; it supported a tidy story about
-   C++-only skills contaminating Python answers, a fix was written for it, and a
-   controlled 8-cell run with a real control then failed to reproduce the error at
-   all — 1 occurrence in 13 cells. The story was retracted. Every n=1 claim in
-   this file, favourable ones included, carries the same risk.
+How the runs are set up and re-run: [`README.md`](./README.md).

@@ -13,9 +13,9 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 **English** | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-| Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks | Evals: Gazebo A/B |
-| :---: | :---: | :---: | :---: | :---: |
-| **11** | **28 lines** | **32** | **4 scripts** | **goal reached vs. bringup abort** |
+| Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks |
+| :---: | :---: | :---: | :---: |
+| **11** | **28 lines** | **32** | **4 scripts** |
 
 </div>
 
@@ -32,7 +32,6 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 - [Verification scripts](#verification-scripts)
 - [How it works](#how-it-works)
 - [Updating](#updating)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -73,75 +72,28 @@ Most robotics skill packs embed static API knowledge directly inside skill files
 | Always-loaded context | Full `SKILL.md` files | **28-line** core protocol |
 | Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **32 documentation links** verified weekly via CI |
 | Verification method | Static code analysis or log checking | **Physical & runtime verification**: IMU gravity checks, directional odometry tests, TF frame alignment, DDS QoS compatibility |
-| Distribution scope | Claims support for multiple ROS distros while targeting only one | **ROS 2 Jazzy only**, explicitly designed and validated |
+| Distribution scope | Claims support for multiple ROS distros while targeting only one | **ROS 2 Jazzy only**, by design — no "works on Humble too" hedging |
 
 This repository optimizes for a single outcome: minimizing the risk of generating plausible-looking code that fails to run on ROS 2 Jazzy.
 
 ## Evals
 
-Every result below comes from a measured A/B pair: the **identical prompt** run in fresh, headless Claude Code sessions — once without these skills, once with them — using the **same model** in both cells. Outputs were graded symbol-by-symbol against pinned upstream Jazzy sources, then against a live `/opt/ros/jazzy` installation, then by loading both outputs into a **live Gazebo simulation**, and finally by **executing the generated nodes** against running publishers. Every task in the suite now has a live-install measurement. Full transcripts, generated code, and run logs are committed under [`evals/runs/`](./evals/runs/), and the harness that produces the pairs is in [`evals/harness/`](./evals/harness/), so anyone can re-grade or re-run without trusting us.
+**A skill counts as verified here only when two questions are answered:** does it
+change what the agent produces on a task exercising its own content, and is this
+body the *smallest* one that produces that change? Correct is the floor, not the
+bar — fewer tokens and less text may buy the same result, and until that is
+tested, "the agent used it" is half an answer.
 
-Most cells are **n=1**, and the runs were graded by the same project that publishes them; grading is mechanical wherever possible (does the symbol exist in the install? does the command succeed?) so it can be checked independently. One task has since been repeated 13 times, and doing so **retracted** a conclusion the single run had supported — the write-up keeps both the claim and the retraction.
+**No skill has completed verification yet.** Per-skill status is in
+[`evals/RESULTS.md`](./evals/RESULTS.md); results are published there as each
+skill clears both axes, including the ones that fail. Interim measurements are
+deliberately withheld — an earlier round produced a plausible conclusion from a
+single run that a controlled re-run then disconfirmed, and partial results spread
+that kind of error faster than it can be caught.
 
-### Nav2 MPPI configuration — Haiku, live Jazzy install
-
-*Prompt: set up Nav2 with the MPPI controller for a differential-drive robot on Jazzy and produce the controller server YAML.*
-
-| | Without skills | With skills |
-| :--- | :--- | :--- |
-| Process | Answered instantly from memory; **zero** verification despite tools being available | Asked footprint, existing-config, localization, and velocity limits **first**, then read the shipped defaults at `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` |
-| Plugin string | `mppi_generic::ControllerServer` — does not exist | `nav2_mppi_controller::MPPIController` — correct |
-| `critics:` list | Absent entirely | All 8, correct names |
-| Fabricated parameter keys | **~16** | **0** — every key mechanically diffed against the installed defaults |
-| **Loaded into a live Gazebo simulation** | **`[FATAL] Failed to create controller … does not exist` — Nav2 aborts at bringup; the robot never moves** | **MPPI + all 8 critics load; the robot drives (−2.0, −0.5) → (0.5, 0.5); `NavigateToPose` returns `SUCCEEDED`** |
-
-### A package that must actually run — Haiku, in-container
-
-*Prompt: create a Python package `demo_pkg` publishing `std_msgs/msg/String` on `/greeting` at 1 Hz with a launch file; build it and show `ros2 topic echo /greeting`.*
-
-| | Without skills | With skills |
-| :--- | :--- | :--- |
-| `ros2 run` / `ros2 launch` / `topic echo` | **All three fail** — the package never registers in the ament index | **All three pass**, confirmed by independent re-runs of each command |
-| Cost to that outcome | $0.17 · 36 turns · 178 s | **$0.08 · 18 turns · 61 s** — correct on the first pass and **2.2× cheaper** |
-
-### Sensor subscription — Haiku, both nodes executed against a live publisher
-
-*Prompt: write a Jazzy Python node that subscribes to `/scan` and logs the minimum range once per second.* Both generated nodes were then run for 6 s against a BEST_EFFORT `/scan` publisher.
-
-| | Without skills | With skills |
-| :--- | :--- | :--- |
-| Subscription QoS | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
-| **Messages received at runtime** | **Zero.** rclpy itself reported `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Receives at 5 Hz** |
-| Reported minimum (correct answer: 0.45 m) | never received one | **`0.450 m` — correct** |
-| Clean exit on SIGTERM | traceback | no traceback |
-
-An earlier round of this same pair is what produced the fix: both nodes then filtered only `inf`, so the with-skills node reported `0.020 m` — connected, but confidently wrong. `ros2-core` gained the bounds rule and the shutdown pattern, and the re-run above is the verification that the patch changed the output. Both tables are in [`evals/RESULTS.md`](./evals/RESULTS.md).
-
-### Asking before writing — Haiku, inverted LiDAR mount
-
-*Prompt: my LiDAR is mounted upside-down on the back, facing backward; write the static TF and tell me how to confirm it.*
-
-| | Without skills | With skills |
-| :--- | :--- | :--- |
-| Physical mounting established first | Answered in one turn | **Stopped and asked for the back distance and offsets** before emitting a transform |
-| Transform correctness | roll≈180° + yaw≈180°, REP 105 parent/child — correct | correct; both outputs were published and flagged by `check_tf_tree.py` exactly as designed |
-| Confirmation advice | RViz with a **PointCloud2** display — wrong message type for a LiDAR | `tf2_echo` plus a **LaserScan** display |
-
-### What the skills do not fix
-
-Reported because leaving it out would make the rest less trustworthy:
-
-- **A rule only helps if the skill carrying it actually loads — and loading is not guaranteed.** For one identical prompt the router selected three different skills across five runs. In a stripped install offering only a weakly-matching skill, the agent loaded **nothing in 4 of 8 cells**, even where `CLAUDE.md` — whose first instruction is "load the matching skill" — was present. Skill activation sits upstream of every other claim on this page.
-- **One with-skills answer was worse than baseline, and chasing it produced a retraction.** A single run emitted `rclcpp.qos` in Python code (`ModuleNotFoundError`); the tidy explanation was that a C++-only skill had contaminated a Python answer, and a fix was written for it. A controlled re-run that forced exactly that condition, with the pre-patch skill as a true control, then failed to reproduce the error in **8 of 8 cells** — 1 occurrence in 13 total. The mechanism was imagined, and the write-up says so. Every n=1 result here carries the same risk.
-- **Hallucination moves, it does not stop.** Every measured round has contained invented symbols in with-skills output — a non-existent package for this repo's own script, a wrong default durability, missing range bounds, a Python module that doesn't exist. Routing to docs raises the floor; it does not make the model correct.
-- **On problems the model already knows cold, skills cost more and buy little.** For the classic QoS-mismatch diagnosis, both conditions were right in one turn and the with-skills side cost ~1.4× while adding an error.
-- **Skills change what the agent asks, more reliably than what it checks.** Across four with-skills cells on that task, with a live reproduction running and `Bash` allowed, **none** ran the `ros2 topic info -v` they recommended. The verify-before-writing half does fire — on Task 1 the agent ran `ros2 interface show` first — but "prove it afterwards" does not reach diagnosis answers.
-
-### The pattern across every pair
-
-No baseline cell in any run verified against the installed packages or the docs **before** writing, even when WebFetch, Read, and Bash were explicitly allowed — and one baseline reported a fully working build for a package `ros2 run` cannot find. With-skills cells asked the pre-write gate questions in every run where the task had unknowns, and their claims matched independent re-execution. The verification scripts have now been exercised on live data in both directions: `check_qos_compat.py` produced its first real `[FAIL]` against a genuine BEST_EFFORT/RELIABLE mismatch, and `check_tf_tree.py` flagged an inverted sensor while leaving a correctly-mounted one alone.
-
-Review full evaluation tables, test environments, and individual run analyses in [`evals/RESULTS.md`](./evals/RESULTS.md). For details on the evaluation protocol, task checklists, and container setup, see [`evals/README.md`](./evals/README.md). Pull requests containing additional graded transcripts are welcome.
+What is being measured, how it is graded, and how to re-run any of it:
+[`evals/README.md`](./evals/README.md). Transcripts and logs from every run to
+date are committed under [`evals/runs/`](./evals/runs/).
 
 ## Quickstart
 
@@ -221,23 +173,6 @@ cd claude-ros2-skills
 git pull
 cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 ```
-
-## Roadmap
-
-The detailed plan — what each item is for, what "done" means, what it costs, and which measurement created it — is in [`ROADMAP.md`](./ROADMAP.md).
-
-1. ~~Automate evaluation pairs inside `ros:jazzy` containers~~ — **done (2026-07-25):** Task 4 re-run against a live `/opt/ros/jazzy` install; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
-2. ~~Publish Task 5 evaluation results~~ — **done (2026-07-25):** binary build/run/echo outcome measured in-container; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
-3. ~~Extend live-install evaluations to Tasks 1–3~~ — **done (2026-07-26):** run against a native `ros-jazzy-ros-base` install, with both generated nodes executed against live publishers; harness in [`evals/harness/`](./evals/harness/), results in [`evals/RESULTS.md`](./evals/RESULTS.md).
-4. ~~Fix the defects those runs exposed~~ — **done (2026-07-26):** `ros2-troubleshooting` now states the literal script invocation (the model was inventing a package for it) and that `check_tf_tree.py` always flags a ~180° mount for physical confirmation; `ros2-core` gained the `range_min`/`range_max` bounds rule and a clean-shutdown pattern. **The eval tables measure the skills as they were before these fixes.**
-5. ~~Re-run Tasks 1–3 against the patched skills~~ — **done (2026-07-26):** two of three defects corrected near-verbatim and Task 1 now reports the right minimum at runtime; the third task regressed for a traceable reason (see item 6).
-6. ~~Duplicate the client-library guardrail across skills~~ — **applied (2026-07-26), effect unmeasured:** `CLAUDE.md` now states that `rclcpp` is C++ only and `rclpy` is Python only, and `ros2-perception`'s QoS row names both symbols instead of only the C++ one. Kept because it closes a real content gap, **not** because it fixed anything — the error it targeted turned out to occur once in 13 cells and did not reproduce under a controlled re-run. `ros2-perception` still has no Python examples.
-7. **Measure skill-activation rate as a first-class metric.** It is upstream of everything else here: in a stripped install the agent loaded no skill at all in 4 of 8 cells. First routing data exists (one prompt selected 3 different skills across 5 runs); activation and routing both need per-task numbers.
-8. **Repeat the favourable results.** Task 1's fix verification is n=1 in exactly the way the retracted mechanism claim was.
-9. **Make Task 3 discriminating** — require the QoS diagnosis to be *demonstrated* against live endpoints, not recommended, since both conditions currently answer it correctly from memory.
-10. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
-11. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
-12. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
 
 ## Contributing
 

@@ -1,2 +1,7 @@
 __pycache__/
 *.pyc
+
+# Derived from skills/ by `python3 evals/harness/claims.py inventory`.
+# Committing it would go stale on every skill edit and invite grading against
+# line spans that no longer exist.
+evals/claims/
