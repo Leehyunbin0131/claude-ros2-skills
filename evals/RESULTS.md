@@ -378,18 +378,15 @@ Three findings, each checked against the install and the skill sources:
    went into `ros2-core`. `ros2-perception` has no QoS-policy guidance beyond one
    symptom row, so the patched text was never in context. A fix placed in one
    skill does not protect a task that routes elsewhere.
-3. **The loaded skill actively caused the new defect.** `ros2-perception`'s
-   examples are **exclusively C++** — `#include <rclcpp/rclcpp.hpp>`, cv_bridge
-   and pcl_ros in C++ — and it is the only skill in the pack with no Python
-   content at all. Of the 11 skills, **`ros2-core` is the only one that mentions
-   `rclpy`**. Asked for a Python fix with nothing but `rclcpp::` in context, the
-   model fused the two into `rclcpp.qos`. For a Python question, loading that
-   skill was worse than loading nothing: the baseline, with no skill at all, got
-   the API right.
-
-The uncomfortable implication is that the pack's per-skill isolation — the thing
-that makes it context-efficient — is also a correctness hazard. A rule is only
-active if the router happens to select the file it lives in.
+3. ~~**The loaded skill actively caused the new defect.**~~ **Retracted — see the
+   isolation run below.** The original reading was that `ros2-perception`'s
+   exclusively-C++ examples (`#include <rclcpp/rclcpp.hpp>`, cv_bridge and
+   pcl_ros in C++) contaminated a Python answer, since it is the only skill with
+   no Python content and `ros2-core` is the only one of 11 that mentions `rclpy`.
+   That is a real content gap, but it is **not** an established cause: a
+   controlled run that forces `ros2-perception` to be the only skill, using the
+   pre-patch body as a true control, failed to reproduce the error in any cell.
+   The inference was drawn from a single occurrence and does not survive testing.
 
 ## What this run establishes
 
@@ -398,9 +395,8 @@ active if the router happens to select the file it lives in.
    Patching a skill body does change output, reproducibly and near-verbatim.
 2. **Coverage of a rule matters as much as its content.** Two of three tasks
    improved; the third was untouched because the rule lived in the wrong file.
-3. **A C++-only skill is a liability on a Python question.** This is the first
-   measured case of the pack making output *worse* than baseline, and the cause is
-   in the skill content, not the model.
+3. **One with-skills answer was worse than baseline** — Python code using a module
+   that does not exist. Whether the pack caused it is answered below: no.
 4. **The post-write verification gap did not close.** Across pre- and post-fix
    runs, **0 of 4** with-skills cells ran the QoS inspection command they
    recommended, with a live reproduction running and `Bash` allowed. `CLAUDE.md`'s
@@ -423,6 +419,91 @@ active if the router happens to select the file it lives in.
   underneath every other number in this file.
 - ⏳ Task 3 still cannot separate the conditions on diagnosis quality; require a
   demonstrated inspection.
+
+---
+
+# Guardrail run — 2026-07-26 (testing the fix for a defect that turned out not to reproduce)
+
+The previous section blamed the `rclcpp.qos`-in-Python error on routing to a
+C++-only skill, and two fixes were written for that diagnosis:
+
+- `CLAUDE.md` gained two lines stating that `rclcpp` is C++ only and `rclpy` is
+  Python only, so the rule is in context regardless of which skill routes
+  (26 → 28 lines of always-loaded protocol).
+- `ros2-perception`'s QoS row now names **both** symbols — `rclcpp::SensorDataQoS()`
+  and `rclpy.qos.qos_profile_sensor_data` — where it previously named only the
+  C++ one.
+
+Then the fix was tested properly, and the diagnosis did not survive.
+Artifacts in [`runs/2026-07-26-guardrail/`](./runs/2026-07-26-guardrail/); the
+isolation harness is [`harness/isolate_guardrail.sh`](./harness/isolate_guardrail.sh).
+
+## Step 1 — repeat the normal pair three times
+
+| Repeat | Skill routed | `rclcpp` in Python | Cost |
+| :--- | :--- | :--- | :--- |
+| 1 | `ros2-core` | clean | $0.0283 |
+| 2 | `ros2-troubleshooting` | clean | $0.0325 |
+| 3 | `ros2-core` | clean | $0.0285 |
+
+Clean, but **uninformative**: `ros2-perception` — the condition under suspicion —
+was never selected. Combined with the two earlier runs, the routing distribution
+for this one prompt is `ros2-core` ×3, `ros2-perception` ×1,
+`ros2-troubleshooting` ×1. Roadmap item 7 has its first data: **the skill chosen
+for an identical prompt is genuinely variable.**
+
+## Step 2 — force the suspected condition, with a real control
+
+Four cells, each given `ros2-perception` as its **only** skill, ×2 repeats. The
+control uses the **pre-patch skill body read out of git**, so it is the original
+failing configuration rather than the current file:
+
+| Cell | Skill body | `CLAUDE.md` | Result (×2) |
+| :--- | :--- | :--- | :--- |
+| A control | pre-patch | absent | **clean, clean** |
+| B protocol only | pre-patch | present | clean, clean |
+| C skill only | patched | absent | clean, clean |
+| D both (shipped) | patched | present | clean, clean |
+
+**8/8 clean, including both controls.** The configuration that produced the error
+does not produce it again.
+
+## What this actually shows
+
+1. **The causal claim was wrong and is retracted.** Across every Task 3
+   with-skills cell measured — 13 of them — the `rclcpp.qos` error occurred
+   **once (~8%)**. `ros2-perception` was in context for 5 of those cells and the
+   error appeared in 1. A forced-perception design with a true control does not
+   reproduce it. This was low-frequency stochastic hallucination, not a
+   structural consequence of skill content.
+2. **The fixes therefore have no measured effect on the thing they targeted**, and
+   cannot be credited with the clean results. They are kept on separate grounds:
+   `ros2-perception` genuinely named only the C++ symbol, naming both is correct,
+   and the cost is one table row plus two protocol lines with no regression across
+   8 cells. That is the honest claim — a closed content gap, not a fixed bug.
+3. **Skill activation is not guaranteed, and that is the bigger finding.** In the
+   isolated cells, **4 of 8 made zero tool calls** — the agent never loaded the
+   one skill available to it. Two of those four had `CLAUDE.md` present, whose
+   first instruction is "Load the matching `ros2-*` skill." In the full 11-skill
+   install something was always loaded (5/5); with only a weakly-matching skill
+   offered, the router often preferred nothing. **A skill that does not load
+   cannot help, and the always-loaded protocol does not reliably make it load.**
+4. **n=1 was hiding more than it revealed.** A single run produced a defect, a
+   plausible mechanism, and a fix — and 12 further cells showed the mechanism was
+   imagined. Any single-run claim in this file, including the favourable ones,
+   should be read with that in mind.
+
+## Follow-ups this run created
+
+- ⏳ Measure skill-activation rate as a first-class metric, per task and per
+  skill. It is upstream of every other number here: routing variance and
+  non-activation both determine whether skill content is even in context.
+- ⏳ Repeat the favourable results too. Task 1's fix verification is currently
+  n=1 in the same way the retracted claim was.
+- ⏳ `ros2-perception` still has no Python examples (only C++ `cv_bridge` and
+  `pcl_ros`). That remains a real gap even though it did not cause the observed
+  error; it was left unwritten here because `cv_bridge` is not installed on this
+  machine and the project's rules forbid writing its API from memory.
 
 ## Takeaways
 
@@ -458,9 +539,15 @@ active if the router happens to select the file it lives in.
    Task 1's node went from a wrong minimum to the right one, confirmed by running
    it. This pack's content is causally connected to what the agent produces — the
    mechanism works.
-8. **But a rule only exists if the router loads the file it lives in.** The same
-   run produced the first case of the pack making output *worse* than baseline:
-   a Python question routed to a C++-only skill, and the answer came back with a
-   Python module that does not exist. Rule placement and cross-skill duplication
-   are correctness concerns, not just tidiness — and routing variance under n=1
-   sits underneath every number in this file.
+8. **A rule only exists if the skill carrying it is actually loaded — and loading
+   is not guaranteed.** For one identical prompt the router picked three different
+   skills across five runs, and in a stripped install where only a
+   weakly-matching skill was offered the agent loaded nothing in 4 of 8 cells,
+   `CLAUDE.md`'s "load the matching skill" instruction notwithstanding. Rule
+   placement is a correctness concern, not tidiness.
+9. **Single runs generate mechanisms that do not survive testing.** One cell
+   produced a `rclcpp.qos`-in-Python error; it supported a tidy story about
+   C++-only skills contaminating Python answers, a fix was written for it, and a
+   controlled 8-cell run with a real control then failed to reproduce the error at
+   all — 1 occurrence in 13 cells. The story was retracted. Every n=1 claim in
+   this file, favourable ones included, carries the same risk.

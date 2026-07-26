@@ -56,7 +56,7 @@ void filter_cloud(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
 
 | Symptom | Likely root cause | Action |
 | :--- | :--- | :--- |
-| Image topic listed but callback never fires | QoS mismatch: camera drivers publish BestEffort, subscriber defaults Reliable | Subscribe with `SensorDataQoS`; confirm with `ros2 topic info <topic> -v` |
+| Image topic listed but callback never fires | QoS mismatch: camera drivers publish BestEffort, subscriber defaults Reliable | Subscribe with sensor-data QoS — **C++ `rclcpp::SensorDataQoS()`, Python `rclpy.qos.qos_profile_sensor_data`** (there is no `rclcpp` module in Python); confirm with `ros2 topic info <topic> -v` |
 | `cv_bridge` throws encoding exception | Requested encoding doesn't match source (`bgr8` vs `rgb8`, `16UC1` depth) | Use `toCvCopy(msg, msg->encoding)` (passthrough) or convert explicitly; never assume `bgr8` for depth |
 | Depth values look 1000x off or all ~0 | `16UC1` is millimeters, `32FC1` is meters — unit confusion | Check `msg->encoding` before scaling; divide 16UC1 by 1000.0 for meters |
 | Point cloud misaligned with the RGB image | Depth not registered into the color optical frame | Use the `depth_registered` topic or `depth_image_proc` register node; verify both `frame_id`s |

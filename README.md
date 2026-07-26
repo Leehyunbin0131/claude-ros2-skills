@@ -15,7 +15,7 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 | Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks | Evals: Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 lines** | **32** | **4 scripts** | **goal reached vs. bringup abort** |
+| **11** | **28 lines** | **32** | **4 scripts** | **goal reached vs. bringup abort** |
 
 </div>
 
@@ -70,7 +70,7 @@ Most robotics skill packs embed static API knowledge directly inside skill files
 | Feature | Content-heavy skill packs | **claude-ros2-skills** |
 | :--- | :--- | :--- |
 | Knowledge location | Embedded in skill files (**400–1,800 lines/skill**) | Linked to official docs (**~60-line** skill bodies); detailed references read **only when needed** |
-| Always-loaded context | Full `SKILL.md` files | **26-line** core protocol |
+| Always-loaded context | Full `SKILL.md` files | **28-line** core protocol |
 | Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **32 documentation links** verified weekly via CI |
 | Verification method | Static code analysis or log checking | **Physical & runtime verification**: IMU gravity checks, directional odometry tests, TF frame alignment, DDS QoS compatibility |
 | Distribution scope | Claims support for multiple ROS distros while targeting only one | **ROS 2 Jazzy only**, explicitly designed and validated |
@@ -81,7 +81,7 @@ This repository optimizes for a single outcome: minimizing the risk of generatin
 
 Every result below comes from a measured A/B pair: the **identical prompt** run in fresh, headless Claude Code sessions — once without these skills, once with them — using the **same model** in both cells. Outputs were graded symbol-by-symbol against pinned upstream Jazzy sources, then against a live `/opt/ros/jazzy` installation, then by loading both outputs into a **live Gazebo simulation**, and finally by **executing the generated nodes** against running publishers. Every task in the suite now has a live-install measurement. Full transcripts, generated code, and run logs are committed under [`evals/runs/`](./evals/runs/), and the harness that produces the pairs is in [`evals/harness/`](./evals/harness/), so anyone can re-grade or re-run without trusting us.
 
-Sample size is **n=1 per cell** and the runs were graded by the same project that publishes them; grading is mechanical wherever possible (does the symbol exist in the install? does the command succeed?) so it can be checked independently.
+Most cells are **n=1**, and the runs were graded by the same project that publishes them; grading is mechanical wherever possible (does the symbol exist in the install? does the command succeed?) so it can be checked independently. One task has since been repeated 13 times, and doing so **retracted** a conclusion the single run had supported — the write-up keeps both the claim and the retraction.
 
 ### Nav2 MPPI configuration — Haiku, live Jazzy install
 
@@ -131,7 +131,8 @@ An earlier round of this same pair is what produced the fix: both nodes then fil
 
 Reported because leaving it out would make the rest less trustworthy:
 
-- **A rule only exists if the router loads the file it lives in.** On the QoS-diagnosis task, two runs of the identical prompt routed to *different* skills — `ros2-core` once, `ros2-perception` the next. `ros2-perception`'s examples are exclusively C++, and it is the only skill with no Python content; asked for a Python fix with nothing but `rclcpp::` in context, the answer came back using `rclcpp.qos` in Python, which raises `ModuleNotFoundError`. **The baseline, with no skill loaded at all, got that API right.** This is the one measured case of the pack making output worse, and the cause is skill content, not the model.
+- **A rule only helps if the skill carrying it actually loads — and loading is not guaranteed.** For one identical prompt the router selected three different skills across five runs. In a stripped install offering only a weakly-matching skill, the agent loaded **nothing in 4 of 8 cells**, even where `CLAUDE.md` — whose first instruction is "load the matching skill" — was present. Skill activation sits upstream of every other claim on this page.
+- **One with-skills answer was worse than baseline, and chasing it produced a retraction.** A single run emitted `rclcpp.qos` in Python code (`ModuleNotFoundError`); the tidy explanation was that a C++-only skill had contaminated a Python answer, and a fix was written for it. A controlled re-run that forced exactly that condition, with the pre-patch skill as a true control, then failed to reproduce the error in **8 of 8 cells** — 1 occurrence in 13 total. The mechanism was imagined, and the write-up says so. Every n=1 result here carries the same risk.
 - **Hallucination moves, it does not stop.** Every measured round has contained invented symbols in with-skills output — a non-existent package for this repo's own script, a wrong default durability, missing range bounds, a Python module that doesn't exist. Routing to docs raises the floor; it does not make the model correct.
 - **On problems the model already knows cold, skills cost more and buy little.** For the classic QoS-mismatch diagnosis, both conditions were right in one turn and the with-skills side cost ~1.4× while adding an error.
 - **Skills change what the agent asks, more reliably than what it checks.** Across four with-skills cells on that task, with a live reproduction running and `Bash` allowed, **none** ran the `ros2 topic info -v` they recommended. The verify-before-writing half does fire — on Task 1 the agent ran `ros2 interface show` first — but "prove it afterwards" does not reach diagnosis answers.
@@ -223,17 +224,20 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 
 ## Roadmap
 
+The detailed plan — what each item is for, what "done" means, what it costs, and which measurement created it — is in [`ROADMAP.md`](./ROADMAP.md).
+
 1. ~~Automate evaluation pairs inside `ros:jazzy` containers~~ — **done (2026-07-25):** Task 4 re-run against a live `/opt/ros/jazzy` install; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
 2. ~~Publish Task 5 evaluation results~~ — **done (2026-07-25):** binary build/run/echo outcome measured in-container; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
 3. ~~Extend live-install evaluations to Tasks 1–3~~ — **done (2026-07-26):** run against a native `ros-jazzy-ros-base` install, with both generated nodes executed against live publishers; harness in [`evals/harness/`](./evals/harness/), results in [`evals/RESULTS.md`](./evals/RESULTS.md).
 4. ~~Fix the defects those runs exposed~~ — **done (2026-07-26):** `ros2-troubleshooting` now states the literal script invocation (the model was inventing a package for it) and that `check_tf_tree.py` always flags a ~180° mount for physical confirmation; `ros2-core` gained the `range_min`/`range_max` bounds rule and a clean-shutdown pattern. **The eval tables measure the skills as they were before these fixes.**
 5. ~~Re-run Tasks 1–3 against the patched skills~~ — **done (2026-07-26):** two of three defects corrected near-verbatim and Task 1 now reports the right minimum at runtime; the third task regressed for a traceable reason (see item 6).
-6. **Duplicate the client-library guardrail across skills.** `rclpy` is mentioned in exactly 1 of 11 skills, so a Python question routed anywhere else has only C++ examples in context. Either state the C++/Python separation locally in every skill that shows client-library code, or promote it into `CLAUDE.md` where routing cannot miss it. `ros2-perception` also needs Python `cv_bridge` examples, not only C++ ones.
-7. **Measure the routing distribution.** Which skill gets selected varies between identical runs, and at n=1 that variance sits underneath every number in the eval tables.
-8. **Make Task 3 discriminating** — require the QoS diagnosis to be *demonstrated* against live endpoints, not recommended, since both conditions currently answer it correctly from memory.
-9. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
-10. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
-11. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
+6. ~~Duplicate the client-library guardrail across skills~~ — **applied (2026-07-26), effect unmeasured:** `CLAUDE.md` now states that `rclcpp` is C++ only and `rclpy` is Python only, and `ros2-perception`'s QoS row names both symbols instead of only the C++ one. Kept because it closes a real content gap, **not** because it fixed anything — the error it targeted turned out to occur once in 13 cells and did not reproduce under a controlled re-run. `ros2-perception` still has no Python examples.
+7. **Measure skill-activation rate as a first-class metric.** It is upstream of everything else here: in a stripped install the agent loaded no skill at all in 4 of 8 cells. First routing data exists (one prompt selected 3 different skills across 5 runs); activation and routing both need per-task numbers.
+8. **Repeat the favourable results.** Task 1's fix verification is n=1 in exactly the way the retracted mechanism claim was.
+9. **Make Task 3 discriminating** — require the QoS diagnosis to be *demonstrated* against live endpoints, not recommended, since both conditions currently answer it correctly from memory.
+10. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
+11. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
+12. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
 
 ## Contributing
 

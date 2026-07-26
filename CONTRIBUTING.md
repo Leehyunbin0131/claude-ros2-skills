@@ -49,6 +49,46 @@ Boilerplate that repeats what `CLAUDE.md` already says (target distro, "verify
 before writing") does not belong in a skill — it is paid for on every load, and
 twice over when a task loads two skills.
 
+### Two bars, and which one your line has to clear
+
+A line does not need an A/B result to earn its place. It needs the bar that
+matches what it claims:
+
+| Bar | Question | How | Applies to |
+| :--- | :--- | :--- | :--- |
+| **Verifiable** | Is this true right now, on Jazzy? | `ros2 interface show`, `ros2 pkg prefix`, grep the installed source | **every line, no exceptions** |
+| **Measured** | Does this change what the agent produces? | an A/B pair per [`evals/README.md`](./evals/README.md) | lines added to correct an agent behaviour |
+
+Most content only needs the first bar. `16UC1` is millimetres and
+`raytrace_max_range` ≤ `obstacle_max_range` stops obstacles clearing are worth
+stating because they are true and non-obvious, not because an eval scored them.
+
+The second bar exists because intuition about what an agent gets wrong is
+unreliable — we have a retraction in `RESULTS.md` where a plausible failure
+mechanism was inferred from one run and then disconfirmed by a controlled one. If
+you are adding a rule *because* you believe the model errs there, say so in the PR
+and attach the failing cell.
+
+Content that clears neither bar is what to cut. Its cost is not only context: an
+unverifiable line rots quietly on the next release and drags down trust in the
+lines around it. A wrong line is worse than a missing one — a bad critic name in
+`references/symbols.md` was once emitted **verbatim** by the agent, so the file
+manufactured the hallucination it existed to prevent.
+
+### Where a rule lives is a correctness decision
+
+Routing is not guaranteed. Measured: one identical prompt selected three
+different skills across five runs, and in a stripped install the agent loaded no
+skill at all in 4 of 8 cells. So:
+
+- A rule that can be wrong in **several domains** belongs in `CLAUDE.md`, where
+  routing cannot miss it — the `rclcpp` is C++ / `rclpy` is Python separation is
+  there for this reason.
+- A rule that only matters **inside one domain** belongs in that skill.
+
+Promoting to `CLAUDE.md` is not free: it is paid on every session. Keep it to
+rules that are short, general, and cheap to state.
+
 ## Adding or editing a skill
 
 1. `mkdir skills/<name>` with a `SKILL.md`. Frontmatter needs `name` and

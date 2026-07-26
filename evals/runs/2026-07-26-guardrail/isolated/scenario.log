@@ -1,0 +1,133 @@
+[INFO] [1785030437.116266668] [fake_camera_pub]: publishing /camera/image_raw at 30 Hz (BEST_EFFORT)
+[WARN] [1785030437.116694893] [fake_camera_pub]: New subscription discovered on topic '/camera/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+Traceback (most recent call last):
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_camera_pub.py", line 59, in <module>
+    main()
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_camera_pub.py", line 49, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException
+_image_sub]: images received: 0
+[INFO] [1785030451.111086799] [reliable_image_sub]: images received: 0
+[INFO] [1785030452.111126642] [reliable_image_sub]: images received: 0
+[INFO] [1785030453.111050471] [reliable_image_sub]: images received: 0
+[INFO] [1785030454.111071435] [reliable_image_sub]: images received: 0
+[INFO] [1785030455.111088010] [reliable_image_sub]: images received: 0
+[INFO] [1785030456.111060185] [reliable_image_sub]: images received: 0
+[INFO] [1785030457.111163987] [reliable_image_sub]: images received: 0
+[INFO] [1785030458.111054305] [reliable_image_sub]: images received: 0
+[INFO] [1785030459.111102576] [reliable_image_sub]: images received: 0
+[INFO] [1785030460.111164667] [reliable_image_sub]: images received: 0
+[INFO] [1785030461.111088847] [reliable_image_sub]: images received: 0
+[INFO] [1785030462.111068080] [reliable_image_sub]: images received: 0
+[INFO] [1785030463.111119076] [reliable_image_sub]: images received: 0
+[INFO] [1785030464.111149236] [reliable_image_sub]: images received: 0
+[INFO] [1785030465.111057881] [reliable_image_sub]: images received: 0
+[INFO] [1785030466.111161623] [reliable_image_sub]: images received: 0
+[INFO] [1785030467.111083741] [reliable_image_sub]: images received: 0
+[INFO] [1785030468.111147312] [reliable_image_sub]: images received: 0
+[INFO] [1785030469.111093157] [reliable_image_sub]: images received: 0
+[INFO] [1785030470.111077565] [reliable_image_sub]: images received: 0
+[INFO] [1785030471.111128033] [reliable_image_sub]: images received: 0
+[INFO] [1785030472.111132477] [reliable_image_sub]: images received: 0
+[INFO] [1785030473.111072013] [reliable_image_sub]: images received: 0
+[INFO] [1785030474.111066590] [reliable_image_sub]: images received: 0
+[INFO] [1785030475.111054931] [reliable_image_sub]: images received: 0
+[INFO] [1785030476.111066138] [reliable_image_sub]: images received: 0
+[INFO] [1785030477.111142850] [reliable_image_sub]: images received: 0
+[INFO] [1785030478.111107568] [reliable_image_sub]: images received: 0
+[INFO] [1785030479.111054965] [reliable_image_sub]: images received: 0
+[INFO] [1785030480.111123017] [reliable_image_sub]: images received: 0
+[INFO] [1785030481.111068187] [reliable_image_sub]: images received: 0
+[INFO] [1785030482.111054924] [reliable_image_sub]: images received: 0
+[INFO] [1785030483.111056652] [reliable_image_sub]: images received: 0
+[INFO] [1785030484.111128487] [reliable_image_sub]: images received: 0
+[INFO] [1785030485.111071438] [reliable_image_sub]: images received: 0
+[INFO] [1785030486.111170146] [reliable_image_sub]: images received: 0
+[INFO] [1785030487.111152157] [reliable_image_sub]: images received: 0
+[INFO] [1785030488.111053769] [reliable_image_sub]: images received: 0
+[INFO] [1785030489.111055319] [reliable_image_sub]: images received: 0
+[INFO] [1785030490.111056012] [reliable_image_sub]: images received: 0
+[INFO] [1785030491.111088697] [reliable_image_sub]: images received: 0
+[INFO] [1785030492.111081290] [reliable_image_sub]: images received: 0
+[INFO] [1785030493.111080465] [reliable_image_sub]: images received: 0
+[INFO] [1785030494.111064491] [reliable_image_sub]: images received: 0
+[INFO] [1785030495.111144682] [reliable_image_sub]: images received: 0
+[INFO] [1785030496.111095171] [reliable_image_sub]: images received: 0
+[INFO] [1785030497.111080348] [reliable_image_sub]: images received: 0
+[INFO] [1785030498.111096986] [reliable_image_sub]: images received: 0
+[INFO] [1785030499.111074141] [reliable_image_sub]: images received: 0
+[INFO] [1785030500.111084056] [reliable_image_sub]: images received: 0
+[INFO] [1785030501.111086031] [reliable_image_sub]: images received: 0
+[INFO] [1785030502.111086360] [reliable_image_sub]: images received: 0
+[INFO] [1785030503.111073995] [reliable_image_sub]: images received: 0
+[INFO] [1785030504.111054812] [reliable_image_sub]: images received: 0
+[INFO] [1785030505.111057445] [reliable_image_sub]: images received: 0
+[INFO] [1785030506.111073525] [reliable_image_sub]: images received: 0
+[INFO] [1785030507.111081517] [reliable_image_sub]: images received: 0
+[INFO] [1785030508.111080111] [reliable_image_sub]: images received: 0
+[INFO] [1785030509.111281579] [reliable_image_sub]: images received: 0
+[INFO] [1785030510.111059957] [reliable_image_sub]: images received: 0
+[INFO] [1785030511.111111796] [reliable_image_sub]: images received: 0
+[INFO] [1785030512.111076120] [reliable_image_sub]: images received: 0
+[INFO] [1785030513.111097238] [reliable_image_sub]: images received: 0
+[INFO] [1785030514.111162732] [reliable_image_sub]: images received: 0
+[INFO] [1785030515.111134484] [reliable_image_sub]: images received: 0
+[INFO] [1785030516.111060698] [reliable_image_sub]: images received: 0
+[INFO] [1785030517.111059972] [reliable_image_sub]: images received: 0
+[INFO] [1785030518.111096980] [reliable_image_sub]: images received: 0
+[INFO] [1785030519.111112050] [reliable_image_sub]: images received: 0
+[INFO] [1785030520.111067900] [reliable_image_sub]: images received: 0
+[INFO] [1785030521.111067787] [reliable_image_sub]: images received: 0
+[INFO] [1785030522.111179585] [reliable_image_sub]: images received: 0
+[INFO] [1785030523.111073334] [reliable_image_sub]: images received: 0
+[INFO] [1785030524.111263897] [reliable_image_sub]: images received: 0
+[INFO] [1785030525.111076397] [reliable_image_sub]: images received: 0
+[INFO] [1785030526.111182585] [reliable_image_sub]: images received: 0
+[INFO] [1785030527.111149022] [reliable_image_sub]: images received: 0
+[INFO] [1785030528.111072203] [reliable_image_sub]: images received: 0
+[INFO] [1785030529.111043302] [reliable_image_sub]: images received: 0
+[INFO] [1785030530.111103174] [reliable_image_sub]: images received: 0
+[INFO] [1785030531.111078401] [reliable_image_sub]: images received: 0
+[INFO] [1785030532.111080559] [reliable_image_sub]: images received: 0
+[INFO] [1785030533.111375983] [reliable_image_sub]: images received: 0
+[INFO] [1785030534.111374293] [reliable_image_sub]: images received: 0
+[INFO] [1785030535.111064242] [reliable_image_sub]: images received: 0
+[INFO] [1785030536.111264099] [reliable_image_sub]: images received: 0
+[INFO] [1785030537.111261494] [reliable_image_sub]: images received: 0
+[INFO] [1785030538.111065316] [reliable_image_sub]: images received: 0
+[INFO] [1785030539.111071743] [reliable_image_sub]: images received: 0
+[INFO] [1785030540.111320912] [reliable_image_sub]: images received: 0
+[INFO] [1785030541.111101258] [reliable_image_sub]: images received: 0
+[INFO] [1785030542.111225242] [reliable_image_sub]: images received: 0
+[INFO] [1785030543.111063731] [reliable_image_sub]: images received: 0
+[INFO] [1785030544.111088902] [reliable_image_sub]: images received: 0
+Traceback (most recent call last):
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/reliable_image_sub.py", line 45, in <module>
+    main()
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/reliable_image_sub.py", line 35, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException

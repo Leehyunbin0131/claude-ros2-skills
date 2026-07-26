@@ -10,6 +10,8 @@ On every task, before writing code or answering:
 
 Never invent message types, API method names, QoS signatures, param names, or TF frames. Look them up.
 
+**`rclcpp` is C++ only, `rclpy` is Python only.** They are separate libraries, not two spellings of one: `rclcpp.qos` in Python and `rclpy::` in C++ do not exist. A skill's examples may be in one language only — translate the concept, never the namespace. Answer in the language the user is using, and if you are unsure a symbol exists in that language, check (`python3 -c "import rclpy.qos"`).
+
 ## Establish before writing (no doc can tell you these)
 
 Ask when the request doesn't say — guessing one of these and writing 200 lines costs far more than one question:
