@@ -1,3 +1,0 @@
-Sampling initial pose from /odom...
->>> Physically push or drive the robot FORWARD about 0.3 m, then press Enter... (non-interactive: waiting 14s)
-[PASS] odometry moved +1.64 m along the initial heading — direction matches physical motion.

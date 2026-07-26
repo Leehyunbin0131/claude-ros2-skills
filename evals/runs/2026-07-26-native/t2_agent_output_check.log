@@ -1,9 +1,0 @@
-[OK] map -> odom  xyz=(+0.000, +0.000, +0.000) m  rpy=(+0.0, +0.0, +0.0) deg
-[OK] odom -> base_link  xyz=(+0.000, +0.000, +0.000) m  rpy=(+0.0, +0.0, +0.0) deg
-[OK] base_link -> lidar_link  xyz=(-0.100, +0.000, +0.000) m  rpy=(+180.0, +0.0, +180.0) deg
-     ^ VERIFY PHYSICALLY: roll ~180 deg: declared UPSIDE-DOWN. If the sensor is NOT physically mounted that way, this TF is the bug.
-     ^ VERIFY PHYSICALLY: yaw ~180 deg: declared FACING BACKWARD. If the sensor is NOT physically mounted that way, this TF is the bug.
-[OK] base_link -> laser_frame  xyz=(-0.200, +0.000, +0.000) m  rpy=(+180.0, +0.0, +180.0) deg
-     ^ VERIFY PHYSICALLY: roll ~180 deg: declared UPSIDE-DOWN. If the sensor is NOT physically mounted that way, this TF is the bug.
-     ^ VERIFY PHYSICALLY: yaw ~180 deg: declared FACING BACKWARD. If the sensor is NOT physically mounted that way, this TF is the bug.
-All checked chains resolve. Compare the rpy values above against the physical sensor mounting before trusting them.
