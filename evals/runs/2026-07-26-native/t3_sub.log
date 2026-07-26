@@ -1,0 +1,29 @@
+[WARN] [1785027046.428844840] [reliable_image_sub]: New publisher discovered on topic '/camera/image_raw', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY
+[INFO] [1785027047.327860724] [reliable_image_sub]: images received: 0
+[INFO] [1785027048.327902867] [reliable_image_sub]: images received: 0
+[INFO] [1785027049.327809431] [reliable_image_sub]: images received: 0
+[INFO] [1785027050.327791667] [reliable_image_sub]: images received: 0
+[INFO] [1785027051.327823061] [reliable_image_sub]: images received: 0
+[INFO] [1785027052.327795756] [reliable_image_sub]: images received: 0
+[INFO] [1785027053.327793352] [reliable_image_sub]: images received: 0
+[INFO] [1785027054.327805125] [reliable_image_sub]: images received: 0
+[INFO] [1785027055.327814751] [reliable_image_sub]: images received: 0
+[INFO] [1785027056.327809325] [reliable_image_sub]: images received: 0
+Traceback (most recent call last):
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/reliable_image_sub.py", line 45, in <module>
+    main()
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/reliable_image_sub.py", line 35, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException

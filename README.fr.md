@@ -81,7 +81,9 @@ Ce dépôt est optimisé pour un objectif unique : minimiser le risque de géné
 
 ## Évaluations
 
-Chaque résultat ci-dessous provient d'une paire A/B mesurée : le **prompt identique** exécuté dans des sessions Claude Code neuves et sans interface graphique — une fois sans ces skills, une fois avec eux — en utilisant le **même modèle** dans les deux cas. Les sorties ont été évaluées symbole par symbole par rapport aux sources Jazzy amont figées, puis par rapport à l'installation en direct sous `/opt/ros/jazzy` dans un conteneur Docker `ros:jazzy`, et enfin en chargeant les deux sorties dans une **simulation Gazebo en direct**. Les transcriptions complètes et les artefacts sont commités sous [`evals/runs/`](./evals/runs/) afin que chacun puisse réévaluer sans devoir nous croire sur parole.
+Chaque résultat ci-dessous provient d'une paire A/B mesurée : le **prompt identique** exécuté dans des sessions Claude Code neuves et sans interface graphique — une fois sans ces skills, une fois avec eux — en utilisant le **même modèle** dans les deux cas. L'évaluation s'est faite en quatre étapes : comparaison symbole par symbole avec les sources Jazzy amont figées, puis avec une installation `/opt/ros/jazzy` en direct, puis en chargeant les deux sorties dans une **simulation Gazebo en direct**, et enfin en **exécutant les nœuds générés face à des publieurs actifs**. Désormais, chaque tâche de la suite dispose d'une mesure sur installation réelle. Les transcriptions complètes, le code généré et les journaux d'exécution sont commités sous [`evals/runs/`](./evals/runs/), et le harnais qui produit les paires se trouve dans [`evals/harness/`](./evals/harness/), afin que chacun puisse réévaluer ou réexécuter sans devoir nous croire sur parole.
+
+La taille d'échantillon est de **n=1 par cellule**, et les exécutions comme la notation ont été réalisées par le projet qui publie ces résultats. La notation est mécanique autant que possible (le symbole existe-t-il dans l'installation ? la commande aboutit-elle ?), afin de pouvoir être vérifiée de façon indépendante.
 
 ### Configuration Nav2 MPPI — Haiku, installation Jazzy en direct
 
@@ -104,15 +106,40 @@ Chaque résultat ci-dessous provient d'une paire A/B mesurée : le **prompt iden
 | `ros2 run` / `ros2 launch` / `topic echo` | **Échec pour les trois** — le package ne s'enregistre jamais dans l'index ament | **Succès pour les trois**, confirmé par des réexécutions indépendantes de chaque commande |
 | Coût pour ce résultat | 0,17 $ · 36 tours · 178 s | **0,08 $ · 18 tours · 61 s** — correct du premier coup et **2,2× moins cher** |
 
-### Abonnement à un capteur — Sonnet
+### Abonnement à un capteur — Haiku, les deux nœuds exécutés face à un publieur actif
+
+*Prompt : écris un nœud Python Jazzy qui s'abonne à `/scan` et journalise la distance minimale une fois par seconde.* Chaque nœud généré a ensuite été exécuté pendant 6 s face à un publieur `/scan` en BEST_EFFORT.
 
 | | Sans skills | Avec skills |
 | :--- | :--- | :--- |
-| Callback `/scan` sur un LiDAR physique en BEST_EFFORT | **Ne se déclenche jamais** — incompatibilité silencieuse de la QoS RELIABLE par défaut au niveau DDS | **Fonctionne** — `qos_profile_sensor_data`, plus filtrage des limites |
+| QoS de l'abonnement | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
+| **Messages réellement reçus à l'exécution** | **Zéro.** rclpy a lui-même signalé `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Reçoit à 5 Hz** |
+| Minimum rapporté (bonne réponse : 0,45 m) | n'en a jamais reçu | `0,020 m` — **également faux** : aucun des deux nœuds ne filtre selon `range_min`/`range_max` |
+
+L'écart de connectivité est celui qui détermine si le pipeline capteur existe tout court, et il est reproductible. L'erreur numérique, elle, est un défaut réel des deux conditions : elle est donc consignée comme chantier à venir pour `ros2-core`, et non comme un succès.
+
+### Poser la question avant d'écrire — Haiku, LiDAR monté à l'envers
+
+*Prompt : mon LiDAR est monté à l'envers à l'arrière du châssis, tourné vers l'arrière ; écris la TF statique et dis-moi comment confirmer la correction.*
+
+| | Sans skills | Avec skills |
+| :--- | :--- | :--- |
+| Établit d'abord le montage physique | A répondu en un seul tour | **S'est arrêté pour demander la distance arrière et les décalages** avant d'émettre la transformation |
+| Justesse de la transformation | roll≈180° + yaw≈180°, relation parent/enfant conforme à REP 105 — correct | correct ; les deux sorties ont été publiées et signalées par `check_tf_tree.py` exactement comme prévu |
+| Conseil de vérification | RViz avec un affichage **PointCloud2** — mauvais type de message pour un LiDAR | `tf2_echo` plus un affichage **LaserScan** |
+
+### Ce que ces skills ne corrigent pas
+
+Consigné ici, car l'omettre rendrait le reste moins digne de confiance :
+
+- **L'hallucination se déplace, elle ne disparaît pas.** Sur les trois tâches les plus récentes, la sortie avec skills a encore inventé `ros2_troubleshooting_helpers` (package inexistant — et ce, en décrivant *le propre script de ce dépôt*) ainsi qu'une valeur de durability par défaut erronée. Router vers la documentation relève le plancher ; cela ne rend pas le modèle exact.
+- **Sur les problèmes que le modèle maîtrise déjà, les skills coûtent plus et apportent peu.** Pour le diagnostic classique d'incompatibilité QoS, les deux conditions ont eu juste en un tour, et la version avec skills a ajouté une erreur factuelle pour environ 1,4× le coût.
+- **Les skills changent ce que l'agent *demande* plus fiablement que ce qu'il *vérifie*.** Avec une reproduction en direct active et `Bash` autorisé, les deux cellules ont recommandé `ros2 topic info -v` et aucune ne l'a exécuté.
+- **Aucune des deux conditions n'a obtenu les bons chiffres sur la tâche 1.** Les deux nœuds générés omettent le filtrage `range_min`/`range_max` et rapporteraient une mesure sous le minimum comme l'obstacle le plus proche.
 
 ### La tendance sur chaque paire
 
-Les sessions de référence n'ont utilisé **aucun** outil de vérification lors de chaque essai, même lorsque WebFetch, Read et Bash étaient explicitement autorisés — et une session de référence a signalé un build fonctionnel pour un package que `ros2 run` ne parvient pas à trouver. Les sessions avec ces skills ont vérifié avant d'écrire lors de **chaque** essai, et leurs affirmations correspondaient aux réexécutions indépendantes. Les scripts de vérification des skills ont eux-mêmes été validés par rapport à la simulation en direct : les vérifications de l'arbre TF, de la compatibilité QoS et de la direction d'odométrie ont toutes réussi sur des données réelles, et le scénario du LiDAR inversé a été signalé exactement comme prévu.
+Aucune cellule de référence, dans aucun essai, n'a vérifié les packages installés ou la documentation **avant** d'écrire, même avec WebFetch, Read et Bash explicitement autorisés — et l'une d'elles a signalé un build pleinement fonctionnel pour un package que `ros2 run` ne parvient même pas à trouver. Les cellules avec skills ont posé les questions préalables à l'écriture dans tous les essais où la tâche comportait des inconnues, et leurs affirmations correspondaient aux réexécutions indépendantes. Les scripts de vérification ont désormais été éprouvés sur données réelles dans les deux sens : `check_qos_compat.py` a produit son premier `[FAIL]` réel face à une véritable incompatibilité BEST_EFFORT/RELIABLE, et `check_tf_tree.py` a signalé un capteur inversé sans marquer celui qui était correctement monté.
 
 Consultez les tableaux d'évaluation complets, les environnements de test et les analyses de chaque essai dans [`evals/RESULTS.md`](./evals/RESULTS.md). Pour plus de détails sur le protocole d'évaluation, les listes de contrôle des tâches et la configuration du conteneur, voir [`evals/README.md`](./evals/README.md). Les pull requests contenant des transcriptions évaluées supplémentaires sont les bienvenues.
 
@@ -199,10 +226,13 @@ cp -r skills/* ~/.claude/skills/   # ou dans le répertoire .claude/skills/ de v
 
 1. ~~Automatiser les paires d'évaluation au sein de conteneurs `ros:jazzy`~~ — **terminé (2026-07-25) :** réexécution de la tâche 4 sur une installation en direct sous `/opt/ros/jazzy` ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
 2. ~~Publier les résultats d'évaluation de la tâche 5~~ — **terminé (2026-07-25) :** résultat binaire build/run/echo mesuré dans le conteneur ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
-3. **Étendre les évaluations en conteneur aux tâches 1 à 3**, afin que chaque tâche de la suite dispose d'une mesure sur installation en direct.
-4. **Suivre les « corrections jusqu'à finalisation » comme métrique principale** — mesurer le nombre d'itérations de retour nécessaires avant que le code ne s'exécute avec succès.
-5. **Implémenter des recherches déterministes dans `references/`** pour garantir que les documents de référence détaillés se chargent chaque fois que cela est pertinent.
-6. **Étendre la séparation corps/`references`** à `ros2-core` et `gazebo-sim`, en optimisant l'efficacité du contexte pour les skills à haute fréquence disposant d'une documentation de référence importante.
+3. ~~Étendre les évaluations sur installation en direct aux tâches 1 à 3~~ — **terminé (2026-07-26) :** exécuté sur une installation native `ros-jazzy-ros-base`, les deux nœuds générés étant lancés face à des publieurs actifs ; harnais dans [`evals/harness/`](./evals/harness/), résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
+4. ~~Corriger les défauts révélés par ces essais~~ — **terminé (2026-07-26) :** `ros2-troubleshooting` indique désormais l'invocation littérale du script (le modèle inventait un package) et précise que `check_tf_tree.py` signale toujours un montage à ~180° pour confirmation physique ; `ros2-core` a reçu la règle de bornes `range_min`/`range_max` et un motif d'arrêt propre. **Les tableaux d'évaluation mesurent les skills tels qu'ils étaient avant ces correctifs.**
+5. **Réexécuter les tâches 1 à 3 avec les skills corrigés**, afin de savoir si les correctifs changent réellement la sortie — c'est la raison pour laquelle les tableaux ci-dessus décrivent encore la version antérieure.
+6. **Rendre la tâche 3 discriminante** — les deux conditions répondant aujourd'hui correctement de mémoire, exiger que le diagnostic QoS soit *démontré* face à des endpoints réels, et non simplement recommandé.
+7. **Suivre les « corrections jusqu'à finalisation » comme métrique principale** — mesurer le nombre d'itérations de retour nécessaires avant que le code ne s'exécute avec succès.
+8. **Implémenter des recherches déterministes dans `references/`** pour garantir que les documents de référence détaillés se chargent chaque fois que cela est pertinent.
+9. **Étendre la séparation corps/`references`** à `ros2-core` et `gazebo-sim`, en optimisant l'efficacité du contexte pour les skills à haute fréquence disposant d'une documentation de référence importante.
 
 ## Contribuer
 

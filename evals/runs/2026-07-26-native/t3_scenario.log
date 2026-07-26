@@ -1,0 +1,51 @@
+[INFO] [1785027171.347627262] [fake_camera_pub]: publishing /camera/image_raw at 30 Hz (BEST_EFFORT)
+[WARN] [1785027171.502603437] [fake_camera_pub]: New subscription discovered on topic '/camera/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+Traceback (most recent call last):
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_camera_pub.py", line 59, in <module>
+    main()
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_camera_pub.py", line 49, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException
+_image_sub]: images received: 0
+[INFO] [1785027185.341710905] [reliable_image_sub]: images received: 0
+[INFO] [1785027186.341683276] [reliable_image_sub]: images received: 0
+[INFO] [1785027187.341680470] [reliable_image_sub]: images received: 0
+[INFO] [1785027188.341784361] [reliable_image_sub]: images received: 0
+[INFO] [1785027189.341872868] [reliable_image_sub]: images received: 0
+[INFO] [1785027190.341716204] [reliable_image_sub]: images received: 0
+[INFO] [1785027191.341772653] [reliable_image_sub]: images received: 0
+[INFO] [1785027192.341714534] [reliable_image_sub]: images received: 0
+[INFO] [1785027193.341699203] [reliable_image_sub]: images received: 0
+[INFO] [1785027194.341677686] [reliable_image_sub]: images received: 0
+[INFO] [1785027195.341819877] [reliable_image_sub]: images received: 0
+[INFO] [1785027196.341741209] [reliable_image_sub]: images received: 0
+Traceback (most recent call last):
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/reliable_image_sub.py", line 45, in <module>
+    main()
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/reliable_image_sub.py", line 35, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException

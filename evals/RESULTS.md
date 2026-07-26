@@ -1,145 +1,28 @@
-# Eval results — 2026-07-25
+# Eval results
 
-First measured run of the [protocol](./README.md). All artifacts and final
-responses are committed under [`runs/2026-07-25/`](./runs/2026-07-25/).
+Measured A/B pairs: the identical prompt run in a fresh, headless Claude Code
+session twice — once without these skills, once with them — using the same model
+in both cells. Only runs graded against a **live ROS 2 Jazzy install** are kept
+here; earlier pairs measured on a machine with no ROS installed have been
+superseded by the runs below and removed rather than carried along.
 
-## Conditions
+All artifacts and final responses are committed under [`runs/`](./runs/), and the
+harness that produces the Task 1-3 pairs is in [`harness/`](./harness/).
+
+## Conditions & disclosure
 
 | | |
 | :--- | :--- |
-| Harness | Claude Code CLI 2.1.218, headless (`claude -p`), fresh directory per run |
-| Model | `sonnet` for both conditions (identical per pair); a `haiku` pair below tests model-size sensitivity |
-| Baseline | Empty directory — no skills, no `CLAUDE.md` |
-| With skills | `CLAUDE.md` + `skills/` copied to `.claude/skills/` per the Quickstart |
-| Tools | `acceptEdits`; WebFetch/WebSearch explicitly allowed in Task 4 runs (both conditions) |
-| Grading | Every symbol verified against the `jazzy` branch of the upstream sources (`common_interfaces`, `navigation2`) — no local ROS install on the eval machine, so `/opt/ros/jazzy/` checks were substituted with the exact pinned sources |
-| Sample size | **n=1 per cell.** This is one honest run each, not a statistic. |
-| Independence | **None yet — disclosed conflict of interest.** The protocol was designed, the runs executed, and the outputs graded by the same agent session that maintains this repo. Mitigations: every artifact and final response is committed under `runs/`, and grading is mechanical (does the symbol exist in the pinned Jazzy sources?), so anyone can re-grade without trusting us. Independent re-grades and adversarial task PRs are the point of the protocol. |
-
-## Task 1 — sensor subscription (`/scan` monitor)
-
-| Check | Baseline | With skills |
-| :--- | :--- | :--- |
-| Sensor-data QoS | ❌ `create_subscription(..., 10)` — default RELIABLE | ✅ `qos_profile_sensor_data` |
-| Real message fields | ✅ `ranges` | ✅ `ranges`, `range_min`, `range_max` |
-| Handles `inf`/empty | ⚠️ `isfinite` only, no `range_min/range_max` bounds | ✅ finite **and** in-bounds filter |
-| No invented APIs | ✅ | ✅ |
-| Logs once per second | ⚠️ log-throttle tied to message arrival | ✅ independent 1 Hz timer |
-| Verified before writing | ❌ nothing consulted | ✅ cited the skill's QoS rule |
-
-**The decisive defect:** against a real LiDAR driver (which publishes
-BEST_EFFORT), the baseline's RELIABLE subscription matches nothing at the DDS
-level — the callback **never fires**, and because its logging is
-throttle-based rather than timer-based, the node is silent instead of saying
-"no scan received yet". The code compiles, looks clean, and reviews well.
-`scripts/check_qos_compat.py` flags exactly this. Zero hallucinated symbols
-in either run — the failure skills prevented here was a *silently wrong
-default*, not an invented name.
-
-## Task 4 — Nav2 MPPI controller YAML (Jazzy)
-
-| Check | Baseline | With skills |
-| :--- | :--- | :--- |
-| All params exist in Jazzy | ✅ 0 hallucinations (verified against `optimizer.cpp`, `cost_critic.cpp`) | ✅ 0 hallucinations |
-| No pre-Jazzy leftovers | ✅ | ✅ |
-| `motion_model: DiffDrive` | ✅ | ✅ |
-| Verified before writing | ❌ WebFetch was allowed; used **0 times** — pure recall | ✅ fetched `nav2_bringup` Jazzy defaults live, stated so |
-
-**Honest read: output correctness tied.** Sonnet has current Nav2 MPPI
-defaults memorized, so recall happened to be right *this time, on this
-distro*. The measured difference is process: the with-skills run produced a
-config whose every value is traceable to the pinned Jazzy source; the
-baseline produced the same quality **unverifiably** — the exact behavior that
-turns into version drift the day the API moves. Notably, in a first run
-where WebFetch was not allowed, the with-skills agent **refused to emit
-unverified parameters** and asked for verification access instead of
-guessing (transcript in `runs/`); the baseline never noticed it hadn't
-checked anything.
-
-## Task 4 re-run on a smaller model (haiku)
-
-Same prompt, same conditions, model swapped to `haiku` in both cells — testing
-whether the sonnet baseline's clean recall was the model, not the task.
-
-| Check | Baseline (haiku) | With skills (haiku) |
-| :--- | :--- | :--- |
-| All params exist in Jazzy | ❌ **~21 invented or wrong names** | ✅ 0 hallucinations |
-| Plugin string | ❌ `mppi_controller::MPPIController` — wrong namespace, controller server fails to load the plugin at startup | ✅ `nav2_mppi_controller::MPPIController` |
-| No pre-Jazzy leftovers | ❌ `progress_checker_plugin` (pre-Iron singular) | ✅ |
-| `motion_model: DiffDrive` | ❌ invented `model_name: "DiffDriveROS"` | ✅ |
-| Critic names | ❌ invented `CollisionCritic`, `PathFollowingCritic` | ✅ all eight real |
-| Used the allowed WebFetch | ❌ 0 times | output is value-for-value identical to the pinned Jazzy `nav2_bringup` defaults (incl. `costmap_update_timeout: 0.30`, `near_collision_cost: 253`, `use_realtime_priority`) — three params the same model invented nonsense for in baseline |
-
-The baseline's invented block (`max_velocity: [0.5, 0.0]`, `cost_weights:`,
-`constraints:` …) is plausible-looking YAML that has never existed in any
-`nav2_mppi_controller` release; the wrong plugin namespace alone means Nav2
-dies on startup. With skills, the smaller model matched the larger model's
-verified output. (Caveat: `claude -p` transcripts capture only the final
-message, so haiku's retrieval isn't narrated the way sonnet's was; the
-byte-level match with the pinned source is the evidence. Future runs should
-use `--output-format stream-json` to log tool calls directly.)
-
----
-
-# Re-run — 2026-07-25 (after the skill restructure)
-
-The skills changed substantially (gates added to `CLAUDE.md`, `ros2-dev` split
-into a decision body + `references/`), so Task 4 was re-run against the pinned
-Jazzy `nav2_bringup/params/nav2_params.yaml`. **The `21 → 0` headline above did
-not reproduce.** Conditions: CLI 2.1.220, `--model haiku`, `--output-format
-json`/`stream-json`, WebFetch/WebSearch/Read/Bash allowed in both cells.
-
-| | Baseline | With skills (run 1) | With skills (run 2) |
-| :--- | :--- | :--- | :--- |
-| Cost (USD) | 0.0283 | 0.0481 | 0.0425 |
-| Turns | 2 | 6 | 6 |
-| Verification tools used | **0** | skill + local defaults + both `references/` | skill + 3 attempts to find local defaults |
-| Plugin string | ✅ `nav2_mppi_controller::MPPIController` | ✅ | ✅ |
-| `motion_model` | ❌ invented `motion_model_type` | ✅ | ✅ |
-| Checker namespace | ❌ `nav2_core::` | ✅ `nav2_controller::` | ✅ |
-| `critics:` list | ❌ **absent entirely** | ⚠️ 5 real + `KeepOutCritic`, `ObstaclesCritic` | ⚠️ 7 real + `MaximumSpeedCritic` |
-| Velocity/accel keys | ❌ `max_velocity_x`, `max_accel_x`, `noise_sigma_*` | ❌ `max_vel_x`, `max_decel_x` | ❌ `max_vel`, `noise_std` |
-| Critic parameter keys | — (no critics) | ⚠️ invented `type:`, `angle_threshold` | ❌ `goal_weight`, `path_align_weight` … (real: all `cost_weight`) |
-| **Wrong/invented keys (approx.)** | **~30** | **~16** | **~20** |
-
-## What this actually shows
-
-1. **The baseline is catastrophically wrong and the skills clearly help.** A
-   config with no `critics:` list and `motion_model_type` cannot run MPPI at
-   all. Both with-skills runs got the plugin string, `motion_model`, and the
-   checker namespaces right.
-2. **But "0 hallucinations" is not reproducible.** Both with-skills runs still
-   invented critic names and parameter keys. The earlier `0` should be read as
-   one lucky run, not a property of the skills.
-3. **Neither eval run could read `/opt/ros/jazzy/`** — there is no ROS on the
-   eval machine. The skill's first instruction is "read the shipped defaults",
-   so both with-skills runs were forced onto their fallback path. **This test
-   measures the degraded path, not the intended one.** Task 4 must be re-run
-   inside a `ros:jazzy` container before any claim about MPPI accuracy stands.
-   *(Done — see [Container run](#container-run--2026-07-25-live-optrosjazzy)
-   below: with the live install readable, the invented-key count went to 0.)*
-4. **Progressive disclosure is probabilistic.** Run 1 read both `references/`
-   files; run 2 tried the local install three times and then wrote from memory
-   without ever opening them. A pointer is a suggestion, not a guarantee — and
-   run 2's output was the worse of the two.
-5. **A defect in the repo's own reference file propagated into output.**
-   `references/symbols.md` listed four MPPI critics including `ObstaclesCritic`;
-   Jazzy ships eight, and uses `CostCritic` instead. Run 1 emitted
-   `ObstaclesCritic` verbatim. Fixed and re-verified against the pinned source —
-   a reference file is exactly as dangerous as inline content when it's wrong.
-6. **The behavioral layer worked.** Run 2 asked the three `ros2-dev` gate
-   questions (footprint, sim vs hardware, localization source) and stated
-   plainly that it could not reach the local install — the `CLAUDE.md`
-   "say so if you couldn't verify" rule, visible in the output.
-
-Artifacts for re-grading are not committed for this run (they contain absolute
-scratch paths); the commands to reproduce are in [`README.md`](./README.md).
+| Harness | Claude Code CLI 2.1.220, headless (`claude -p`), fresh directory per cell |
+| Grading | Mechanical wherever possible: does the symbol exist in the installed package (`ros2 pkg prefix`, `ros2 interface show`, grep over the installed sources)? does the command succeed when re-run by the grader? |
+| Sample size | **n=1 per cell.** These are single honest runs, not statistics. |
+| Independence | **None — disclosed conflict of interest.** The protocol was designed, the runs executed, and the outputs graded by the same project that publishes them. Mitigations: artifacts are committed under `runs/` and grading is mechanical, so anyone can re-grade without trusting us. Independent re-grades and adversarial task PRs are the point of the protocol. |
 
 ---
 
 # Container run — 2026-07-25 (live `/opt/ros/jazzy`)
 
-The run the previous section said was required: same protocol, executed inside
+Task 4 and Task 5, executed inside
 an `osrf/ros:jazzy-desktop` container with `ros-jazzy-nav2-bringup` installed,
 so `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` physically
 exists and `ros2`/`colcon` actually run. CLI 2.1.220, `--model haiku` both
@@ -189,10 +72,11 @@ it with `ros2 topic echo` — the sequence the skill prescribes, executed once.
 
 ## What the container run establishes
 
-1. **The intended path now has a measurement.** With `/opt/ros/jazzy` readable,
+1. **The intended path is what was measured.** With `/opt/ros/jazzy` readable,
    the with-skills agent read the shipped defaults directly and produced a
-   config with **zero invented keys, verified by mechanical diff** — the
-   degraded-path caveat from the previous section is resolved.
+   config with **zero invented keys, verified by mechanical diff**. The skill's
+   first instruction is "read the installed defaults", so this — not a run on a
+   machine without ROS — is the condition the design assumes.
 2. **The gates fired in the wild.** Unprompted, the agent asked exactly the
    questions `ros2-dev` §1 lists before writing anything — and the second
    turn's output honored the answers (0.5 m/s and 1.9 rad/s appear in the YAML).
@@ -245,7 +129,7 @@ tests. Run against the live simulation:
 | `check_tf_tree.py --sensors base_scan` | **[OK]** — resolved `map → odom → base_link`, printed the real TB3 mount (x −0.064 m, z +0.122 m, level) | works on a live tree |
 | `check_tf_tree.py --sensors rear_lidar` (Task 2 scenario: static TF published with roll 180°, yaw 180°) | **flagged both**: "declared UPSIDE-DOWN … declared FACING BACKWARD … If the sensor is NOT physically mounted that way, this TF is the bug" | the Task 2 diagnostic works end to end |
 | `check_qos_compat.py --topic /scan` | **[PASS] × 4** endpoint pairs (`ros_gz_bridge` → amcl, collision_monitor, both costmaps) | live endpoint introspection works |
-| `check_odom_direction.py` while driving 0.15 m/s forward | **[PASS]** "+1.80 m along the initial heading" — matching the commanded 0.15 m/s × 12 s | direction logic confirmed against real motion |
+| `check_odom_direction.py` while driving forward | **[PASS]** "+1.64 m along the initial heading" over a 14 s non-interactive window — sign and magnitude match the commanded forward motion ([`odom_check2.log`](./runs/2026-07-25-sim/odom_check2.log)) | direction logic confirmed against real motion |
 | `check_imu_gravity.py --topic /imu` | **[FAIL]** `|a| = 0.01` — and that verdict is *correct*: the sim's IMU publishes gravity-free acceleration, which violates the REP 103/145 expectation the script tests (gravity must appear as ~+9.81 m/s² on +Z at rest) | the check catches a genuinely non-physical sensor config, which is its job |
 
 **Defect found and fixed.** `check_odom_direction.py` blocked on `input()` and
@@ -266,18 +150,192 @@ fallback that waits instead of crashing. Re-verified in the sim ([PASS],
    real non-physical sensor config, and the one defect the exercise exposed was
    in *our* tooling — found because we ran it, fixed, and re-verified.
 
+---
+
+# Native-install run — 2026-07-26 (Tasks 1–3, live `/opt/ros/jazzy`)
+
+Roadmap item 3: the three remaining tasks, measured against a live install for
+the first time. No container this time — `ros-jazzy-ros-base` installed natively
+on Ubuntu 24.04 (WSL2), which satisfies the same grading criterion (the agent can
+read the real install and actually run nodes). Artifacts under
+[`runs/2026-07-26-native/`](./runs/2026-07-26-native/); the harness that produced
+them is committed in [`harness/`](./harness/) so the pairs are re-runnable.
+
+| | |
+| :--- | :--- |
+| Harness | CLI 2.1.220, `claude -p`, `--output-format stream-json` in **both** cells (so "tools used" is counted from the transcript, not recalled), `acceptEdits`, `--allowedTools WebFetch WebSearch Read Glob Grep Write Bash`, fresh `mktemp -d` per cell |
+| Model | `haiku` in both cells |
+| Environment | native `ros-jazzy-ros-base`, `rmw_fastrtps_cpp`, 194 packages |
+| Live scenario | up for both cells: a BEST_EFFORT `/scan` publisher (Task 1), `map→odom→base_link` only (Task 2 — writing the sensor TF is the agent's job), a 30 Hz BEST_EFFORT camera + default-RELIABLE subscriber (Task 3) |
+| Sample size | **n=1 per cell**, same disclosed conflict of interest as above |
+
+## Task 1 — `/scan` monitor, graded by running it
+
+Both agents wrote a node; both nodes were then run for 6 s against the live
+publisher. The scan contains `inf`, `nan`, a below-`range_min` value (0.02) and
+an above-`range_max` value (99.0); **the correct in-bounds minimum is 0.45 m.**
+
+| Check | Baseline | With skills |
+| :--- | :--- | :--- |
+| Subscription QoS | ❌ `create_subscription(..., 10)` → RELIABLE | ✅ `qos_profile_sensor_data` |
+| **Messages actually received** | ❌ **zero.** rclpy itself logged `New publisher discovered on topic '/scan', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | ✅ receives at 5 Hz |
+| Reported minimum | — (never received; logged `Awaiting first scan message...` every second) | ⚠️ **`0.020 m` — wrong**, the below-`range_min` reading |
+| `range_min`/`range_max` bounds filter | ❌ absent (`r > 0 and r != inf`) | ❌ absent (`not float('inf') == r`) |
+| `nan` handling | ✅ incidentally excluded by `r > 0` | ❌ `nan` passes the filter |
+| Independent 1 Hz timer | ✅ | ✅ |
+| Says something when no data | ✅ | ✅ |
+| Turns / cost / tool calls | 2 / $0.0307 / 1 | 4 / $0.0344 / 2 (`Skill: ros2-core`, `Write`) |
+
+**Honest read: skills win the decisive bit and both fail the numeric one.** Only
+the with-skills node connects at all — that is the difference between a working
+sensor pipeline and a node that will never fire, and it is what the skill's QoS
+rule exists to produce. But neither node filters against `range_min`/`range_max`,
+so the with-skills node confidently reports `0.020 m` instead of `0.45 m`. The
+baseline's identical bug is merely invisible because it never receives data.
+
+**One nuance worth stating precisely.** The QoS failure is silent *at the DDS
+level*, which is where it matters — but it is not necessarily silent in the logs.
+This baseline logs on a timer, so it repeats `Awaiting first scan message...`
+forever, and Jazzy's rclpy prints an incompatible-QoS warning of its own. The
+argument for the skill's QoS rule rests on the middleware behavior (zero messages
+delivered), not on the claim that nothing is printed.
+
+## Task 2 — inverted LiDAR TF
+
+Graded on the transcript **and** by publishing each agent's transform verbatim
+and running the diagnostic on it ([`t2_agent_output_check.log`](./runs/2026-07-26-native/t2_agent_output_check.log)).
+
+| Check | Baseline | With skills |
+| :--- | :--- | :--- |
+| Asks about the physical mounting before writing | ❌ answered in one turn | ✅ **asked the back-distance / offset question first**, before emitting the transform |
+| RPY encodes roll≈180° **and** yaw≈180° | ✅ | ✅ |
+| REP 105 parent/child (`base_link` → sensor) | ✅ | ✅ |
+| Published output flagged by `check_tf_tree.py` | ✅ both roll and yaw flagged | ✅ both flagged |
+| Jazzy argument form | ✅ named args | ⚠️ named args in the launch file, but the "one-liner" uses the **positional form**, which the install answers with `[WARN] Old-style arguments are deprecated` |
+| Invented symbols | ❌ a `static_transforms:` YAML schema no core node consumes | ❌ **`ros2 run ros2_troubleshooting_helpers check_tf_tree.py` — no such package** (`ros2 pkg prefix` → `Package not found`) |
+| Physical-confirmation advice | ⚠️ RViz, but a **PointCloud2** display for a LiDAR | ✅ `tf2_echo` + a **LaserScan** display + "points should wrap around the back" |
+| Turns / cost / tool calls | 1 / $0.0254 / **0** | 3 / $0.0475 / 1 (`Skill: ros2-troubleshooting`) |
+
+**The gate fired, and the skills still hallucinated.** The behavioral win is
+real and reproducible — with skills the agent stopped and asked for the mounting
+geometry, which is the checklist's first item and the thing that prevents 200
+wrong lines. But the same answer invented a package name **for the skill's own
+script**, and told the user the check "should show RPY matching your physical
+mount without flagging ~180° as suspicious" — the opposite of what the script
+does (it flags ~180° every time, by design). A skill that ships tooling has to
+state how to invoke it, or the model will invent a plausible `ros2 run`.
+
+## Task 3 — silent QoS mismatch
+
+The premise was made real first: `ros2 topic hz /camera/image_raw` reported
+**30.000 Hz** while the RELIABLE subscriber logged `images received: 0`
+([`t3_hz.log`](./runs/2026-07-26-native/t3_hz.log),
+[`t3_sub.log`](./runs/2026-07-26-native/t3_sub.log)).
+
+| Check | Baseline | With skills |
+| :--- | :--- | :--- |
+| Names reliability mismatch as prime suspect, first attempt | ✅ | ✅ |
+| Recommends inspecting real endpoint QoS | ✅ `ros2 topic info --verbose` | ✅ `ros2 topic info -v` |
+| **Actually inspected the live system** | ❌ 0 tool calls | ❌ loaded the skill, then answered — never ran the command it recommended |
+| Fix uses a real QoS API | ✅ | ✅ |
+| Factual accuracy of the QoS claim | ✅ | ❌ calls the default `(Reliable, **Transient Local**)`; the installed default is RELIABLE + **VOLATILE** (`QoSProfile(depth=10)` → `RELIABLE`, `VOLATILE`) |
+| Turns / cost / tool calls | 1 / $0.0194 / 0 | 3 / $0.0271 / 1 (`Skill: ros2-core`) |
+
+**Honest read: a tie the skills slightly lost.** Diagnosis is the one thing haiku
+already knows cold — this is the single most-written-about ROS 2 failure, so both
+cells nailed it in one turn. The with-skills cell added a wrong durability claim
+and, despite a live reproduction sitting right there with `Bash` allowed,
+recommended a command it did not run. Task 3 as written cannot separate the
+conditions; a fair version would have to require the answer be *demonstrated*
+against the live endpoints, not asserted.
+
+## Verification scripts — the FAIL path, first time
+
+Every previous live run of `check_qos_compat.py` returned PASS. The Task 3
+scenario produced its first real failure:
+
+```
+[FAIL] fake_camera_pub -> reliable_image_sub
+       reliability: publisher offers BEST_EFFORT, subscriber requests RELIABLE —
+       subscriber will receive NOTHING; use qos_profile_sensor_data or a
+       BEST_EFFORT subscription for sensor streams
+exit code = 1
+```
+
+`check_tf_tree.py` was also tested for **specificity**, not just sensitivity: run
+against a tree carrying both an inverted rear sensor and a correctly-mounted
+forward one, it flagged the first for roll and yaw and left the second alone
+([`t2_tf_check.log`](./runs/2026-07-26-native/t2_tf_check.log)).
+
+## What this run establishes
+
+1. **Tasks 1–3 now have live-install measurements.** Roadmap item 3 is closed;
+   every task in the suite has been run against a real ROS 2 install.
+2. **The QoS result is now a runtime fact, not a code review.** The baseline node
+   received zero messages from a publisher visibly running at 5 Hz, and the
+   middleware said why. This is the repo's central claim and it reproduces.
+3. **The pre-write gate reproduces too** — third independent run in which the
+   with-skills agent asked for physical/geometric facts before writing.
+4. **Skills do not stop hallucination; they move it.** Two invented symbols in
+   with-skills output across three tasks (`ros2_troubleshooting_helpers`, a wrong
+   default durability), one of them about the repo's own tooling. Routing to docs
+   raises the floor; it does not make the model correct.
+5. **On tasks the model already knows, skills cost ~1.4× and buy little.**
+   Baseline total $0.0755 vs with-skills $0.1090 across the three pairs. Task 3
+   is the clear case: same answer, more money, one extra error.
+
+## Follow-ups this run created
+
+**Read the tables above as measurements of the skills as they were *before* these
+fixes.** Everything marked applied below landed after the run, in the same commit
+as this write-up; whether the fixes work is an open question until Tasks 1–3 are
+re-run.
+
+- ✅ **Applied.** `ros2-troubleshooting` §1a now gives the literal invocation
+  (`python3 <skill-dir>/scripts/<name>.py`) and names `ros2 run
+  ros2_troubleshooting_helpers` as a known failure mode. A skill that ships a
+  script must state how to run it, or the model invents a package.
+- ✅ **Applied.** `ros2-core` now carries the bounds rule as both a
+  symptom→cause→action row and a strict rule: a `LaserScan` reading is usable only
+  when finite **and** within `[range_min, range_max]`. "Filter `inf`" is what the
+  model already does, and it produces a confidently wrong minimum.
+- ✅ **Applied.** `ros2-core` gained the shutdown pattern — both agents' nodes died
+  with `rcl_shutdown already called` / `ExternalShutdownException` on SIGTERM.
+- ✅ **Applied.** `ros2-troubleshooting` now states that `check_tf_tree.py` always
+  prints the `VERIFY PHYSICALLY` advisory for a ~180° roll or yaw, even when the
+  mounting is intentional — the with-skills run told the user the opposite.
+- ⏳ **Open.** Task 3's checklist should require a *demonstrated* inspection, not a
+  recommended one, or it will keep scoring as a tie.
+- ⏳ **Open.** Re-run Tasks 1–3 against the patched skills. The specific
+  regressions to watch: does the Task 1 node now filter bounds, and does the
+  Task 2 answer stop inventing a package?
+
 ## Takeaways
 
-1. Where the base model's memory is good (sonnet × MPPI defaults), skills
+1. Where the base model already knows the answer (haiku × QoS diagnosis), skills
    convert "probably right" into "verified right" at the cost of a few doc
-   fetches.
-2. Where the base model's habit is wrong (default QoS on sensor topics),
-   skills prevent a silent functional failure that no compiler, linter, or
-   log inspection would catch.
-3. Where the base model's memory is weak (haiku × MPPI), skills are the
-   difference between a config that can't start Nav2 and one identical to
-   the verified defaults — the smaller the model, the larger the effect.
-4. Verification behavior separated the conditions completely: 0/3 baseline
-   runs consulted anything despite WebFetch being allowed; every with-skills
-   run either demonstrably verified, produced output traceable to the pinned
-   source, or refused to answer without the means to check.
+   fetches — and sometimes buy nothing at all.
+2. Where the base model's *habit* is wrong (default QoS on sensor topics), skills
+   prevent a silent functional failure that no compiler, linter, or log
+   inspection would catch — measured twice now, and on 2026-07-26 confirmed at
+   runtime: the baseline node received **zero** messages from a publisher running
+   at 5 Hz.
+3. Where the base model's memory is weak (haiku × Nav2 MPPI), skills are the
+   difference between a config that aborts bringup and one whose every key matches
+   the installed defaults — and the simulation run shows what that difference is
+   worth: a robot that reaches the goal versus one that never moves.
+4. **Knowing the answer and demonstrating it are different axes.** haiku
+   diagnosed the QoS mismatch perfectly from memory (Task 3) and neither cell ran
+   the one command that would have proven it. Skills reliably change what the
+   agent *asks* before writing; they do not reliably change what it *checks*
+   after.
+5. No baseline cell in any run verified against the install or the docs *before*
+   writing, despite WebFetch and Bash being allowed. The one baseline that used
+   tools heavily — Task 5, 35 calls — spent them on corrections after the fact
+   that never converged.
+6. **Skills raise the floor; they do not make the model correct.** With-skills
+   output still contained invented symbols — `ros2_troubleshooting_helpers`, a
+   wrong default durability, missing `range_min`/`range_max` bounds. The
+   reproducible wins are structural — correct QoS,
+   correct plugin strings, gate questions asked, claims that match an independent
+   re-run — not "no hallucinations".

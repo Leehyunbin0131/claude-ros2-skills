@@ -37,6 +37,30 @@ ties: the with-skills run paying for doc fetches is the honest price of
 verification, and a change that grows it without moving the other columns should
 be reverted.
 
+## Running a pair with the harness
+
+Tasks 1–3 are automated. [`harness/run_ab.sh`](./harness/run_ab.sh) brings up the
+live scenario the task needs, runs both cells with identical flags in fresh
+directories, and reduces each transcript with
+[`harness/summarize_run.py`](./harness/summarize_run.py) so the tool calls each
+cell actually made are counted rather than recalled:
+
+```bash
+# needs a sourced ROS 2 Jazzy install; ros-jazzy-ros-base is enough for 1-3
+MODEL=haiku ./evals/harness/run_ab.sh 1 evals/runs/$(date +%F)-native
+```
+
+The scenario differs per task, and the same one is up for **both** cells:
+
+| Task | Live scenario | Why |
+| :--- | :--- | :--- |
+| 1 | [`fake_scan_pub.py`](./harness/fake_scan_pub.py) — `/scan` at 5 Hz, BEST_EFFORT, with `inf`, `nan`, a below-`range_min` and an above-`range_max` reading | a default RELIABLE subscriber must fail to receive, and only bounds filtering finds the true minimum (0.45 m) |
+| 2 | `map→odom→base_link` only | writing the sensor transform is the agent's job; grade its output by publishing it and running `check_tf_tree.py` |
+| 3 | [`task3_scenario.sh`](./harness/task3_scenario.sh) — BEST_EFFORT camera at 30 Hz plus a default-RELIABLE subscriber | reproduces the premise exactly: `ros2 topic hz` shows 30 Hz while the subscriber receives 0 |
+
+Grade Task 1 by **running both generated nodes** against the publisher, not by
+reading them: the QoS defect is invisible in review and unmissable at runtime.
+
 ## Running a pair in a Jazzy container
 
 Tasks that verify against `/opt/ros/jazzy/` need ROS actually installed. The
