@@ -93,9 +93,16 @@ def build_context(condition: str, probe: Probe, index: dict[str, claims_mod.Clai
     if condition == "shipped":
         return protocol + "\n\n" + _skill_body(probe.skill)
     if condition.startswith("ablate:"):
-        cid = condition.split(":", 1)[1]
-        claim = index[cid]
-        return _strip_front(claims_mod.ablate(claim))
+        # `ablate:a+b` removes both at once. Single-claim ablation cannot judge
+        # redundant lines: if a and b each suffice on their own, dropping either
+        # alone measures Δ=0 for both, and cutting both on that evidence breaks
+        # the behaviour. Joint ablation is the only way to tell "inert" from
+        # "one of a redundant pair".
+        cids = condition.split(":", 1)[1].split("+")
+        claims = [index[c] for c in cids]
+        return _strip_front(
+            claims_mod.ablate(claims[0], drop_ids=cids, all_claims=list(index.values()))
+        )
     if condition.startswith("only:"):
         cid = condition.split(":", 1)[1]
         return index[cid].text
@@ -152,12 +159,23 @@ def run_cell(cell: Cell, probe: Probe, context: str, out_dir: Path, budget: floa
                 "stderr": proc.stderr[:400], "elapsed": time.time() - started}
 
     answer = payload.get("result", "") or ""
+    cost = payload.get("total_cost_usd")
+
+    # A cell that never reached the model is not a cell. Usage limits, auth
+    # failures and refusals all come back as a normal-looking result whose text
+    # happens to be an error message — and a predicate handed that text will
+    # score it False, which is indistinguishable from "the model got it wrong".
+    # That is how a grader invents effects, so these are recorded as errors and
+    # re-run rather than graded.
+    if payload.get("is_error") or not cost:
+        return {**cell.__dict__, "error": "no-model-response",
+                "detail": answer[:200], "elapsed": round(time.time() - started, 2)}
+
     record = {
         **cell.__dict__,
         "elapsed": round(time.time() - started, 2),
-        "cost_usd": payload.get("total_cost_usd"),
+        "cost_usd": cost,
         "turns": payload.get("num_turns"),
-        "is_error": payload.get("is_error"),
         "context_chars": len(context),
         "answer": answer,
     }
@@ -224,14 +242,26 @@ def cmd_run(args) -> int:
     completed = [0]
     total = len(todo)
     t0 = time.time()
+    # A per-cell budget cannot stop a sweep from overrunning the account it is
+    # billed to; only a running total can. Cells already in flight are allowed to
+    # finish, so the cap is approached from below rather than enforced exactly.
+    spent = [0.0]
+    stopped = [False]
 
     def work(cell: Cell) -> None:
+        if stopped[0]:
+            return
         probe = by_id[cell.probe]
         context = build_context(cell.condition, probe, index)
         rec = run_cell(cell, probe, context, out_dir, args.budget)
         with _write_lock:
             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
             fh.flush()
+            spent[0] += rec.get("cost_usd") or 0
+            if args.max_total_usd and spent[0] >= args.max_total_usd and not stopped[0]:
+                stopped[0] = True
+                print(f"\n!! budget cap ${args.max_total_usd:.2f} reached after "
+                      f"${spent[0]:.2f} — stopping. Re-run to resume.", flush=True)
         with _printed:
             completed[0] += 1
             n = completed[0]
@@ -282,6 +312,8 @@ def main() -> int:
         sp.add_argument("--conditions", default=None)
         sp.add_argument("--workers", type=int, default=10)
         sp.add_argument("--budget", type=float, default=0.10)
+        sp.add_argument("--max-total-usd", type=float, default=None,
+                        help="stop the sweep once this much has been spent in this invocation")
         sp.add_argument("--out", default=f"{time.strftime('%Y-%m-%d')}-claims")
         sp.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()

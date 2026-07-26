@@ -67,6 +67,11 @@ class Probe:
     checks: dict[str, Check]
     note: str = ""
     extra_claims: list[str] = field(default_factory=list)
+    # Groups of claims that state the same behaviour in different places. Single
+    # ablation cannot judge these: if each member suffices alone, removing any
+    # one measures Δ=0 for all of them, and cutting the lot on that evidence
+    # breaks the behaviour. Each group is ablated together as well as singly.
+    joint: list[list[str]] = field(default_factory=list)
 
     @property
     def claim_ids(self) -> list[str]:
@@ -83,6 +88,7 @@ class Probe:
     def conditions(self, include_only: bool = False) -> list[str]:
         conds = ["naked", "protocol", "full", "shipped"]
         conds += [f"ablate:{cid}" for cid in self.claim_ids]
+        conds += [f"ablate:{'+'.join(g)}" for g in self.joint]
         if include_only:
             conds += [f"only:{cid}" for cid in self.claim_ids]
         return conds
@@ -185,6 +191,74 @@ P_SCAN = Probe(
                                    "1 Hz logging on its own timer — control check, no claim owns it"),
     },
     note="The task the whole repo was built around; every prior run measured it at n=1.",
+    # This probe carries the interference sweep: every claim in the body is
+    # ablated against it, not only the seven its own checks depend on. Removing
+    # the bounds rule should not move the QoS check — if it does, the body's
+    # lines are interacting and "the effect of line X" is not well defined.
+    extra_claims=[
+        "ros2-core:1documentation-entry-points:01",
+        "ros2-core:1documentation-entry-points:02",
+        "ros2-core:1documentation-entry-points:03",
+        "ros2-core:1documentation-entry-points:04",
+        "ros2-core:1documentation-entry-points:05",
+        "ros2-core:2symbols-to-verify-there-never-write-the:02",
+        "ros2-core:2symbols-to-verify-there-never-write-the:05",
+        "ros2-core:3local-system-inspection-interfaces-grou:01",
+        "ros2-core:3local-system-inspection-interfaces-grou:02",
+        "ros2-core:3local-system-inspection-interfaces-grou:03",
+        C_TF_RULE, C_TF_SYM, C_TF_ROW, C_ROS1_RULE,
+        C_PARAM_YAML_ROW, C_PARAM_CB_ROW, C_PARAM_SYM,
+        C_EXEC_ROW, C_DOMAIN_ROW,
+    ],
+    # Three behaviours that `ros2-core` states in more than one place. The first
+    # sweep measured every member of the bounds pair at Δ=0, which is the
+    # signature of redundancy, not of uselessness — cutting both on that reading
+    # would have removed the rule that took Task 1 from 0.020 m to 0.450 m.
+    joint=[
+        [C_QOS_RULE, C_QOS_ROW, C_QOS_SYM],
+        [C_BOUNDS_RULE, C_BOUNDS_ROW],
+        [C_SHUTDOWN_RULE, C_SHUTDOWN_ROW],
+    ],
+)
+
+
+def _odom_msg(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"nav_msgs\.msg import Odometry", r"nav_msgs/msg/Odometry", r"\bOdometry\b")
+
+
+def _imu_msg(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"sensor_msgs\.msg import Imu", r"sensor_msgs/msg/Imu", r"\bImu\b")
+
+
+def _odom_qos(answer: str) -> bool | None:
+    return _scan_qos(answer)
+
+
+P_ODOM = Probe(
+    id="odom-imu-yaw",
+    suite="core",
+    skill="ros2-core",
+    prompt=(
+        "Write a ROS 2 Jazzy Python node that subscribes to wheel odometry on `/odom` "
+        "and to an IMU on `/imu/data`, and logs the yaw reported by each once per "
+        "second so I can compare them. Complete file."
+    ),
+    checks={
+        "odom_msg": Check(_odom_msg, ["ros2-core:2symbols-to-verify-there-never-write-the:02"],
+                          "uses the real odometry message type"),
+        "imu_msg": Check(_imu_msg, ["ros2-core:2symbols-to-verify-there-never-write-the:02"],
+                         "uses the real IMU message type"),
+        "sensor_qos": Check(_odom_qos, [C_QOS_RULE, C_QOS_ROW, C_QOS_SYM],
+                            "sensor-data QoS on high-rate topics — the rule says odom/IMU too"),
+    },
+    note="Covers the one §2 bullet no other probe touches. Both message types are "
+         "almost certainly known cold, which makes this a cut test for that bullet.",
 )
 
 
@@ -365,4 +439,4 @@ P_DOMAIN = Probe(
 )
 
 
-PROBES: list[Probe] = [P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN]
+PROBES: list[Probe] = [P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM]

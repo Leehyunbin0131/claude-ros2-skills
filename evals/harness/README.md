@@ -30,19 +30,34 @@ produces the effect? See [`../../CONTRIBUTING.md`](../../CONTRIBUTING.md#two-bar
 | :--- | :--- |
 | [`claims.py`](./claims.py) | Splits every body into atomic claims with stable ids and exact line spans, and reassembles a body with one claim removed. Removal renumbers lists so the result reads as if authored that way — a visible gap would itself be a signal to the model. |
 | [`probes.py`](./probes.py) | One prompt per task, several mechanical checks, each tied to the claims it tests. Prompts never name the rule they are testing, or they would measure instruction-following instead. |
-| [`runner.py`](./runner.py) | Runs cells in parallel and resumably across conditions (`naked`, `protocol`, `full`, `shipped`, `ablate:<id>`, `only:<id>`), grades each with its probe's predicate, records cost and context size per cell. |
+| [`runner.py`](./runner.py) | Runs cells in parallel and resumably across conditions (`naked`, `protocol`, `full`, `shipped`, `ablate:<id>`, `ablate:<id>+<id>`, `only:<id>`), grades each with its probe's predicate, records cost and context size per cell. |
+| [`analyze.py`](./analyze.py) | Turns the cell log into per-claim verdicts — P(naked), Δ, Fisher exact, redundancy groups, interference, grading coverage. Reads `cells.jsonl` or the committed `cells.jsonl.gz`. |
 
 ```bash
 python3 claims.py inventory                       # -> ../claims/claims.jsonl
-python3 runner.py plan --suite core --repeats 5    # cells and estimated spend
-python3 runner.py run  --suite core --repeats 5 --workers 12 --out $(date +%F)-claims
+python3 runner.py plan --suite core --repeats 8    # cells and estimated spend
+python3 runner.py run  --suite core --repeats 8 --workers 12 \
+        --out $(date +%F)-core --max-total-usd 5
+python3 analyze.py 2026-07-26-core
 ```
 
-**Status: no published result depends on these yet.** They exist, the round trip
-is tested, and nothing in `RESULTS.md` cites them. Treat any output as
-provisional until it appears there with its n.
+First real use: [`../runs/2026-07-26-core/`](../runs/2026-07-26-core/) — all 26
+`ros2-core` claims, 558 cells, six lines cut.
 
-Two design choices worth knowing before reading the code:
+**Joint ablation is not optional.** Single ablation cannot distinguish "this line
+does nothing" from "this line is one of two that each suffice": drop either member
+of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`
+field, which adds an `ablate:a+b` condition. In the first run all three of
+`ros2-core`'s groups measured Δ=0 member-by-member and Δ≈+1.00 as a group — cutting
+them on the single-ablation reading would have deleted a rule with a runtime-proven
+effect.
+
+**Budget.** `--max-budget-usd` caps a single cell; `--max-total-usd` stops
+dispatching once the sweep's running total is reached. Cells already in flight
+finish, so the cap is approached from below and can be overshot by roughly
+`workers × cost-per-cell` — set it lower than the hard limit.
+
+Three design choices worth knowing before reading the code:
 
 - **Content is injected through `--append-system-prompt`, not installed as a
   skill.** A skill that does not load has zero effect regardless of content, and
@@ -54,6 +69,13 @@ Two design choices worth knowing before reading the code:
   auth only from `ANTHROPIC_API_KEY`, so on an OAuth machine every cell returns
   "Not logged in" and records as a silent failure. Isolation comes from
   `--setting-sources ""` instead.
+- **A cell that never reached the model is not a cell.** Usage limits, auth
+  failures and refusals come back as a normal-looking result whose text happens to
+  be an error message, and a predicate handed `"You've hit your session limit"`
+  scores it `False` — indistinguishable from the model getting it wrong. 438 cells
+  of the first sweep were graded that way before this was caught. Cells with
+  `is_error` or no cost are now recorded as errors, never graded, and retried on
+  the next run.
 
 ## Grading
 

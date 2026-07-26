@@ -5,3 +5,6 @@ __pycache__/
 # Committing it would go stale on every skill edit and invite grading against
 # line spans that no longer exist.
 evals/claims/
+
+# Runner scratch dir; cells.jsonl is committed gzipped alongside its analysis.
+evals/runs/*/cwd/

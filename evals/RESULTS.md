@@ -24,7 +24,7 @@ right number against a live publisher — not by review.
 
 | Skill | Status | Evidence |
 | :--- | :--- | :--- |
-| `ros2-core` | 🔄 In progress | — |
+| `ros2-core` | 🔄 Effect measured, efficiency partly | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) — all 26 claims ablated, n=8, 558 cells |
 | `ros2-package` | 🔄 In progress | — |
 | `ros2-dev` | 🔄 In progress | — |
 | `ros2-troubleshooting` | 🔄 In progress | — |
@@ -46,6 +46,22 @@ Status vocabulary — a skill is only ✅ when **both** axes have passed:
 
 **No skill has completed verification.** Results are published here per skill as
 each one clears both axes — not before, and including the ones that fail.
+
+`ros2-core` is the furthest along and shows what a finished row will contain.
+Measured at n=8 across 558 cells: the body takes the pass rate from **0.54 to
+0.94** (p<0.0001) pooled over 20 mechanical checks, six lines were cut as things
+the model already does unaided (50 → 44 lines), and three behaviours turned out to
+be stated redundantly — where removing any single line looks harmless and removing
+the group breaks the behaviour. It stays 🔄 because the reduced body has not been
+re-measured as a whole, which is what the efficiency axis actually requires.
+
+Two findings from that run are about the pack rather than the skill:
+
+- **The always-loaded 28-line `CLAUDE.md` protocol did not change generated code
+  at all** — 0.56 vs 0.54 against no context, p=0.73.
+- **Contamination was looked for and not found.** Adding the protocol on top of
+  the body scored 0.92 vs 0.94, p=0.67. Individual checks drop, the aggregate does
+  not.
 
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then
