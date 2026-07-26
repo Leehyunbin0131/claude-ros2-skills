@@ -3,6 +3,13 @@
 
 # Per-line ablation — `ros2-core`, 2026-07-26
 
+> **Correction (same day, [confirmation run](../2026-07-26-core-confirm/NOTES.md)):**
+> the `4:05` TF-extrapolation row below is marked "cut, Δ=0.00" — that verdict was
+> a false negative from an underpowered comparison. Cutting it for real and
+> re-measuring at higher n showed the reduced body performing significantly
+> *worse* than doing nothing (naked 1.00 vs cut 0.40, p=0.0017). The row has been
+> restored; `ros2-core` ships at 45 lines, five cuts not six.
+
 The first run of the efficiency axis: not "do the skills help?" but "does *this
 line* help, and is the body the smallest one that produces the effect?"
 

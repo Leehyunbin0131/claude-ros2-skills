@@ -42,7 +42,12 @@ python3 analyze.py 2026-07-26-core
 ```
 
 First real use: [`../runs/2026-07-26-core/`](../runs/2026-07-26-core/) — all 26
-`ros2-core` claims, 558 cells, six lines cut.
+`ros2-core` claims, 558 cells, six lines cut on single-ablation evidence. The
+[confirmation run](../runs/2026-07-26-core-confirm/NOTES.md) that measured the
+reduced body as a whole caught one of those six as a false negative — restored
+before shipping, five lines cut in the end. That is the reason joint measurement
+of the reduced body is not optional either, symmetric with the joint-ablation
+point below.
 
 **Joint ablation is not optional.** Single ablation cannot distinguish "this line
 does nothing" from "this line is one of two that each suffice": drop either member

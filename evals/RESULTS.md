@@ -24,7 +24,7 @@ right number against a live publisher — not by review.
 
 | Skill | Status | Evidence |
 | :--- | :--- | :--- |
-| `ros2-core` | 🔄 Effect measured, efficiency partly | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) — all 26 claims ablated, n=8, 558 cells |
+| `ros2-core` | ✅ Verified | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) |
 | `ros2-package` | 🔄 In progress | — |
 | `ros2-dev` | 🔄 In progress | — |
 | `ros2-troubleshooting` | 🔄 In progress | — |
@@ -47,13 +47,19 @@ Status vocabulary — a skill is only ✅ when **both** axes have passed:
 **No skill has completed verification.** Results are published here per skill as
 each one clears both axes — not before, and including the ones that fail.
 
-`ros2-core` is the furthest along and shows what a finished row will contain.
-Measured at n=8 across 558 cells: the body takes the pass rate from **0.54 to
-0.94** (p<0.0001) pooled over 20 mechanical checks, six lines were cut as things
-the model already does unaided (50 → 44 lines), and three behaviours turned out to
-be stated redundantly — where removing any single line looks harmless and removing
-the group breaks the behaviour. It stays 🔄 because the reduced body has not been
-re-measured as a whole, which is what the efficiency axis actually requires.
+`ros2-core` is the first skill to clear both axes and shows what a finished row
+looks like. Measured at n=8 across 558 cells: the body takes the pass rate from
+**0.54 to 0.94** (p<0.0001) pooled over 20 mechanical checks, five lines were cut
+as things the model already does unaided (50 → 45 lines), and three behaviours
+turned out to be stated redundantly — where removing any single line looks
+harmless and removing the group breaks the behaviour.
+
+The confirmation run that closed the efficiency axis caught a sixth candidate cut
+as a false negative: single-ablation Δ=0 said "cut," but removing it for real and
+re-measuring at higher n showed the reduced body performing *worse than doing
+nothing* on the behaviour that line taught (naked 1.00 vs cut 0.40, p=0.0017). The
+line was restored before shipping. Detail: [ablation](./runs/2026-07-26-core/NOTES.md),
+[confirmation and correction](./runs/2026-07-26-core-confirm/NOTES.md).
 
 Two findings from that run are about the pack rather than the skill:
 
