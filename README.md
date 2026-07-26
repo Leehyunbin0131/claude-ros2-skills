@@ -15,7 +15,7 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 | Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks | Evals: Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 lines** | **38** | **4 scripts** | **goal reached vs. bringup abort** |
+| **11** | **26 lines** | **32** | **4 scripts** | **goal reached vs. bringup abort** |
 
 </div>
 
@@ -71,7 +71,7 @@ Most robotics skill packs embed static API knowledge directly inside skill files
 | :--- | :--- | :--- |
 | Knowledge location | Embedded in skill files (**400–1,800 lines/skill**) | Linked to official docs (**~60-line** skill bodies); detailed references read **only when needed** |
 | Always-loaded context | Full `SKILL.md` files | **26-line** core protocol |
-| Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **38 documentation links** verified weekly via CI |
+| Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **32 documentation links** verified weekly via CI |
 | Verification method | Static code analysis or log checking | **Physical & runtime verification**: IMU gravity checks, directional odometry tests, TF frame alignment, DDS QoS compatibility |
 | Distribution scope | Claims support for multiple ROS distros while targeting only one | **ROS 2 Jazzy only**, explicitly designed and validated |
 
@@ -112,9 +112,10 @@ Sample size is **n=1 per cell** and the runs were graded by the same project tha
 | :--- | :--- | :--- |
 | Subscription QoS | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
 | **Messages received at runtime** | **Zero.** rclpy itself reported `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Receives at 5 Hz** |
-| Reported minimum (correct answer: 0.45 m) | never received one | `0.020 m` — **also wrong**: neither node filters against `range_min`/`range_max` |
+| Reported minimum (correct answer: 0.45 m) | never received one | **`0.450 m` — correct** |
+| Clean exit on SIGTERM | traceback | no traceback |
 
-The connectivity difference is the one that decides whether a sensor pipeline exists at all, and it reproduces. The numeric bug is a real miss by both conditions, and it is now a follow-up item on `ros2-core` rather than a claim.
+An earlier round of this same pair is what produced the fix: both nodes then filtered only `inf`, so the with-skills node reported `0.020 m` — connected, but confidently wrong. `ros2-core` gained the bounds rule and the shutdown pattern, and the re-run above is the verification that the patch changed the output. Both tables are in [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ### Asking before writing — Haiku, inverted LiDAR mount
 
@@ -130,10 +131,10 @@ The connectivity difference is the one that decides whether a sensor pipeline ex
 
 Reported because leaving it out would make the rest less trustworthy:
 
-- **Hallucination moves, it does not stop.** With-skills output across the three newest tasks still invented `ros2_troubleshooting_helpers` (no such package — while describing *this repo's own script*) and a wrong default durability. Routing to docs raises the floor; it does not make the model correct.
-- **On problems the model already knows cold, skills cost more and buy little.** For the classic QoS-mismatch diagnosis both conditions were right in one turn, and the with-skills run added one factual error for ~1.4× the cost.
-- **Skills change what the agent asks, more reliably than what it checks.** With a live reproduction running and `Bash` allowed, both cells recommended `ros2 topic info -v` and neither ran it.
-- **Neither condition got the numbers right on Task 1.** Both generated nodes omitted `range_min`/`range_max` filtering and would report a below-minimum reading as the closest obstacle.
+- **A rule only exists if the router loads the file it lives in.** On the QoS-diagnosis task, two runs of the identical prompt routed to *different* skills — `ros2-core` once, `ros2-perception` the next. `ros2-perception`'s examples are exclusively C++, and it is the only skill with no Python content; asked for a Python fix with nothing but `rclcpp::` in context, the answer came back using `rclcpp.qos` in Python, which raises `ModuleNotFoundError`. **The baseline, with no skill loaded at all, got that API right.** This is the one measured case of the pack making output worse, and the cause is skill content, not the model.
+- **Hallucination moves, it does not stop.** Every measured round has contained invented symbols in with-skills output — a non-existent package for this repo's own script, a wrong default durability, missing range bounds, a Python module that doesn't exist. Routing to docs raises the floor; it does not make the model correct.
+- **On problems the model already knows cold, skills cost more and buy little.** For the classic QoS-mismatch diagnosis, both conditions were right in one turn and the with-skills side cost ~1.4× while adding an error.
+- **Skills change what the agent asks, more reliably than what it checks.** Across four with-skills cells on that task, with a live reproduction running and `Bash` allowed, **none** ran the `ros2 topic info -v` they recommended. The verify-before-writing half does fire — on Task 1 the agent ran `ros2 interface show` first — but "prove it afterwards" does not reach diagnosis answers.
 
 ### The pattern across every pair
 
@@ -226,11 +227,13 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 2. ~~Publish Task 5 evaluation results~~ — **done (2026-07-25):** binary build/run/echo outcome measured in-container; results in [`evals/RESULTS.md`](./evals/RESULTS.md).
 3. ~~Extend live-install evaluations to Tasks 1–3~~ — **done (2026-07-26):** run against a native `ros-jazzy-ros-base` install, with both generated nodes executed against live publishers; harness in [`evals/harness/`](./evals/harness/), results in [`evals/RESULTS.md`](./evals/RESULTS.md).
 4. ~~Fix the defects those runs exposed~~ — **done (2026-07-26):** `ros2-troubleshooting` now states the literal script invocation (the model was inventing a package for it) and that `check_tf_tree.py` always flags a ~180° mount for physical confirmation; `ros2-core` gained the `range_min`/`range_max` bounds rule and a clean-shutdown pattern. **The eval tables measure the skills as they were before these fixes.**
-5. **Re-run Tasks 1–3 against the patched skills**, to find out whether the fixes actually change the output — the reason the tables above still describe the pre-fix version.
-6. **Make Task 3 discriminating** — require the QoS diagnosis to be *demonstrated* against live endpoints, not recommended, since both conditions currently answer it correctly from memory.
-7. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
-8. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
-9. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
+5. ~~Re-run Tasks 1–3 against the patched skills~~ — **done (2026-07-26):** two of three defects corrected near-verbatim and Task 1 now reports the right minimum at runtime; the third task regressed for a traceable reason (see item 6).
+6. **Duplicate the client-library guardrail across skills.** `rclpy` is mentioned in exactly 1 of 11 skills, so a Python question routed anywhere else has only C++ examples in context. Either state the C++/Python separation locally in every skill that shows client-library code, or promote it into `CLAUDE.md` where routing cannot miss it. `ros2-perception` also needs Python `cv_bridge` examples, not only C++ ones.
+7. **Measure the routing distribution.** Which skill gets selected varies between identical runs, and at n=1 that variance sits underneath every number in the eval tables.
+8. **Make Task 3 discriminating** — require the QoS diagnosis to be *demonstrated* against live endpoints, not recommended, since both conditions currently answer it correctly from memory.
+9. **Track "corrections-to-completion" as a core metric** — measuring the number of feedback iterations required before code runs successfully.
+10. **Implement deterministic `references/` lookups** to ensure detailed reference documents load whenever relevant.
+11. **Expand the body/`references` split** to `ros2-core` and `gazebo-sim`, optimizing context efficiency for high-frequency skills with substantial reference documentation.
 
 ## Contributing
 

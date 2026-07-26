@@ -17,7 +17,7 @@ Des skills qui transforment la façon dont les agents IA abordent le développem
 
 | Skills | Protocole chargé en permanence | Liens de doc (vérifiés par CI) | Contrôles sur robot physique | Évals : Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 lignes** | **38** | **4 scripts** | **objectif atteint vs. abandon au bringup** |
+| **11** | **26 lignes** | **32** | **4 scripts** | **objectif atteint vs. abandon au bringup** |
 
 </div>
 
@@ -73,7 +73,7 @@ La plupart des packs de skills en robotique intègrent directement des connaissa
 | :--- | :--- | :--- |
 | Emplacement des connaissances | Intégré dans les fichiers de skills (**400–1 800 lignes/skill**) | Lié à la doc officielle (corps de skill de **~60 lignes**) ; références détaillées lues **uniquement si nécessaire** |
 | Contexte chargé en permanence | Fichiers `SKILL.md` complets | Protocole cœur de **26 lignes** |
-| Gestion des mises à jour d'API Jazzy | Les extraits deviennent obsolètes discrètement ; nécessite des mises à jour manuelles continues des tests | Le risque d'extraits obsolètes est réduit aux liens d'entrée et noms de symboles — **38 liens de documentation** vérifiés chaque semaine via la CI |
+| Gestion des mises à jour d'API Jazzy | Les extraits deviennent obsolètes discrètement ; nécessite des mises à jour manuelles continues des tests | Le risque d'extraits obsolètes est réduit aux liens d'entrée et noms de symboles — **32 liens de documentation** vérifiés chaque semaine via la CI |
 | Méthode de vérification | Analyse statique de code ou vérification de logs | **Vérification physique & à l'exécution** : contrôles de gravité IMU, tests d'odométrie directionnelle, alignement des repères TF, compatibilité QoS DDS |
 | Portée de support | Prétend supporter plusieurs distributions ROS tout en ne ciblant qu'une seule | **ROS 2 Jazzy uniquement**, explicitement conçu et validé |
 
@@ -114,9 +114,10 @@ La taille d'échantillon est de **n=1 par cellule**, et les exécutions comme la
 | :--- | :--- | :--- |
 | QoS de l'abonnement | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
 | **Messages réellement reçus à l'exécution** | **Zéro.** rclpy a lui-même signalé `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Reçoit à 5 Hz** |
-| Minimum rapporté (bonne réponse : 0,45 m) | n'en a jamais reçu | `0,020 m` — **également faux** : aucun des deux nœuds ne filtre selon `range_min`/`range_max` |
+| Minimum rapporté (bonne réponse : 0,45 m) | n'en a jamais reçu | **`0,450 m` — correct** |
+| Arrêt propre sur SIGTERM | traceback | aucun traceback |
 
-L'écart de connectivité est celui qui détermine si le pipeline capteur existe tout court, et il est reproductible. L'erreur numérique, elle, est un défaut réel des deux conditions : elle est donc consignée comme chantier à venir pour `ros2-core`, et non comme un succès.
+Ce qui a produit ce correctif, c'est précisément le tour précédent de cette même paire : les deux nœuds ne filtraient alors que `inf`, de sorte que le nœud avec skills rapportait `0,020 m` — connecté, mais confiant dans une valeur fausse. `ros2-core` a reçu la règle de bornes et le motif d'arrêt, et la réexécution ci-dessus est la vérification que le correctif a bien changé la sortie. Les deux tableaux figurent dans [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ### Poser la question avant d'écrire — Haiku, LiDAR monté à l'envers
 
@@ -132,10 +133,10 @@ L'écart de connectivité est celui qui détermine si le pipeline capteur existe
 
 Consigné ici, car l'omettre rendrait le reste moins digne de confiance :
 
-- **L'hallucination se déplace, elle ne disparaît pas.** Sur les trois tâches les plus récentes, la sortie avec skills a encore inventé `ros2_troubleshooting_helpers` (package inexistant — et ce, en décrivant *le propre script de ce dépôt*) ainsi qu'une valeur de durability par défaut erronée. Router vers la documentation relève le plancher ; cela ne rend pas le modèle exact.
-- **Sur les problèmes que le modèle maîtrise déjà, les skills coûtent plus et apportent peu.** Pour le diagnostic classique d'incompatibilité QoS, les deux conditions ont eu juste en un tour, et la version avec skills a ajouté une erreur factuelle pour environ 1,4× le coût.
-- **Les skills changent ce que l'agent *demande* plus fiablement que ce qu'il *vérifie*.** Avec une reproduction en direct active et `Bash` autorisé, les deux cellules ont recommandé `ros2 topic info -v` et aucune ne l'a exécuté.
-- **Aucune des deux conditions n'a obtenu les bons chiffres sur la tâche 1.** Les deux nœuds générés omettent le filtrage `range_min`/`range_max` et rapporteraient une mesure sous le minimum comme l'obstacle le plus proche.
+- **Une règle n'existe que si le routeur charge le fichier où elle se trouve.** Sur la tâche de diagnostic QoS, deux exécutions du prompt identique ont été routées vers des skills *différents* : `ros2-core` une fois, `ros2-perception` la suivante. Les exemples de `ros2-perception` sont exclusivement en C++ et c'est le seul skill sans contenu Python ; sollicité pour un correctif Python avec seulement `rclcpp::` en contexte, la réponse a employé `rclcpp.qos` dans du code Python, ce qui lève `ModuleNotFoundError`. **La référence, sans aucun skill chargé, a écrit cette API correctement.** C'est le seul cas mesuré où le pack dégrade la sortie, et la cause est dans le contenu du skill, pas dans le modèle.
+- **L'hallucination se déplace, elle ne disparaît pas.** À chaque tour mesuré, la sortie avec skills a contenu des symboles inventés : un package inexistant pour le propre script de ce dépôt, une valeur de durability par défaut erronée, un filtrage de bornes absent, un module Python qui n'existe pas. Router vers la documentation relève le plancher ; cela ne rend pas le modèle exact.
+- **Sur les problèmes que le modèle maîtrise déjà, les skills coûtent plus et apportent peu.** Pour le diagnostic classique d'incompatibilité QoS, les deux conditions ont eu juste en un tour, et la version avec skills a ajouté une erreur pour environ 1,4× le coût.
+- **Les skills changent ce que l'agent *demande* plus fiablement que ce qu'il *vérifie*.** Sur les quatre cellules avec skills de cette tâche, avec une reproduction en direct active et `Bash` autorisé, **aucune** n'a exécuté le `ros2 topic info -v` qu'elle recommandait. La vérification avant écriture se déclenche bien — sur la tâche 1 l'agent a d'abord lancé `ros2 interface show` — mais le « prouve-le ensuite » n'atteint pas les réponses de diagnostic.
 
 ### La tendance sur chaque paire
 
@@ -228,11 +229,13 @@ cp -r skills/* ~/.claude/skills/   # ou dans le répertoire .claude/skills/ de v
 2. ~~Publier les résultats d'évaluation de la tâche 5~~ — **terminé (2026-07-25) :** résultat binaire build/run/echo mesuré dans le conteneur ; résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
 3. ~~Étendre les évaluations sur installation en direct aux tâches 1 à 3~~ — **terminé (2026-07-26) :** exécuté sur une installation native `ros-jazzy-ros-base`, les deux nœuds générés étant lancés face à des publieurs actifs ; harnais dans [`evals/harness/`](./evals/harness/), résultats dans [`evals/RESULTS.md`](./evals/RESULTS.md).
 4. ~~Corriger les défauts révélés par ces essais~~ — **terminé (2026-07-26) :** `ros2-troubleshooting` indique désormais l'invocation littérale du script (le modèle inventait un package) et précise que `check_tf_tree.py` signale toujours un montage à ~180° pour confirmation physique ; `ros2-core` a reçu la règle de bornes `range_min`/`range_max` et un motif d'arrêt propre. **Les tableaux d'évaluation mesurent les skills tels qu'ils étaient avant ces correctifs.**
-5. **Réexécuter les tâches 1 à 3 avec les skills corrigés**, afin de savoir si les correctifs changent réellement la sortie — c'est la raison pour laquelle les tableaux ci-dessus décrivent encore la version antérieure.
-6. **Rendre la tâche 3 discriminante** — les deux conditions répondant aujourd'hui correctement de mémoire, exiger que le diagnostic QoS soit *démontré* face à des endpoints réels, et non simplement recommandé.
-7. **Suivre les « corrections jusqu'à finalisation » comme métrique principale** — mesurer le nombre d'itérations de retour nécessaires avant que le code ne s'exécute avec succès.
-8. **Implémenter des recherches déterministes dans `references/`** pour garantir que les documents de référence détaillés se chargent chaque fois que cela est pertinent.
-9. **Étendre la séparation corps/`references`** à `ros2-core` et `gazebo-sim`, en optimisant l'efficacité du contexte pour les skills à haute fréquence disposant d'une documentation de référence importante.
+5. ~~Réexécuter les tâches 1 à 3 avec les skills corrigés~~ — **terminé (2026-07-26) :** deux des trois défauts ont été corrigés presque à la lettre et la tâche 1 rapporte désormais le bon minimum à l'exécution ; la troisième a régressé pour une raison traçable (voir le point 6).
+6. **Dupliquer le garde-fou de bibliothèque cliente entre les skills.** `rclpy` n'apparaît que dans 1 skill sur 11 : une question Python routée ailleurs n'a donc que des exemples C++ en contexte. Il faut énoncer la séparation C++/Python localement dans chaque skill montrant du code de bibliothèque cliente, ou la promouvoir dans `CLAUDE.md`, où le routage ne peut pas la manquer. `ros2-perception` a également besoin d'exemples `cv_bridge` en Python, et pas seulement en C++.
+7. **Mesurer la distribution du routage.** Le skill sélectionné varie entre exécutions identiques et, à n=1, cette variance se trouve sous chacun des chiffres des tableaux d'évaluation.
+8. **Rendre la tâche 3 discriminante** — les deux conditions répondant aujourd'hui correctement de mémoire, exiger que le diagnostic QoS soit *démontré* face à des endpoints réels, et non simplement recommandé.
+9. **Suivre les « corrections jusqu'à finalisation » comme métrique principale** — mesurer le nombre d'itérations de retour nécessaires avant que le code ne s'exécute avec succès.
+10. **Implémenter des recherches déterministes dans `references/`** pour garantir que les documents de référence détaillés se chargent chaque fois que cela est pertinent.
+11. **Étendre la séparation corps/`references`** à `ros2-core` et `gazebo-sim`, en optimisant l'efficacité du contexte pour les skills à haute fréquence disposant d'une documentation de référence importante.
 
 ## Contribuer
 

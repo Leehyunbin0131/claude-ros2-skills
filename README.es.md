@@ -17,7 +17,7 @@ Skills que transforman la manera en que los agentes de IA abordan el desarrollo 
 
 | Skills | Protocolo siempre cargado | Enlaces a documentación (verificados por CI) | Verificaciones en robot físico | Evaluaciones: Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 líneas** | **38** | **4 scripts** | **objetivo alcanzado vs. aborto en bringup** |
+| **11** | **26 líneas** | **32** | **4 scripts** | **objetivo alcanzado vs. aborto en bringup** |
 
 </div>
 
@@ -73,7 +73,7 @@ La mayoría de los paquetes de skills de robótica incluyen conocimiento estáti
 | :--- | :--- | :--- |
 | Ubicación del conocimiento | Integrado en los archivos del skill (**400–1.800 líneas/skill**) | Enlazado a la documentación oficial (cuerpo de skill de **~60 líneas**); las referencias detalladas se leen **solo cuando es necesario** |
 | Contexto siempre cargado | Archivos `SKILL.md` completos | Protocolo principal de **26 líneas** |
-| Gestión de actualizaciones de la API en Jazzy | Los fragmentos quedan obsoletos silenciosamente; requiere actualizaciones manuales continuas de pruebas | El riesgo de fragmentos obsoletos se minimiza a enlaces de punto de entrada y nombres de símbolos; **38 enlaces a documentación** se verifican semanalmente vía CI |
+| Gestión de actualizaciones de la API en Jazzy | Los fragmentos quedan obsoletos silenciosamente; requiere actualizaciones manuales continuas de pruebas | El riesgo de fragmentos obsoletos se minimiza a enlaces de punto de entrada y nombres de símbolos; **32 enlaces a documentación** se verifican semanalmente vía CI |
 | Método de verificación | Análisis estático de código o verificación de logs | **Verificación física y en tiempo de ejecución**: comprobaciones de gravedad en IMU, pruebas de odometría direccional, alineación de frames TF, compatibilidad de QoS en DDS |
 | Alcance de distribución | Afirma soportar múltiples distribuciones de ROS cuando solo apunta a una | **Exclusivo para ROS 2 Jazzy**, diseñado y validado explícitamente |
 
@@ -114,9 +114,10 @@ El tamaño de muestra es **n=1 por celda**, y tanto la ejecución como la evalua
 | :--- | :--- | :--- |
 | QoS de la suscripción | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
 | **Mensajes recibidos en ejecución** | **Cero.** rclpy informó por sí mismo: `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Recibe a 5 Hz** |
-| Mínimo reportado (respuesta correcta: 0,45 m) | nunca recibió ninguno | `0,020 m` — **también incorrecto**: ningún nodo filtra según `range_min`/`range_max` |
+| Mínimo reportado (respuesta correcta: 0,45 m) | nunca recibió ninguno | **`0,450 m` — correcto** |
+| Salida limpia con SIGTERM | traceback | sin traceback |
 
-La diferencia de conectividad es la que decide si el pipeline de sensores existe siquiera, y es reproducible. El error numérico, en cambio, es un fallo real de ambas condiciones, por lo que queda registrado como tarea pendiente de `ros2-core` y no como un logro.
+Lo que produjo esta corrección fue precisamente la ronda anterior de este mismo par: entonces ambos nodos filtraban solo `inf`, así que el nodo con skills reportaba `0,020 m` — conectado, pero seguro de un valor equivocado. `ros2-core` incorporó la regla de límites y el patrón de cierre, y la reejecución anterior es la verificación de que el parche cambió realmente la salida. Ambas tablas están en [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ### Preguntar antes de escribir — Haiku, LiDAR montado al revés
 
@@ -132,10 +133,10 @@ La diferencia de conectividad es la que decide si el pipeline de sensores existe
 
 Se documenta porque omitirlo restaría credibilidad al resto:
 
-- **La alucinación se desplaza, no desaparece.** En las tres tareas más recientes, la salida con skills siguió inventando `ros2_troubleshooting_helpers` (paquete inexistente, y precisamente al describir *el script de este propio repositorio*) y un valor de durability por defecto equivocado. Enrutar a la documentación eleva el suelo; no vuelve correcto al modelo.
-- **En problemas que el modelo ya domina, los skills cuestan más y aportan poco.** En el diagnóstico clásico de incompatibilidad de QoS ambas condiciones acertaron en un turno, y la versión con skills añadió un error factual por ~1,4× el coste.
-- **Los skills cambian lo que el agente *pregunta* con más fiabilidad que lo que *comprueba*.** Con una reproducción en vivo en marcha y `Bash` permitido, ambas celdas recomendaron `ros2 topic info -v` y ninguna lo ejecutó.
-- **Ninguna de las dos condiciones acertó los números en la Tarea 1.** Los dos nodos generados omitieron el filtrado por `range_min`/`range_max` y reportarían como obstáculo más cercano una lectura por debajo del mínimo.
+- **Una regla solo existe si el enrutador carga el archivo donde vive.** En la tarea de diagnóstico de QoS, dos ejecuciones del prompt idéntico se enrutaron a skills *distintos*: `ros2-core` una vez, `ros2-perception` la siguiente. Los ejemplos de `ros2-perception` son exclusivamente C++ y es el único skill sin contenido en Python; al pedirle una corrección en Python con nada más que `rclcpp::` en contexto, la respuesta usó `rclcpp.qos` en código Python, lo que lanza `ModuleNotFoundError`. **La línea base, sin ningún skill cargado, acertó esa API.** Es el único caso medido en que el paquete empeora la salida, y la causa está en el contenido del skill, no en el modelo.
+- **La alucinación se desplaza, no desaparece.** En todas las rondas medidas, la salida con skills contuvo símbolos inventados: un paquete inexistente para el script de este propio repositorio, un valor de durability por defecto equivocado, filtrado de límites ausente, un módulo de Python que no existe. Enrutar a la documentación eleva el suelo; no vuelve correcto al modelo.
+- **En problemas que el modelo ya domina, los skills cuestan más y aportan poco.** En el diagnóstico clásico de incompatibilidad de QoS ambas condiciones acertaron en un turno, y la versión con skills añadió un error por ~1,4× el coste.
+- **Los skills cambian lo que el agente *pregunta* con más fiabilidad que lo que *comprueba*.** En las cuatro celdas con skills de esa tarea, con una reproducción en vivo en marcha y `Bash` permitido, **ninguna** ejecutó el `ros2 topic info -v` que recomendaba. La verificación previa a escribir sí se activa —en la Tarea 1 el agente ejecutó `ros2 interface show` primero— pero el "demuéstralo después" no alcanza a las respuestas de diagnóstico.
 
 ### El patrón en cada par
 
@@ -228,11 +229,13 @@ cp -r skills/* ~/.claude/skills/   # o el .claude/skills/ de tu proyecto
 2. ~~Publicar resultados de evaluación de la Tarea 5~~ — **completado (2026-07-25):** Resultado binario de compilación/ejecución/echo medido dentro del contenedor; resultados en [`evals/RESULTS.md`](./evals/RESULTS.md).
 3. ~~Extender las evaluaciones sobre instalación en vivo a las Tareas 1–3~~ — **completado (2026-07-26):** ejecutado sobre una instalación nativa de `ros-jazzy-ros-base`, con ambos nodos generados ejecutados contra publicadores activos; arnés en [`evals/harness/`](./evals/harness/), resultados en [`evals/RESULTS.md`](./evals/RESULTS.md).
 4. ~~Corregir los defectos que esas ejecuciones revelaron~~ — **completado (2026-07-26):** `ros2-troubleshooting` ya indica la invocación literal del script (el modelo estaba inventando un paquete) y que `check_tf_tree.py` siempre marca un montaje de ~180° para confirmación física; `ros2-core` incorporó la regla de límites `range_min`/`range_max` y un patrón de cierre limpio. **Las tablas de evaluación miden los skills tal como estaban antes de estas correcciones.**
-5. **Reejecutar las Tareas 1–3 con los skills corregidos**, para averiguar si las correcciones cambian realmente la salida — el motivo por el que las tablas anteriores siguen describiendo la versión previa.
-6. **Hacer que la Tarea 3 discrimine** — actualmente ambas condiciones aciertan de memoria, así que debe exigir que el diagnóstico de QoS se *demuestre* contra endpoints reales, no que se recomiende.
-7. **Rastrear "correcciones hasta completar" como una métrica clave** — midiendo el número de iteraciones de retroalimentación necesarias antes de que el código se ejecute con éxito.
-8. **Implementar búsquedas deterministas en `references/`** para asegurar que los documentos de referencia detallados se carguen cuando sean relevantes.
-9. **Ampliar la separación cuerpo/`references`** a `ros2-core` y `gazebo-sim`, optimizando la eficiencia del contexto en skills de alta frecuencia con documentación de referencia sustancial.
+5. ~~Reejecutar las Tareas 1–3 con los skills corregidos~~ — **completado (2026-07-26):** dos de los tres defectos quedaron corregidos casi al pie de la letra y la Tarea 1 ya reporta el mínimo correcto en ejecución; la tercera retrocedió por un motivo rastreable (véase el punto 6).
+6. **Duplicar la barrera de la biblioteca cliente entre skills.** `rclpy` aparece en exactamente 1 de 11 skills, así que una pregunta en Python enrutada a cualquier otro solo tiene ejemplos C++ en contexto. Hay que enunciar la separación C++/Python localmente en cada skill que muestre código de biblioteca cliente, o promoverla a `CLAUDE.md`, donde el enrutado no puede omitirla. `ros2-perception` también necesita ejemplos de `cv_bridge` en Python, no solo en C++.
+7. **Medir la distribución del enrutado.** Qué skill se selecciona varía entre ejecuciones idénticas y, con n=1, esa varianza subyace a todas las cifras de las tablas de evaluación.
+8. **Hacer que la Tarea 3 discrimine** — actualmente ambas condiciones aciertan de memoria, así que debe exigir que el diagnóstico de QoS se *demuestre* contra endpoints reales, no que se recomiende.
+9. **Rastrear "correcciones hasta completar" como una métrica clave** — midiendo el número de iteraciones de retroalimentación necesarias antes de que el código se ejecute con éxito.
+10. **Implementar búsquedas deterministas en `references/`** para asegurar que los documentos de referencia detallados se carguen cuando sean relevantes.
+11. **Ampliar la separación cuerpo/`references`** a `ros2-core` y `gazebo-sim`, optimizando la eficiencia del contexto en skills de alta frecuencia con documentación de referencia sustancial.
 
 ## Contribuir
 

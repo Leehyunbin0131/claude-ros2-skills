@@ -1,0 +1,8 @@
+[INFO] [1785029213.349721644] [static_transform_publisher_ZkMmhpeNASVnoPGO]: Spinning until stopped - publishing transform
+trans[INFO] [1785029213.349721659] [static_transform_publisher_yvXRqP6H2eoMOF6J]: Spinning until stopped - publishing transform
+translation: ('0.000000', '0.000000', '0.000000')
+rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+from 'map' to 'odom'
+lation: ('0.000000', '0.000000', '0.000000')
+rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+from 'odom' to 'base_link'

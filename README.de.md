@@ -17,7 +17,7 @@ Skills, die die ROS 2-Entwicklung mit KI-Agenten grundlegend verändern: Unbekan
 
 | Skills | Immer geladenes Protokoll | Doku-Links (CI-geprüft) | Physikalische Roboter-Prüfungen | Evals: Gazebo A/B |
 | :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 Zeilen** | **38** | **4 Skripte** | **Ziel erreicht vs. Bringup-Abbruch** |
+| **11** | **26 Zeilen** | **32** | **4 Skripte** | **Ziel erreicht vs. Bringup-Abbruch** |
 
 </div>
 
@@ -73,7 +73,7 @@ Die meisten Robotik-Skill-Pakete betten statisches API-Wissen direkt in Skill-Da
 | :--- | :--- | :--- |
 | Speicherort des Wissens | In Skill-Dateien eingebettet (**400–1.800 Zeilen/Skill**) | Verlinkt auf offizielle Doku (**~60-Zeilen** Skill-Rümpfe); detaillierte Referenzen **nur bei Bedarf** gelesen |
 | Immer geladener Kontext | Vollständige `SKILL.md`-Dateien | **26-Zeilen** Kernprotokoll |
-| Umgang mit Jazzy-API-Updates | Snippets veralten stillschweigend; erfordert kontinuierliche manuelle Test-Updates | Risiko veralteter Snippets auf Einstiegspunkt-Links und Symbolnamen minimiert — **38 Dokumentationslinks** wöchentlich per CI verifiziert |
+| Umgang mit Jazzy-API-Updates | Snippets veralten stillschweigend; erfordert kontinuierliche manuelle Test-Updates | Risiko veralteter Snippets auf Einstiegspunkt-Links und Symbolnamen minimiert — **32 Dokumentationslinks** wöchentlich per CI verifiziert |
 | Verifikationsmethode | Statische Codeanalyse oder Log-Prüfung | **Physikalische & Laufzeit-Verifikation**: IMU-Gravitationsprüfungen, Richtungs-Odometrietests, TF-Frame-Ausrichtung, DDS-QoS-Kompatibilität |
 | Unterstützungsbereich | Behauptet Unterstützung für mehrere ROS-Distros, zielt aber nur auf eine ab | **Nur ROS 2 Jazzy**, explizit entwickelt und validiert |
 
@@ -114,9 +114,10 @@ Die Stichprobengröße beträgt **n=1 pro Durchlauf**, und Ausführung wie Bewer
 | :--- | :--- | :--- |
 | QoS des Abonnements | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
 | **Zur Laufzeit empfangene Nachrichten** | **Null.** rclpy meldete selbst `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Empfängt mit 5 Hz** |
-| Gemeldetes Minimum (korrekte Antwort: 0,45 m) | hat nie eine Nachricht erhalten | `0,020 m` — **ebenfalls falsch**: keine der beiden Nodes filtert gegen `range_min`/`range_max` |
+| Gemeldetes Minimum (korrekte Antwort: 0,45 m) | hat nie eine Nachricht erhalten | **`0,450 m` — korrekt** |
+| Sauberes Beenden bei SIGTERM | Traceback | kein Traceback |
 
-Der Unterschied bei der Konnektivität entscheidet darüber, ob überhaupt eine Sensor-Pipeline existiert, und er ist reproduzierbar. Der numerische Fehler dagegen ist ein echter Mangel beider Bedingungen und wird daher als Folgeaufgabe für `ros2-core` festgehalten, nicht als Erfolg.
+Hervorgebracht hat diese Korrektur genau die vorherige Runde desselben Paares: damals filterten beide Nodes nur `inf`, sodass die Node mit Skills `0,020 m` meldete — verbunden, aber überzeugt von einem falschen Wert. `ros2-core` erhielt die Bereichsregel und das Shutdown-Muster, und der obige erneute Durchlauf ist der Nachweis, dass der Patch die Ausgabe tatsächlich verändert hat. Beide Tabellen stehen in [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ### Vor dem Schreiben fragen — Haiku, umgedreht montierter LiDAR
 
@@ -132,10 +133,10 @@ Der Unterschied bei der Konnektivität entscheidet darüber, ob überhaupt eine 
 
 Festgehalten, weil das Weglassen den übrigen Ergebnissen an Glaubwürdigkeit nehmen würde:
 
-- **Halluzination verschwindet nicht, sie verlagert sich.** In den drei jüngsten Aufgaben erfand die Ausgabe mit Skills weiterhin `ros2_troubleshooting_helpers` (ein nicht existierendes Paket – und das beim Beschreiben *des eigenen Skripts dieses Repositories*) sowie einen falschen Standardwert für durability. Das Routing zur Dokumentation hebt die Untergrenze; es macht das Modell nicht korrekt.
-- **Bei Problemen, die das Modell längst beherrscht, kosten Skills mehr und bringen wenig.** Bei der klassischen QoS-Inkompatibilitätsdiagnose lagen beide Bedingungen in einem Zug richtig, und die Variante mit Skills fügte für etwa das 1,4-Fache der Kosten einen Sachfehler hinzu.
-- **Skills verändern zuverlässiger, was der Agent *fragt*, als was er *überprüft*.** Bei laufender Live-Reproduktion und erlaubtem `Bash` empfahlen beide Durchläufe `ros2 topic info -v` – ausgeführt hat es keiner.
-- **Keine der beiden Bedingungen traf bei Aufgabe 1 die richtigen Zahlen.** Beide generierten Nodes lassen die Filterung nach `range_min`/`range_max` weg und würden einen Messwert unterhalb des Minimums als nächstgelegenes Hindernis melden.
+- **Eine Regel existiert nur, wenn das Routing die Datei lädt, in der sie steht.** Bei der QoS-Diagnoseaufgabe wurden zwei Durchläufe desselben Prompts an *unterschiedliche* Skills geroutet: einmal `ros2-core`, das nächste Mal `ros2-perception`. Die Beispiele von `ros2-perception` sind ausschließlich C++, und es ist das einzige Skill ohne Python-Inhalt; um eine Python-Korrektur gebeten, mit nichts als `rclcpp::` im Kontext, verwendete die Antwort `rclcpp.qos` in Python-Code – was `ModuleNotFoundError` auslöst. **Die Baseline, ohne jedes geladene Skill, schrieb diese API korrekt.** Das ist der einzige gemessene Fall, in dem das Paket die Ausgabe verschlechtert, und die Ursache liegt im Skill-Inhalt, nicht im Modell.
+- **Halluzination verschwindet nicht, sie verlagert sich.** In jeder gemessenen Runde enthielt die Ausgabe mit Skills erfundene Symbole: ein nicht existierendes Paket für das eigene Skript dieses Repositories, ein falscher Standardwert für durability, fehlende Bereichsfilterung, ein Python-Modul, das es nicht gibt. Das Routing zur Dokumentation hebt die Untergrenze; es macht das Modell nicht korrekt.
+- **Bei Problemen, die das Modell längst beherrscht, kosten Skills mehr und bringen wenig.** Bei der klassischen QoS-Inkompatibilitätsdiagnose lagen beide Bedingungen in einem Zug richtig, und die Variante mit Skills fügte für etwa das 1,4-Fache der Kosten einen Fehler hinzu.
+- **Skills verändern zuverlässiger, was der Agent *fragt*, als was er *überprüft*.** In allen vier Skill-Durchläufen dieser Aufgabe hat bei laufender Live-Reproduktion und erlaubtem `Bash` **keiner** das selbst empfohlene `ros2 topic info -v` ausgeführt. Die Verifikation vor dem Schreiben greift durchaus – in Aufgabe 1 führte der Agent zuerst `ros2 interface show` aus – aber das „beweise es danach“ erreicht Diagnoseantworten nicht.
 
 ### Das Muster über jedes Paar hinweg
 
@@ -228,11 +229,13 @@ cp -r skills/* ~/.claude/skills/   # oder das .claude/skills/-Verzeichnis Ihres 
 2. ~~Evaluationsergebnisse für Aufgabe 5 veröffentlichen~~ — **erledigt (25.07.2026):** Binäres Build/Run/Echo-Ergebnis im Container gemessen; Ergebnisse in [`evals/RESULTS.md`](./evals/RESULTS.md).
 3. ~~Evaluationen auf einer Live-Installation auf die Aufgaben 1–3 ausweiten~~ — **erledigt (26.07.2026):** ausgeführt auf einer nativen `ros-jazzy-ros-base`-Installation, wobei beide generierten Nodes gegen laufende Publisher ausgeführt wurden; Harness in [`evals/harness/`](./evals/harness/), Ergebnisse in [`evals/RESULTS.md`](./evals/RESULTS.md).
 4. ~~Die von diesen Durchläufen aufgedeckten Mängel beheben~~ — **erledigt (26.07.2026):** `ros2-troubleshooting` nennt jetzt den wörtlichen Aufruf des Skripts (das Modell erfand ein Paket) und weist darauf hin, dass `check_tf_tree.py` eine ~180°-Montage stets zur physischen Bestätigung markiert; `ros2-core` erhielt die `range_min`/`range_max`-Bereichsregel und ein Muster für sauberes Herunterfahren. **Die Evaluationstabellen messen die Skills in dem Zustand vor diesen Korrekturen.**
-5. **Aufgaben 1–3 mit den korrigierten Skills erneut ausführen**, um herauszufinden, ob die Korrekturen die Ausgabe tatsächlich verändern — genau deshalb beschreiben die Tabellen oben noch die Version davor.
-6. **Aufgabe 3 trennscharf machen** — da derzeit beide Bedingungen allein aus dem Gedächtnis richtig antworten, muss die QoS-Diagnose an echten Endpunkten *demonstriert* und nicht bloß empfohlen werden.
-7. **„Korrekturen bis zur Fertigstellung“ als Kernmetrik erfassen** — Messung der Anzahl der Feedback-Iterationen, die erforderlich sind, bevor der Code erfolgreich läuft.
-8. **Deterministische `references/`-Lookups implementieren**, um sicherzustellen, dass detaillierte Referenzdokumente geladen werden, wann immer sie relevant sind.
-9. **Die Aufteilung in Rumpf/`references` auf `ros2-core` und `gazebo-sim` ausdehnen**, um die Kontexteffizienz für hochfrequente Skills mit umfangreicher Referenzdokumentation zu optimieren.
+5. ~~Aufgaben 1–3 mit den korrigierten Skills erneut ausführen~~ — **erledigt (26.07.2026):** Zwei der drei Mängel wurden nahezu wortgleich behoben, und Aufgabe 1 meldet zur Laufzeit nun das richtige Minimum; die dritte fiel aus einem nachvollziehbaren Grund zurück (siehe Punkt 6).
+6. **Das Client-Library-Leitplanke über Skills hinweg duplizieren.** `rclpy` kommt in genau 1 von 11 Skills vor, sodass eine Python-Frage, die anderswohin geroutet wird, nur C++-Beispiele im Kontext hat. Die C++/Python-Trennung muss entweder lokal in jedem Skill stehen, das Client-Library-Code zeigt, oder in `CLAUDE.md` hochgezogen werden, wo das Routing sie nicht verpassen kann. `ros2-perception` braucht zudem Python-`cv_bridge`-Beispiele, nicht nur C++.
+7. **Die Routing-Verteilung messen.** Welches Skill ausgewählt wird, schwankt zwischen identischen Durchläufen; bei n=1 liegt diese Varianz unter jeder Zahl in den Evaluationstabellen.
+8. **Aufgabe 3 trennscharf machen** — da derzeit beide Bedingungen allein aus dem Gedächtnis richtig antworten, muss die QoS-Diagnose an echten Endpunkten *demonstriert* und nicht bloß empfohlen werden.
+9. **„Korrekturen bis zur Fertigstellung“ als Kernmetrik erfassen** — Messung der Anzahl der Feedback-Iterationen, die erforderlich sind, bevor der Code erfolgreich läuft.
+10. **Deterministische `references/`-Lookups implementieren**, um sicherzustellen, dass detaillierte Referenzdokumente geladen werden, wann immer sie relevant sind.
+11. **Die Aufteilung in Rumpf/`references` auf `ros2-core` und `gazebo-sim` ausdehnen**, um die Kontexteffizienz für hochfrequente Skills mit umfangreicher Referenzdokumentation zu optimieren.
 
 ## Mitwirken
 
