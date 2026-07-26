@@ -1,1 +1,0 @@
-That's fine to skip. I've saved `scan_monitor.py` — it subscribes to `/scan` with `qos_profile_sensor_data` (matching the skill's rule to use sensor QoS for high-rate LiDAR topics), buffers the latest `LaserScan`, and a 1 Hz timer logs the minimum of the finite, in-range values from `ranges[]`.

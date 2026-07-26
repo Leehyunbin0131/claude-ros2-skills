@@ -21,7 +21,7 @@ Navigate within these rather than guessing deep URLs.
 - **TF2** — `tf2_ros::TransformBroadcaster`, `tf2_ros::StaticTransformBroadcaster`, `tf2_ros::Buffer`, `tf2_ros::TransformListener`, `canTransform()`, `lookupTransform()`, `tf2::TimePointZero`, `tf2::ExtrapolationException`; message `geometry_msgs/msg/TransformStamped`. Frame conventions are REP 105 (`map` -> `odom` -> `base_link` -> `base_footprint` -> sensor frames) — see `ros2-troubleshooting`.
 - **Odometry / state estimation** — `nav_msgs/msg/Odometry`, `sensor_msgs/msg/Imu`, `robot_localization`'s `ekf_node`.
 - **Parameters** — `declare_parameter()`, `get_parameter()`, `add_on_set_parameters_callback()`, `rcl_interfaces::msg::ParameterDescriptor`; CLI `ros2 param list|get|set`, YAML via `--ros-args --params-file`.
-- **QoS** — `rclcpp::SensorDataQoS()` / `rclpy.qos.qos_profile_sensor_data` on sensor topics; inspect real endpoint QoS with `ros2 topic info <topic> -v`.
+- **QoS** — `rclcpp::SensorDataQoS()` / `rclpy.qos.qos_profile_sensor_data` on sensor topics; inspect real endpoint QoS with `ros2 topic info <topic> -v`. The depth-only default (`create_subscription(..., 10)`) is RELIABLE + **VOLATILE** — not TRANSIENT_LOCAL; check the enum rather than asserting it.
 - **Packaging & build wiring** — see `ros2-package`.
 
 ## 3. Local System Inspection & Interfaces (Ground Truth)
@@ -39,8 +39,12 @@ Navigate within these rather than guessing deep URLs.
 | `set_parameters` succeeds but behavior doesn't change | Node read the value once at startup and never re-reads; no `add_on_set_parameters_callback` applying it | Implement the parameter callback, or restart the node after changes |
 | TF `ExtrapolationException` even though both frames exist | Mixed clocks (`use_sim_time` inconsistent) or looking up a hardcoded timestamp | Use `tf2::TimePointZero`/`Time()` for latest; align `use_sim_time` on every node |
 | Timers/subscriptions starve while one callback runs | Single-threaded executor blocked by a long or blocking callback | `MultiThreadedExecutor` + `ReentrantCallbackGroup` for blocking work; never sleep in callbacks |
+| Reported minimum range is absurdly small (or `nan` propagates) | `ranges` filtered for `inf` only; readings below `range_min` or above `range_max` and `nan` were kept | Keep a reading only if `math.isfinite(r) and msg.range_min <= r <= msg.range_max` — the message docs say values outside those bounds must be discarded |
+| Node exits with `rcl_shutdown already called` / `ExternalShutdownException` on Ctrl-C or SIGTERM | `rclpy.shutdown()` called after the context is already down, or `spin()` interrupted without handling it | Catch `KeyboardInterrupt` **and** `rclpy.executors.ExternalShutdownException` around `spin()`, and guard teardown with `if rclpy.ok(): rclpy.shutdown()` |
 
 ## 5. Strict Coding Rules
 1. Never mix ROS 1 syntax (`ros::init`, `catkin`, `.launch` XML legacy).
 2. For TF lookups, always catch `tf2::TransformException` or use `canTransform()` timeout guards.
 3. Always match topic subscriber QoS to publisher QoS (e.g. `SensorDataQoS` for high-rate LiDAR/IMU/Odom topics).
+4. Never trust a sensor array without bounds-checking it. For `LaserScan`, a value is usable only when finite **and** within `[range_min, range_max]`; filtering `inf` alone still lets `nan` and out-of-range readings through and produces a confidently wrong answer.
+5. Make shutdown clean: wrap `spin()` so `KeyboardInterrupt` and `ExternalShutdownException` are caught, and only call `rclpy.shutdown()` when `rclpy.ok()`.
