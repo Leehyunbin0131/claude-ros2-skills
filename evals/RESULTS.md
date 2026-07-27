@@ -28,9 +28,9 @@ right number against a live publisher — not by review.
 | `ros2-security` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) |
 | `ros2-testing` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
 | `ros2-package` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
+| `ros2-perception` | ✅ Verified | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
 | `ros2-dev` | 🔄 In progress | — |
 | `ros2-troubleshooting` | 🔄 In progress | — |
-| `ros2-perception` | 🔄 In progress | — |
 | `gazebo-sim` | 🔄 In progress | — |
 | `ros2-control` | 🔄 In progress | — |
 | `ros2-moveit` | 🔄 In progress | — |
@@ -148,6 +148,46 @@ additions](./runs/2026-07-27-package-additions/), [the miscored confirmation
 run](./runs/2026-07-27-package-confirm/), [corrected final
 confirmation](./runs/2026-07-28-package-final/).
 
+`ros2-perception` is the fifth, and the cheapest ground truth yet: a C++
+compiler. Every snippet the model writes is put through `g++ -fsyntax-only`
+against the installed Jazzy headers in about two seconds, no workspace
+required — and unlike a regex, a compiler cannot be fooled by code that looks
+right. That mattered immediately, because the domain's headline trap is a
+header rename that regex grading would have scored either way: Jazzy ships
+`cv_bridge/cv_bridge.hpp` and deleted the pre-Jazzy `cv_bridge/cv_bridge.h`.
+Unaided, the model writes the deleted spelling **7 times out of 8** and the
+code does not compile; with the body, 8/8 compile. Pooled over 19 mechanical
+checks the body takes the pass rate from **0.70 to 0.99** (p<10⁻¹³).
+
+The efficiency axis produced an unusually sharp contrast between the two code
+blocks sitting side by side in the same section. The `pcl_ros` voxel-filter
+block measured 8/8 naked, 8/8 ablated and 8/8 full on *real compilation* — the
+model reproduces it perfectly unaided — so it was cut, 23 lines gone (65 → 43).
+The `cv_bridge` block one heading above it is one of the strongest KEEPs
+measured anywhere in this project. Same section, same language, opposite
+verdicts, and only a compiler could tell them apart: this is the evidence gap
+that made the equivalent call on `ros2-package` a conservative *keep*, now
+closed.
+
+A second cut candidate was cut and then put back. The `pointcloud_to_laserscan`
+row looked inert on single ablation (Δ=+0.12, p=1.000, naked already 7/8), but
+the confirmation run against the actually-reduced body scored it **5/8 — below
+the 8/8 that no body at all achieves**. Reading the failing cells showed why:
+with its own row gone, the model reaches for the neighbouring rows' framings
+(`frame_id`, TF, QoS) instead of the height band, whereas an empty prompt
+leaves it free to answer from its own knowledge. A *thinned* table misleads
+where an absent one does not — the same interaction that turned the high-CPU
+row from an apparent cut at n=4 into a confirmed KEEP at p=0.007 once a top-up
+separated it from the naked ceiling. At p=0.20 the regression is not
+significant at the n=8 cap, so the row was restored precautionarily rather than
+cut on an unresolved reading, and a third run measured the body that actually
+ships: 151/152, p=1.000 against the pre-cut body. **A claim can be inert
+against no context and load-bearing against the rest of its own table; only the
+shipping state distinguishes the two.** Detail:
+[ablation](./runs/2026-07-28-perception/),
+[confirmation that caught the regression](./runs/2026-07-28-perception-confirm/),
+[final](./runs/2026-07-28-perception-final/).
+
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then
 disconfirmed; publishing partial results invites exactly that error to spread
@@ -157,12 +197,12 @@ before it can be caught.
 
 The effect axis needs the skill's packages actually installed — a skill whose
 first instruction is "read the installed defaults" cannot be measured where those
-defaults do not exist. Checked on the eval machine
-(`ros-jazzy-ros-base`, 204 packages):
+defaults do not exist. Re-checked on the eval machine 2026-07-28, after Nav2,
+Gazebo, ros2_control, MoveIt and the perception stack were installed:
 
 | Runnable now | Blocked until installed |
 | :--- | :--- |
-| `ros2-core`, `ros2-package`, `ros2-troubleshooting`, `ros2-testing`, `ros2-security` | `ros2-dev` (`nav2-bringup`, `slam-toolbox`) · `gazebo-sim` (`ros-gz` + Gazebo Harmonic) · `ros2-control` (`ros2-controllers`) · `ros2-moveit` (`moveit`) · `ros2-perception` (`cv-bridge`, `image-transport`) · `ros2-microros` (`micro-ros-agent`, source build) |
+| `ros2-core`, `ros2-package`, `ros2-troubleshooting`, `ros2-testing`, `ros2-security`, `ros2-perception`, `ros2-dev`, `gazebo-sim`, `ros2-control`, `ros2-moveit` | `ros2-microros` (`micro-ros-agent` has no apt package — needs the `micro_ros_setup` source build) |
 
 Re-check with `ros2 pkg prefix <pkg>` rather than trusting this table — it is a
 snapshot of one machine.

@@ -1387,10 +1387,403 @@ P_PKG_BUILD_HYBRID = Probe(
 )
 
 
+# --- ros2-perception suite ---------------------------------------------------
+# Claim ids re-read from claims.jsonl. Perception is the first suite where the
+# cheap ground truth is a *compiler* rather than a build system: every C++
+# snippet the model writes can be syntax-checked against the installed Jazzy
+# headers in ~2-3s, with no workspace to create. That matters here more than in
+# ros2-package, because the domain's headline trap is a header rename that regex
+# grading would happily score either way -- Jazzy ships
+# `cv_bridge/cv_bridge.hpp` and deleted the pre-Jazzy `cv_bridge/cv_bridge.h`,
+# while `pcl_conversions/pcl_conversions.h` is still `.h`. Verified by hand
+# before wiring in: the skill's own snippet compiles, the same snippet with the
+# legacy `.h` spelling fails with "No such file or directory".
+
+C_PERC_NAV_URL = "ros2-perception:1documentation-entry-points:01"
+C_PERC_NAV_PKGS = "ros2-perception:1documentation-entry-points:02"
+C_PERC_NAV_VERIFY = "ros2-perception:1documentation-entry-points:03"
+# Post-cut ids. Only the pcl_ros code block was removed after the n=8 sweep
+# (see ../runs/2026-07-28-perception); `a-`/`b-` disappeared from the cv_bridge
+# heading slug once it stopped being one of a lettered pair. The
+# `pointcloud_to_laserscan` row was cut alongside it and then restored: the
+# confirmation run measured the reduced body at 5/8 on that check against 8/8
+# both with the row and with no body at all, the same "a thinned table misleads
+# where an empty one does not" interaction that made the CPU row a KEEP at
+# p=0.007. Not significant on its own (p=0.20 at the n=8 cap), so the row is
+# kept precautionarily rather than cut on an unresolved reading.
+C_PERC_CVBRIDGE = "ros2-perception:cv-bridge-opencv-conversion-c:01"
+C_PERC_SYM_QOS = "ros2-perception:3symptom-root-cause-action:01"
+C_PERC_SYM_ENC = "ros2-perception:3symptom-root-cause-action:02"
+C_PERC_SYM_DEPTH = "ros2-perception:3symptom-root-cause-action:03"
+C_PERC_SYM_REG = "ros2-perception:3symptom-root-cause-action:04"
+C_PERC_SYM_P2L = "ros2-perception:3symptom-root-cause-action:05"
+C_PERC_SYM_KP = "ros2-perception:3symptom-root-cause-action:06"
+C_PERC_SYM_CPU = "ros2-perception:3symptom-root-cause-action:07"
+
+PERC_REORDER = "reorder:3,1,2"
+
+
+@lru_cache(maxsize=1)
+def _cpp_include_flags() -> list[str]:
+    """Every per-package include dir under the Jazzy prefix, plus OpenCV/PCL/Eigen.
+
+    ROS 2 installs headers one directory per package, so a single -I at the
+    prefix root is not enough -- `rclcpp.hpp` transitively includes
+    `rcl_interfaces/srv/...` which lives in its own tree.
+    """
+    flags = []
+    base = "/opt/ros/jazzy/include"
+    if os.path.isdir(base):
+        flags += [f"-I{os.path.join(base, d)}" for d in sorted(os.listdir(base))
+                  if os.path.isdir(os.path.join(base, d))]
+        flags.append(f"-I{base}")
+    for extra in ("/usr/include/opencv4", "/usr/include/eigen3"):
+        if os.path.isdir(extra):
+            flags.append(f"-I{extra}")
+    import glob as _glob
+    for pcl in sorted(_glob.glob("/usr/include/pcl-*")):
+        flags.append(f"-I{pcl}")
+    return flags
+
+
+@lru_cache(maxsize=256)
+def _compiles_cpp(answer: str) -> bool | None:
+    """True if the answer's C++ passes `g++ -fsyntax-only` against the install.
+
+    Syntax-only rather than a full link: the question is whether the headers,
+    namespaces and call signatures the model wrote actually exist in Jazzy, and
+    that is exactly what the front end resolves. None when the answer has no
+    C++ to compile -- never graded as a failure.
+    """
+    src = code(answer)
+    if src is None or "#include" not in src:
+        return None
+    tmp = tempfile.mkdtemp(prefix="ros2perc_probe_")
+    try:
+        path = os.path.join(tmp, "probe.cpp")
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(src)
+            # A bare callback body is a legal translation unit on its own; no
+            # main() is appended, so nothing is invented on the model's behalf.
+        try:
+            res = subprocess.run(
+                ["g++", "-fsyntax-only", "-std=c++17", *_cpp_include_flags(), path],
+                capture_output=True, text=True, timeout=120,
+            )
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            return None
+        return res.returncode == 0
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _perc_cv_compiles(answer: str) -> bool | None:
+    return _compiles_cpp(answer)
+
+
+def _perc_cvbridge_hpp(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"cv_bridge/cv_bridge\.hpp", src))
+
+
+def _perc_tocvcopy(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"toCvCopy", r"toCvShare")
+
+
+P_PERC_CVBRIDGE = Probe(
+    id="perc-cv-bridge-cpp",
+    suite="perception",
+    skill="ros2-perception",
+    prompt=(
+        "Write the C++ body of a ROS 2 Jazzy image callback: take an incoming "
+        "`sensor_msgs::msg::Image::ConstSharedPtr`, convert it to an OpenCV "
+        "BGR8 `cv::Mat`, draw a filled circle on it, and convert it back to a "
+        "`sensor_msgs::msg::Image` ready to publish.\n\n"
+        "Give me the complete set of #include lines and the function, in one "
+        "fenced C++ code block. No CMakeLists, no commentary."
+    ),
+    checks={
+        "compiles": Check(_perc_cv_compiles, [C_PERC_CVBRIDGE],
+                          "g++ -fsyntax-only against the installed Jazzy headers — "
+                          "the pre-Jazzy cv_bridge/cv_bridge.h spelling fails here"),
+        "cvbridge_hpp": Check(_perc_cvbridge_hpp, [C_PERC_CVBRIDGE],
+                              "includes cv_bridge/cv_bridge.hpp, the Jazzy spelling"),
+        "tocvcopy": Check(_perc_tocvcopy, [C_PERC_CVBRIDGE],
+                          "uses toCvCopy/toCvShare rather than hand-rolling the buffer"),
+    },
+    probe_only=True,
+    extra_conditions=[PERC_REORDER],
+)
+
+
+def _perc_pcl_compiles(answer: str) -> bool | None:
+    return _compiles_cpp(answer)
+
+
+def _perc_pcl_conversions_h(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"pcl_conversions/pcl_conversions\.h\b", src))
+
+
+def _perc_rosmsg_roundtrip(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"fromROSMsg") and _has(src, r"toROSMsg")
+
+
+P_PERC_PCL = Probe(
+    id="perc-pcl-cpp",
+    suite="perception",
+    skill="ros2-perception",
+    prompt=(
+        "Write the C++ body of a ROS 2 Jazzy callback that takes an incoming "
+        "`sensor_msgs::msg::PointCloud2::SharedPtr`, downsamples it with a PCL "
+        "voxel grid filter at 5 cm leaf size, and converts the result back to a "
+        "`sensor_msgs::msg::PointCloud2`.\n\n"
+        "Give me the complete set of #include lines and the function, in one "
+        "fenced C++ code block. No CMakeLists, no commentary."
+    ),
+    checks={
+        "compiles": Check(_perc_pcl_compiles, [],
+                          "g++ -fsyntax-only against installed pcl_conversions/PCL headers"),
+        "pcl_conversions_h": Check(_perc_pcl_conversions_h, [],
+                                   "includes pcl_conversions/pcl_conversions.h — still .h in "
+                                   "Jazzy, the opposite of cv_bridge's .hpp"),
+        "rosmsg_roundtrip": Check(_perc_rosmsg_roundtrip, [],
+                                  "uses pcl::fromROSMsg and pcl::toROSMsg for both directions"),
+    },
+    note="Was an ablation instrument for the pcl_ros code block; that block was "
+         "cut after measuring 8/8 naked, 8/8 ablated and 8/8 full on a real "
+         "compiler. The probe is kept with no claims so the confirmation run "
+         "still answers the question the cut turns on — does the model keep "
+         "emitting PCL that compiles now that the body no longer shows it — "
+         "which a regression here, and only here, would refute.",
+)
+
+
+def _perc_qos_mismatch_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"[Bb]est.?[Ee]ffort") and _has(text, r"[Rr]eliab")
+
+
+def _perc_sensor_data_qos_cpp(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return _has(src, r"SensorDataQoS", r"rmw_qos_profile_sensor_data",
+                r"BestEffort\(\)", r"best_effort\(\)")
+
+
+def _perc_no_python_qos_in_cpp(answer: str) -> bool | None:
+    """The cross-language trap the skill calls out by name.
+
+    `rclcpp.qos.qos_profile_sensor_data` is Python syntax against the C++
+    library and exists nowhere; a C++ answer containing it is wrong regardless
+    of how the rest reads.
+    """
+    src = code(answer)
+    if src is None:
+        return None
+    return not _has(src, r"rclcpp\.qos", r"qos_profile_sensor_data")
+
+
+def _perc_qos_verify_cmd(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ros2 topic info[^\n]*(-v|--verbose)", text))
+
+
+P_PERC_QOS = Probe(
+    id="perc-qos-silent",
+    suite="perception",
+    skill="ros2-perception",
+    prompt=(
+        "My ROS 2 Jazzy C++ node subscribes to `/camera/image_raw` from a "
+        "RealSense driver. `ros2 topic hz /camera/image_raw` reports a steady "
+        "30 Hz, `ros2 topic list` shows the topic, but my subscription callback "
+        "never fires once. Nothing in the logs looks like an error.\n\n"
+        "What is going on, how do I confirm it, and what is the C++ fix?"
+    ),
+    checks={
+        "qos_mismatch_cause": Check(_perc_qos_mismatch_cause, [C_PERC_SYM_QOS],
+                                    "names the BestEffort publisher / Reliable subscriber mismatch"),
+        "sensor_data_qos": Check(_perc_sensor_data_qos_cpp, [C_PERC_SYM_QOS],
+                                 "gives a sensor-data / best-effort QoS as the fix"),
+        "no_python_qos_in_cpp": Check(_perc_no_python_qos_in_cpp, [C_PERC_SYM_QOS],
+                                      "does not write the Python spelling (rclcpp.qos / "
+                                      "qos_profile_sensor_data) into C++ — the exact "
+                                      "cross-language error the claim calls out"),
+        "verify_cmd": Check(_perc_qos_verify_cmd, [C_PERC_SYM_QOS],
+                            "names ros2 topic info -v to confirm the offered QoS"),
+    },
+    probe_only=True,
+)
+
+
+def _perc_encoding_check(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"encoding") and _has(text, r"16UC1", r"32FC1", r"passthrough")
+
+
+def _perc_depth_units(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    mm = _has(text, r"millimet", r"\bmm\b")
+    scale = _has(text, r"1000")
+    return mm and scale
+
+
+def _perc_no_bgr8_for_depth(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"passthrough", r"msg->encoding", r"msg\.encoding",
+                r"don'?t assume", r"never assume", r"not.*bgr8")
+
+
+P_PERC_DEPTH = Probe(
+    id="perc-depth-encoding",
+    suite="perception",
+    skill="ros2-perception",
+    prompt=(
+        "I'm subscribing to a depth image topic in ROS 2 Jazzy and running it "
+        "through cv_bridge. Two things go wrong depending on the camera: "
+        "sometimes cv_bridge raises an exception about the encoding, and "
+        "sometimes it converts fine but every distance I read out is about a "
+        "thousand times too large.\n\n"
+        "Explain both and tell me exactly what to check and do."
+    ),
+    checks={
+        "encoding_check": Check(_perc_encoding_check, [C_PERC_SYM_ENC],
+                                "says to check the actual encoding, naming 16UC1/32FC1 or passthrough"),
+        "depth_units": Check(_perc_depth_units, [C_PERC_SYM_DEPTH],
+                             "names millimetres and the /1000 conversion to metres"),
+        "no_bgr8_for_depth": Check(_perc_no_bgr8_for_depth, [C_PERC_SYM_ENC],
+                                   "says to read msg->encoding / use passthrough rather than "
+                                   "assuming a colour encoding"),
+    },
+    # Both rows are about "the encoding is not what you assumed"; either one
+    # alone may carry the whole behaviour, which single ablation cannot see.
+    joint=[[C_PERC_SYM_ENC, C_PERC_SYM_DEPTH]],
+    probe_only=True,
+)
+
+
+def _perc_registration_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"regist", r"depth_registered", r"optical frame")
+
+
+def _perc_height_band_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"min_height", r"max_height") or (
+        _has(text, r"height") and _has(text, r"target_frame"))
+
+
+def _perc_k_vs_p_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"\brectif", r"\bP\b.*projection", r"projection matrix") and \
+        _has(text, r"\bK\b", r"camera matrix", r"intrinsic")
+
+
+def _perc_compressed_transport_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"image_transport", r"compressed", r"throttl", r"downscal", r"downsampl")
+
+
+P_PERC_DIAGNOSE = Probe(
+    id="perc-diagnose",
+    suite="perception",
+    skill="ros2-perception",
+    prompt=(
+        "For each of these ROS 2 Jazzy perception problems, give the root cause "
+        "and the fix in one line each:\n"
+        "1. The point cloud from my RGB-D camera doesn't line up with the RGB "
+        "image when I overlay them.\n"
+        "2. `pointcloud_to_laserscan` runs without errors but every scan it "
+        "publishes is empty.\n"
+        "3. My detector's bounding boxes are drawn at visibly wrong positions "
+        "when I project them onto the image.\n"
+        "4. CPU usage is pegged by a handful of image subscribers on the same "
+        "network."
+    ),
+    checks={
+        "registration_cause": Check(_perc_registration_cause, [C_PERC_SYM_REG],
+                                    "names depth/colour registration or the optical frame"),
+        "height_band_cause": Check(_perc_height_band_cause, [C_PERC_SYM_P2L],
+                                   "names the min_height/max_height band or the target_frame TF"),
+        "k_vs_p_cause": Check(_perc_k_vs_p_cause, [C_PERC_SYM_KP],
+                              "names mixing rectified/raw images with the wrong K or P matrix"),
+        "compressed_transport_cause": Check(_perc_compressed_transport_cause, [C_PERC_SYM_CPU],
+                                            "names image_transport compressed, or throttling/downscaling"),
+    },
+    probe_only=True,
+)
+
+
+def _perc_docs_url(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"docs\.ros\.org/en/jazzy/p/", text))
+
+
+def _perc_interface_show(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ros2 interface show", text))
+
+
+P_PERC_DOCS = Probe(
+    id="perc-docs-lookup",
+    suite="perception",
+    skill="ros2-perception",
+    prompt=(
+        "I'm working with `depth_image_proc` on ROS 2 Jazzy and I don't know "
+        "its API. Where exactly do I read its documentation, and how do I "
+        "confirm the exact field names of the `sensor_msgs/msg/Image` messages "
+        "it consumes on this machine rather than trusting my memory?"
+    ),
+    checks={
+        "docs_url": Check(_perc_docs_url, [C_PERC_NAV_URL],
+                          "gives the docs.ros.org/en/jazzy/p/<package>/ pattern"),
+        "interface_show": Check(_perc_interface_show, [C_PERC_NAV_VERIFY],
+                                "names ros2 interface show against the local install"),
+    },
+    extra_claims=[C_PERC_NAV_PKGS],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
     P_PKG_CREATE, P_PKG_CMAKE, P_PKG_PYENTRY, P_PKG_INTERFACES,
     P_PKG_DIAG_BUILD, P_PKG_DIAG_IFACE, P_PKG_DEP_DECLARE, P_PKG_BUILD_HYBRID,
+    P_PERC_CVBRIDGE, P_PERC_PCL, P_PERC_QOS, P_PERC_DEPTH,
+    P_PERC_DIAGNOSE, P_PERC_DOCS,
 ]

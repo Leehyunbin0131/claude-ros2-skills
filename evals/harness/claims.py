@@ -227,6 +227,38 @@ def _renumber(lines: list[str]) -> list[str]:
     return out
 
 
+HEADING_RE = re.compile(r"^(#{2,6})\s+\S")
+
+
+def _drop_orphaned_headings(lines: list[str]) -> list[str]:
+    """Remove headings the ablation emptied out.
+
+    Deleting the only claim under a `### A. cv_bridge ...` subheading leaves the
+    heading standing over nothing — a seam announcing that something used to be
+    here, which is a different stimulus from a body that never mentioned the
+    topic. `_renumber` already closes the equivalent gap in numbered lists; this
+    closes it for sections.
+
+    A heading survives if any non-blank line precedes the next heading, or if
+    the next heading is *deeper* than it (a parent whose subsections carry the
+    content is not empty).
+    """
+    heads = [i for i, l in enumerate(lines) if HEADING_RE.match(l)]
+    drop: set[int] = set()
+    for pos, i in enumerate(heads):
+        level = len(HEADING_RE.match(lines[i]).group(1))
+        nxt = heads[pos + 1] if pos + 1 < len(heads) else len(lines)
+        if any(lines[j].strip() for j in range(i + 1, nxt)):
+            continue
+        if nxt < len(lines) and len(HEADING_RE.match(lines[nxt]).group(1)) > level:
+            continue
+        drop.add(i)
+        # Trailing blank lines belonged to the heading, not to what follows.
+        for j in range(i + 1, nxt):
+            drop.add(j)
+    return [l for n, l in enumerate(lines) if n not in drop]
+
+
 SECTION_RE = re.compile(r"^## (\d+)\. (.+)$")
 
 
@@ -273,6 +305,7 @@ def ablate(claim: Claim, drop_ids: list[str] | None = None, all_claims: list[Cla
     kept = [l for n, l in enumerate(lines) if n not in kill]
     if any(t.kind == "list_item" for t in targets):
         kept = _renumber(kept)
+    kept = _drop_orphaned_headings(kept)
     return "\n".join(kept) + "\n"
 
 

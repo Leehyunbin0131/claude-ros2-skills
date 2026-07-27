@@ -117,6 +117,38 @@ came back not significant (p≥0.2). **Do not write an inline substitute for
 subtly wrong, and the whole point of having one tool that does the tallying is
 that it only has to be gotten right once.**
 
+Fifth use: [`../runs/2026-07-28-perception/`](../runs/2026-07-28-perception/)
+(+ [`-confirm`](../runs/2026-07-28-perception-confirm/),
+[`-final`](../runs/2026-07-28-perception-final/)) — ground truth got cheap.
+`_compiles_cpp()` runs `g++ -fsyntax-only` over whatever C++ the answer
+contains, against every per-package include dir under `/opt/ros/jazzy`, in
+about two seconds and with no workspace to build. Verify a new compile grader
+*discriminates* before trusting it: the skill's own snippet was compiled, then
+recompiled with the pre-Jazzy `cv_bridge/cv_bridge.h` spelling to confirm the
+second form actually fails. It does, and unaided the model writes it 7 times
+out of 8 — an error no regex over the answer text would have caught, since
+both spellings look equally plausible.
+
+This run also fixed a flaw in `ablate()` itself. Removing the only claim under
+a `### A. cv_bridge ...` subheading left the heading standing over nothing: a
+seam that still names the topic, so the ablated body scores higher than a body
+that never mentioned it, understating the claim's effect and biasing toward
+cutting. `_drop_orphaned_headings()` now closes that gap the way `_renumber()`
+already closed it for numbered lists. It changes ablation bodies for 27 claims
+across every skill; all 27 had been KEPT, so no shipped decision rested on a
+seam — but that was checked, not assumed, and the same check is owed to any
+future primitive that edits a body.
+
+**A line can be inert against nothing and load-bearing against its own table.**
+The `pointcloud_to_laserscan` row single-ablated at Δ=+0.12, p=1.000 with naked
+already at 7/8 — inert by every reading available before the cut. Removed for
+real, it scored 5/8, *below* the 8/8 that no context at all achieves. The
+failing answers show the mechanism: with its own row gone the model borrows the
+neighbouring rows' framings (`frame_id`, TF, QoS) rather than the height band,
+while an empty prompt leaves it free to answer from its own knowledge. Naked is
+therefore not the right baseline for a cut decision — full-with-line versus
+full-without-line is, and only the confirmation run produces the latter.
+
 **Joint ablation is not optional.** Single ablation cannot distinguish "this line
 does nothing" from "this line is one of two that each suffice": drop either member
 of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`

@@ -15,7 +15,7 @@ Verify message field names against the installation itself: `ros2 interface show
 
 ## 2. Key Concepts & Patterns
 
-### A. `cv_bridge` OpenCV Conversion (C++)
+### `cv_bridge` OpenCV Conversion (C++)
 ```cpp
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -27,28 +27,6 @@ void process_image(const sensor_msgs::msg::Image::ConstSharedPtr & msg) {
   cv_bridge::CvImagePtr cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
   cv::circle(cv_ptr->image, cv::Point(50, 50), 10, CV_RGB(255, 0, 0), 2);
   sensor_msgs::msg::Image::SharedPtr out_msg = cv_ptr->toImageMsg();
-}
-```
-
-### B. `pcl_ros` PointCloud Conversion (C++)
-```cpp
-#include <sensor_msgs/msg/point_cloud2.hpp>
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_types.h>
-#include <pcl/filters/voxel_grid.h>
-
-void filter_cloud(const sensor_msgs::msg::PointCloud2::SharedPtr msg) {
-  pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::fromROSMsg(*msg, *pcl_cloud);
-
-  pcl::PointCloud<pcl::PointXYZ>::Ptr filtered(new pcl::PointCloud<pcl::PointXYZ>);
-  pcl::VoxelGrid<pcl::PointXYZ> sor;
-  sor.setInputCloud(pcl_cloud);
-  sor.setLeafSize(0.05f, 0.05f, 0.05f);
-  sor.filter(*filtered);
-
-  sensor_msgs::msg::PointCloud2 output_msg;
-  pcl::toROSMsg(*filtered, output_msg);
 }
 ```
 
