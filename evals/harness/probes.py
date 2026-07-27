@@ -72,6 +72,11 @@ class Probe:
     # one measures Δ=0 for all of them, and cutting the lot on that evidence
     # breaks the behaviour. Each group is ablated together as well as singly.
     joint: list[list[str]] = field(default_factory=list)
+    # "Addition" and "position" cases beyond delete/joint-delete: test each claim
+    # alone (no other content) and/or a whole-body reorder condition. Off by
+    # default so existing suites are unaffected.
+    probe_only: bool = False
+    extra_conditions: list[str] = field(default_factory=list)
 
     @property
     def claim_ids(self) -> list[str]:
@@ -89,8 +94,9 @@ class Probe:
         conds = ["naked", "protocol", "full", "shipped"]
         conds += [f"ablate:{cid}" for cid in self.claim_ids]
         conds += [f"ablate:{'+'.join(g)}" for g in self.joint]
-        if include_only:
+        if include_only or self.probe_only:
             conds += [f"only:{cid}" for cid in self.claim_ids]
+        conds += self.extra_conditions
         return conds
 
     def predicate(self, answer: str) -> dict[str, bool | None]:
@@ -611,7 +617,229 @@ P_SEC_ARCH = Probe(
 )
 
 
+# --- ros2-testing suite -------------------------------------------------------
+# Third skill; also the first suite that turns on the "addition" and "position"
+# cases (`only:<id>` = does this one claim alone suffice; `reorder:4,1,2,3` =
+# does moving the symptom table ahead of the doc pointers change anything)
+# alongside the usual single/joint deletion. Repeats kept at the statistical
+# floor (n=4 — the smallest sample where a clean 0/n vs n/n can still reach
+# p<0.05) since the case count per claim roughly triples; anything that looks
+# ambiguous gets a targeted top-up rather than a blanket re-run, same as the
+# false negatives caught in ros2-core and ros2-security.
+
+C_T_NAV1 = "ros2-testing:1documentation-entry-points:01"
+C_T_NAV2 = "ros2-testing:1documentation-entry-points:02"
+C_T_NAV3 = "ros2-testing:1documentation-entry-points:03"
+C_T_RUN1 = "ros2-testing:2running-tests:01"
+C_T_RUN2 = "ros2-testing:2running-tests:02"
+C_T_WRITER = "ros2-testing:a-programmatic-rosbag2-writer-c:01"
+C_T_LAUNCH = "ros2-testing:b-integration-testing-launch-testing-pyt:01"
+C_T_READY = "ros2-testing:b-integration-testing-launch-testing-pyt:02"
+C_T_SYM01 = "ros2-testing:4symptom-root-cause-action:01"
+C_T_SYM02 = "ros2-testing:4symptom-root-cause-action:02"
+C_T_SYM03 = "ros2-testing:4symptom-root-cause-action:03"
+C_T_SYM04 = "ros2-testing:4symptom-root-cause-action:04"
+C_T_SYM05 = "ros2-testing:4symptom-root-cause-action:05"
+C_T_SYM06 = "ros2-testing:4symptom-root-cause-action:06"
+
+REORDER_SYMPTOMS_FIRST = "reorder:4,1,2,3"
+
+
+def _t_verbose_flag(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"--verbose")
+
+
+def _t_checks_test_count(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"expected", r"registered", r"test count")
+
+
+def _t_names_test_result(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"colcon test-result")
+
+
+P_T_COLCON = Probe(
+    id="colcon-trust",
+    suite="testing",
+    skill="ros2-testing",
+    prompt=(
+        "I just ran `colcon test --packages-select my_package` and it printed "
+        "`Summary: 3 tests, 0 errors, 0 failures, 0 skipped`. Before I trust that "
+        "and move on, what exactly should I check to make sure this is telling "
+        "the truth, and what commands do I run?"
+    ),
+    checks={
+        "names_verbose": Check(_t_verbose_flag, [C_T_RUN1, C_T_SYM02],
+                               "names --verbose to see per-case detail"),
+        "checks_test_count": Check(_t_checks_test_count, [C_T_RUN2, C_T_SYM01],
+                                   "checks the test count against what's expected, not just the exit code"),
+        "names_test_result": Check(_t_names_test_result, [C_T_RUN1, C_T_SYM01],
+                                   "names colcon test-result as the place the real detail lives"),
+    },
+    note="Three claims (2running-tests x2, symptom row 01) all push the same "
+         "'don't trust the summary' behaviour, plus symptom row 02 pushes "
+         "--verbose specifically. Declared as one joint group rather than found "
+         "after the fact from single-ablation collisions.",
+    extra_claims=[C_T_NAV1, C_T_NAV2, C_T_NAV3],
+    joint=[[C_T_RUN1, C_T_RUN2, C_T_SYM01, C_T_SYM02]],
+    probe_only=True,
+    extra_conditions=[REORDER_SYMPTOMS_FIRST],
+)
+
+
+def _t_writer_header(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"rosbag2_cpp/writer\.hpp")
+
+
+def _t_writer_create_topic(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"create_topic")
+
+
+def _t_writer_write_call(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"\.write<", r"\.write\(")
+
+
+P_T_ROSBAG_WRITE = Probe(
+    id="rosbag2-write",
+    suite="testing",
+    skill="ros2-testing",
+    prompt=(
+        "Write a minimal C++ snippet that programmatically records a single "
+        "`std_msgs/msg/String` message to a new rosbag2 bag called `my_bag` on "
+        "topic `chatter`. Just the rosbag2-writing part, not a whole node."
+    ),
+    checks={
+        "writer_header": Check(_t_writer_header, [C_T_WRITER], "includes rosbag2_cpp/writer.hpp"),
+        "writer_create_topic": Check(_t_writer_create_topic, [C_T_WRITER], "registers the topic before writing"),
+        "writer_write_call": Check(_t_writer_write_call, [C_T_WRITER], "calls Writer::write"),
+    },
+    probe_only=True,
+    extra_conditions=[REORDER_SYMPTOMS_FIRST],
+)
+
+
+def _t_ready_to_test(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ReadyToTest\(\)")
+
+
+def _t_post_shutdown(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"post_shutdown_test")
+
+
+def _t_exit_code_check(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"assertExitCodes")
+
+
+P_T_LAUNCH_TESTING = Probe(
+    id="launch-testing-node",
+    suite="testing",
+    skill="ros2-testing",
+    prompt=(
+        "Write a `launch_testing` Python test that starts a `talker` node from "
+        "`demo_nodes_cpp`, asserts it started successfully, and also checks the "
+        "process exited cleanly after shutdown. Complete file."
+    ),
+    checks={
+        "ready_to_test": Check(_t_ready_to_test, [C_T_LAUNCH, C_T_READY],
+                               "marks the launch/test boundary with ReadyToTest()"),
+        "post_shutdown": Check(_t_post_shutdown, [C_T_LAUNCH, C_T_READY],
+                               "uses a @post_shutdown_test() class for exit checks"),
+        "exit_code_check": Check(_t_exit_code_check, [C_T_LAUNCH],
+                                 "asserts exit codes via launch_testing.asserts"),
+    },
+    note="The code block and the ReadyToTest() explanation are a second "
+         "candidate redundancy pair, same shape as ros2-core's shutdown pair.",
+    extra_claims=[C_T_SYM03],
+    joint=[[C_T_LAUNCH, C_T_READY]],
+    probe_only=True,
+    extra_conditions=[REORDER_SYMPTOMS_FIRST],
+)
+
+
+def _t_hang_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"ReadyToTest")
+
+
+def _t_ci_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"wall.?clock", r"sourced workspace", r"clean shell",
+                r"wait.?for.?message", r"wait_for")
+
+
+def _t_qos_test_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"\bQoS\b")
+
+
+def _t_simtime_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"use_sim_time", r"--clock", r"/clock\b")
+
+
+P_T_DIAGNOSE = Probe(
+    id="testing-diagnose",
+    suite="testing",
+    skill="ros2-testing",
+    prompt=(
+        "For each of these ROS 2 Jazzy testing problems, give the root cause and "
+        "the fix in one line each:\n"
+        "1. A `launch_testing` test hangs forever and never finishes.\n"
+        "2. `colcon test` passes locally but the same tests fail in CI.\n"
+        "3. In an integration test, the node under test never receives the test "
+        "fixture's published messages, even though the topic looks connected.\n"
+        "4. Rosbag2 playback inside a test produces no callbacks even though the "
+        "bag file has messages."
+    ),
+    checks={
+        "hang_cause": Check(_t_hang_cause, [C_T_SYM03], "names ReadyToTest() as the missing boundary"),
+        "ci_cause": Check(_t_ci_cause, [C_T_SYM04], "names wall-clock/workspace state as the cause"),
+        "qos_test_cause": Check(_t_qos_test_cause, [C_T_SYM05], "names a QoS mismatch"),
+        "simtime_cause": Check(_t_simtime_cause, [C_T_SYM06], "names use_sim_time/--clock alignment"),
+    },
+    note="One prompt, four independent scenarios — covers the four symptom rows "
+         "that aren't part of another probe's joint group.",
+    probe_only=True,
+    extra_conditions=[REORDER_SYMPTOMS_FIRST],
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH,
+    P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
 ]

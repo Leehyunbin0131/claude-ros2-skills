@@ -26,6 +26,7 @@ right number against a live publisher — not by review.
 | :--- | :--- | :--- |
 | `ros2-core` | ✅ Verified | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) |
 | `ros2-security` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) |
+| `ros2-testing` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
 | `ros2-package` | 🔄 In progress | — |
 | `ros2-dev` | 🔄 In progress | — |
 | `ros2-troubleshooting` | 🔄 In progress | — |
@@ -33,7 +34,6 @@ right number against a live publisher — not by review.
 | `gazebo-sim` | 🔄 In progress | — |
 | `ros2-control` | 🔄 In progress | — |
 | `ros2-moveit` | 🔄 In progress | — |
-| `ros2-testing` | 🔄 In progress | — |
 | `ros2-microros` | 🔄 In progress | — |
 
 Status vocabulary — a skill is only ✅ when **both** axes have passed:
@@ -78,6 +78,34 @@ implementations carry DDS-Security: Δ=+0.25, p=0.467 at n=8 looked like a cut,
 and a targeted top-up to n=16 turned it into a real KEEP (p=0.007). Same
 contamination check, same result — 1.00 vs 1.00, p=1.00. Detail:
 [ablation](./runs/2026-07-27-security/NOTES.md).
+
+`ros2-testing` is the third, and the first run to test more than deletion: every
+claim was also tried alone (`only:<id>`, does one line by itself already produce
+the effect) and the whole body was tried with its sections reordered
+(`reorder:`, does *where* a rule sits change anything). Position turned out to
+be a clean null — 52/52 either way, p=1.00, not underpowered, both sides already
+at ceiling. Addition turned out to reinforce the deletion story rather than add
+a new one: the two redundancy groups' members each reproduced their own effect
+alone *and* each measured Δ=0 when singly removed — sufficient alone, unnecessary
+once a sibling is present, the two-sided proof of redundancy neither prior run
+had. Repeats were kept to n=4 by request, the floor where Fisher's exact can
+resolve anything at all — most claims needed a top-up to n=8–16 as a result, and
+one showed the same "ablated score below naked" shape investigated twice before;
+this time it was noise, not a third hidden regression, but it still took the
+top-up to tell the two apart.
+
+Two lines were cut (78 → 76), and getting there surfaced a new failure mode,
+distinct from the false negatives the first two runs caught: single-ablating
+each cut candidate showed what looked like a real, if borderline, effect — and
+both dragged down a check neither one owns. Both symptoms turned out to be
+artifacts of the specific state single ablation produces (one row missing from
+a six-row table, a shape nothing ships) rather than of the claims themselves —
+measuring the real candidate (both rows gone, the actual 76-line body) made
+both vanish: 104/104 across all 13 checks, p=1.00 against the pre-cut body.
+**When more than one cut is on the table, the state that matters is the one
+that will actually ship, not any single-claim reading along the way.** Detail:
+[ablation](./runs/2026-07-27-testing/NOTES.md),
+[confirmation](./runs/2026-07-27-testing-confirm/NOTES.md).
 
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then

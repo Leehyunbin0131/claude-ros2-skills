@@ -56,6 +56,38 @@ top-up to n=16, p=0.007), which is the reason that top-up step is now routine
 whenever a single-ablation Δ isn't near zero *and* isn't significant, not
 something to reach for only after a suite-wide confirmation run flags it.
 
+Third use: [`../runs/2026-07-27-testing/`](../runs/2026-07-27-testing/) — added
+two condition types beyond deletion. `only:<id>` (addition — does this claim
+alone, with nothing else in the system prompt, already produce its own effect)
+and `reorder:<n1,n2,...>` (position — the same claims, sections moved). Both are
+opt-in per probe (`Probe.probe_only`, `Probe.extra_conditions`) so existing
+suites are unaffected. `reorder:` needed a new primitive,
+`claims.reorder_sections()`, which moves whole `## N. Title` sections and
+renumbers headers without touching a single claim's text — the same
+"the model must not see a seam" discipline `ablate()` already applies to
+numbered lists. Position came back a clean null (52/52 either order, p=1.00 —
+not underpowered, both sides at ceiling). Addition turned the single-ablation
+redundancy story from one-sided to two-sided: a group's members had already
+shown Δ=0 when removed singly; `only:` now showed each one *alone* reproduces
+the group's effect too — sufficient alone, unnecessary next to a sibling, proven
+from both directions instead of inferred from one. Repeats were held to n=4 (the
+floor where Fisher's exact can resolve anything — n=3 can never reach p<0.05),
+which meant most claims needed a targeted top-up before their verdict was
+trustworthy, same discipline as the first two runs, just triggered more often
+because the starting power was lower on purpose.
+
+Cutting its two dead lines surfaced a failure mode neither prior run had: not a
+false negative from too little power, but a false *signal* from testing the
+wrong state. Single-ablating each of two cut candidates individually — the only
+read available before the candidates are actually removed together — showed a
+borderline real-looking effect on one claim's own check, and both dragged down
+a check neither owns. Both vanished when the real candidate (both rows gone at
+once, the body about to ship) was measured directly: 104/104 across every
+check. The lesson generalizes past this one run: **whenever more than one cut
+is on the table, single-ablation of each candidate is a reading of a state
+nothing ships — the confirmation run against the actual final body is not an
+optional extra step, it is the only measurement of the thing being decided.**
+
 **Joint ablation is not optional.** Single ablation cannot distinguish "this line
 does nothing" from "this line is one of two that each suffice": drop either member
 of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`

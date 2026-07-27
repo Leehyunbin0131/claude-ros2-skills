@@ -106,6 +106,11 @@ def build_context(condition: str, probe: Probe, index: dict[str, claims_mod.Clai
     if condition.startswith("only:"):
         cid = condition.split(":", 1)[1]
         return index[cid].text
+    if condition.startswith("reorder:"):
+        # Same claims, different position — tests placement, not wording.
+        order = [int(x) for x in condition.split(":", 1)[1].split(",")]
+        path = REPO / "skills" / probe.skill / "SKILL.md"
+        return _strip_front(claims_mod.reorder_sections(path, order))
     raise ValueError(f"unknown condition: {condition}")
 
 

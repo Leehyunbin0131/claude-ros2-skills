@@ -72,7 +72,5 @@ processes have exited.
 | :--- | :--- | :--- |
 | `colcon test` passes but nothing actually ran | Tests never registered with the build (no `ament_add_gtest`/pytest hook, or not inside `if(BUILD_TESTING)`) | `colcon test-result --all` and check the test count is what you expect, not just the exit code |
 | Test fails but the output says nothing useful | Assertion detail is only in the result files | `colcon test-result --all --verbose` |
-| `launch_testing` test hangs forever | `ReadyToTest()` never reached — a launch action blocks, or a required node never starts | Run the launch file standalone first; confirm every node in the description actually comes up |
-| Tests pass locally, fail in CI | Test depends on a node/topic from a previously sourced workspace, or on wall-clock timing | Run in a clean shell; replace sleeps with explicit wait-for-message/service conditions |
 | Node under test never receives the test publisher's messages | QoS mismatch between test fixture and node — same silent DDS failure as production | Match the node's QoS in the fixture; see `ros2-troubleshooting` (`check_qos_compat.py`) |
 | Rosbag2 playback in a test produces no callbacks | Bag recorded with `use_sim_time` semantics but the test runs on wall clock, or `/clock` not published during playback | Align `use_sim_time` across the test nodes; play with `--clock` when the bag drives time |

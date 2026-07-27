@@ -227,6 +227,37 @@ def _renumber(lines: list[str]) -> list[str]:
     return out
 
 
+SECTION_RE = re.compile(r"^## (\d+)\. (.+)$")
+
+
+def reorder_sections(path: Path, new_order: list[int]) -> str:
+    """Return the file with its numbered `## N. Title` sections reordered.
+
+    Content within each section is untouched; only its position and the `## N.`
+    prefix change, so this measures placement, not wording — the same claims,
+    read in a different order.
+    """
+    lines = path.read_text(encoding="utf-8").splitlines()
+    starts = [(i, int(m.group(1)), m.group(2))
+              for i, l in enumerate(lines) if (m := SECTION_RE.match(l))]
+    if not starts:
+        raise ValueError(f"no numbered `## N. Title` sections in {path}")
+    sections: dict[int, list[str]] = {}
+    for idx, (start, num, _title) in enumerate(starts):
+        end = starts[idx + 1][0] if idx + 1 < len(starts) else len(lines)
+        sections[num] = lines[start:end]
+    missing = set(new_order) - set(sections)
+    if missing:
+        raise ValueError(f"reorder references sections not in {path}: {missing}")
+    out = list(lines[:starts[0][0]])
+    for new_num, orig_num in enumerate(new_order, 1):
+        body = sections[orig_num]
+        header = SECTION_RE.match(body[0])
+        out.append(f"## {new_num}. {header.group(2)}")
+        out.extend(body[1:])
+    return "\n".join(out) + "\n"
+
+
 def ablate(claim: Claim, drop_ids: list[str] | None = None, all_claims: list[Claim] | None = None) -> str:
     """Return the claim's source file with that claim (or several) removed."""
     targets = [claim]
