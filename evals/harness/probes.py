@@ -17,8 +17,13 @@ unparseable output as "fail" invents effects.
 """
 from __future__ import annotations
 
+import os
 import re
+import shutil
+import subprocess
+import tempfile
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Callable
 
 # --- extraction helpers ------------------------------------------------------
@@ -46,6 +51,77 @@ def prose(answer: str) -> str | None:
 
 def _has(text: str, *patterns: str) -> bool:
     return any(re.search(p, text) for p in patterns)
+
+
+# --- real-build grading -------------------------------------------------------
+# Regex checks are a proxy: "did the text contain the right pattern." For
+# ros2-package the actual ground truth is "does the package build and does
+# `ros2 run` find the executable" -- and colcon/ros2 are installed right here,
+# so nothing forces settling for the proxy. Kept to one hybrid probe (below)
+# rather than every probe, because a build+run cycle costs seconds, not
+# milliseconds, and doesn't need repeating per claim to make its point.
+
+FILE_BLOCK = re.compile(r"FILE:\s*(\S+)\s*\n```[a-zA-Z0-9_+-]*\n(.*?)```", re.S)
+
+
+def _extract_files(answer: str) -> dict[str, str] | None:
+    if not answer:
+        return None
+    matches = FILE_BLOCK.findall(answer)
+    if not matches:
+        return None
+    return {path.strip().lstrip("/"): content for path, content in matches}
+
+
+@lru_cache(maxsize=256)
+def _build_and_check(answer: str, pkg_name: str, node_name: str) -> tuple[bool | None, bool | None]:
+    """Write the answer's files into a fresh workspace, colcon build, and check
+    the entry point is discoverable afterward.
+
+    Returns (builds_clean, executable_discoverable); either is None when there
+    was nothing to grade (no FILE: blocks) or the question doesn't apply
+    (executable_discoverable is None when the build itself already failed).
+    `ros2 pkg executables` reflects the *installed* location, not just whether
+    setup.py declared an entry point, so a package missing `setup.cfg`
+    (script_dir/install_scripts) builds clean but comes back with the
+    executable un-discoverable — verified by hand against this exact pipeline
+    before wiring it in.
+    """
+    files = _extract_files(answer)
+    if not files:
+        return None, None
+    tmp = tempfile.mkdtemp(prefix="ros2pkg_probe_")
+    try:
+        ws = os.path.join(tmp, "ws")
+        pkg_root = os.path.join(ws, "src", pkg_name)
+        for rel_path, content in files.items():
+            full = os.path.join(pkg_root, rel_path)
+            os.makedirs(os.path.dirname(full), exist_ok=True)
+            with open(full, "w", encoding="utf-8") as fh:
+                fh.write(content)
+        try:
+            build = subprocess.run(
+                ["bash", "-c",
+                 f"source /opt/ros/jazzy/setup.bash && cd {ws!r} && "
+                 f"colcon build --packages-select {pkg_name} --symlink-install"],
+                capture_output=True, text=True, timeout=90,
+            )
+        except subprocess.TimeoutExpired:
+            return False, None
+        if build.returncode != 0:
+            return False, None
+        try:
+            exe = subprocess.run(
+                ["bash", "-c",
+                 f"source /opt/ros/jazzy/setup.bash && source {os.path.join(ws, 'install', 'setup.bash')!r} && "
+                 f"ros2 pkg executables {pkg_name}"],
+                capture_output=True, text=True, timeout=30,
+            )
+        except subprocess.TimeoutExpired:
+            return True, False
+        return True, node_name in exe.stdout
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 # --- check + probe types -----------------------------------------------------
@@ -838,8 +914,483 @@ P_T_DIAGNOSE = Probe(
 )
 
 
+# --- ros2-package suite -------------------------------------------------------
+# Fourth skill. Two things distinguish it from the first three: the highest
+# duplication density found so far (the symptom table largely restates the
+# code-block sections), and a ground truth stronger than any regex -- does the
+# package actually build and does `ros2 run` find the executable, both
+# available right here via colcon. Hybrid grading per the user's direction:
+# regex for the per-claim ablation probes (cheap, consistent with prior
+# suites), one dedicated real-build probe for ground truth (below), kept out
+# of the ablation sweep entirely so its cost doesn't multiply by claim count.
+
+# Claim ids below match the body as reduced 2026-07-27 after the ros2-package
+# ablation run: 15 claims cut (naked already at ceiling, no other claim depended
+# on them alone), 2 added (package.xml export tag, setup.cfg script_dir — see
+# ../runs/2026-07-27-package/NOTES.md), the two full reference code blocks
+# (ament-cmake:01, ament-python:01) and the 4custom-interfaces CMake/XML blocks
+# kept regardless of per-clause ceiling effects (structural completeness, not
+# purely statistical — also in that NOTES.md). Ids shift when a section's
+# numbering closes a gap, exactly like ablate() does to a reduced body; these
+# are the *current* ids, re-read from claims.jsonl after the edit, not the ones
+# the original 400-cell sweep ran against.
+#
+# The symptom row (old 6symptom:02, ModuleNotFoundError) and the "one concern
+# per package" rule (old 7strict-rules:01) were briefly restored after three
+# confirmation runs (confirm/confirm2/confirm3) reported them as regressions.
+# Those reports were themselves the artifact: the ad hoc analysis script used
+# for those runs keyed its per-check tallies on (probe, check) instead of
+# (probe, condition, check), so naked-condition failures bled into the full
+# tallies. Recomputed with the same 3-key scheme analyze.py uses, there were
+# no significant regressions. Both lines are cut again here; C_PKG_SYM_IFACE
+# and C_PKG_RULE_ONE_CONCERN no longer have a claim id to point to.
+C_PKG_INTRO = "ros2-package:ros-2-package-creation-build-wiring-ubun:01"
+C_PKG_NAV1 = "ros2-package:1documentation-entry-points:01"
+C_PKG_NAV2 = "ros2-package:1documentation-entry-points:02"
+C_PKG_NAV3 = "ros2-package:1documentation-entry-points:03"
+C_PKG_CREATE_CMD = "ros2-package:2scaffolding:01"
+C_PKG_CMAKE_WIRING = "ros2-package:ament-cmake:01"
+C_PKG_PYSETUP = "ros2-package:ament-python:01"
+C_PKG_EXPORT_TAG = "ros2-package:ament-python:02"
+C_PKG_SETUP_CFG = "ros2-package:ament-python:03"
+C_PKG_IFACE_LOC = "ros2-package:4custom-interfaces-msg-srv:01"
+C_PKG_IFACE_CMAKE = "ros2-package:4custom-interfaces-msg-srv:02"
+C_PKG_IFACE_XML = "ros2-package:4custom-interfaces-msg-srv:03"
+C_PKG_IFACE_VERIFY = "ros2-package:4custom-interfaces-msg-srv:04"
+C_PKG_BUILD_CMD = "ros2-package:5build-source-loop:01"
+C_PKG_SYM_LAUNCH = "ros2-package:6symptom-root-cause-action:01"
+C_PKG_RULE_RESOURCE = "ros2-package:7strict-rules:01"
+
+
+def _pkg_create_cmd(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"ros2 pkg create") and _has(text, r"--build-type\s+ament_python") \
+        and _has(text, r"--node-name")
+
+
+def _pkg_resource_dir(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"resource/", r"resource_index")
+
+
+P_PKG_CREATE = Probe(
+    id="pkg-create",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "What's the exact command to create a new ROS 2 Jazzy ament_python "
+        "package called `my_package` with a starter node `my_node`? Also tell "
+        "me exactly which files and directories that command creates."
+    ),
+    checks={
+        "create_cmd": Check(_pkg_create_cmd, [C_PKG_CREATE_CMD],
+                            "the real ros2 pkg create invocation, ament_python + node name"),
+        "resource_dir": Check(_pkg_resource_dir, [],
+                              "names the resource/ ament-index registration file — "
+                              "kept for the confirmation run; its own claims (2scaffolding:02/03) "
+                              "were cut, naked already at ceiling"),
+    },
+    note="Carries the doc-pointer and intro-sentence claims as extras so the "
+         "interference/only: sweep touches them too.",
+    extra_claims=[C_PKG_NAV1, C_PKG_NAV2, C_PKG_NAV3, C_PKG_INTRO],
+    probe_only=True,
+)
+
+
+def _pkg_install_targets_lib(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"install\(\s*TARGETS.*?DESTINATION\s+lib/\$\{PROJECT_NAME\}", src, re.S))
+
+
+def _pkg_target_deps(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ament_target_dependencies", r"target_link_libraries")
+
+
+def _pkg_install_launch_dir(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"install\(\s*DIRECTORY.*?launch.*?DESTINATION\s+share", src, re.S))
+
+
+def _pkg_ament_package_call(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ament_package\(\)")
+
+
+P_PKG_CMAKE = Probe(
+    id="pkg-cmake-wiring",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "Write the CMakeLists.txt wiring (find_package, add_executable, "
+        "install, ament_package) for a ROS 2 Jazzy ament_cmake package "
+        "`my_package` with one C++ node `my_node.cpp` that depends on "
+        "`rclcpp`, plus a `launch/` directory that should get installed too."
+    ),
+    checks={
+        "install_targets_lib": Check(_pkg_install_targets_lib, [C_PKG_CMAKE_WIRING],
+                                     "install(TARGETS ...) lands at lib/${PROJECT_NAME}, not somewhere else"),
+        "target_deps": Check(_pkg_target_deps, [C_PKG_CMAKE_WIRING],
+                             "links the dependency so headers resolve"),
+        "install_launch_dir": Check(_pkg_install_launch_dir, [C_PKG_CMAKE_WIRING],
+                                    "launch/ is explicitly installed, not assumed automatic"),
+        "ament_package_call": Check(_pkg_ament_package_call, [C_PKG_CMAKE_WIRING],
+                                    "ament_package() present"),
+    },
+    note="Kept as a whole reference block despite every clause individually "
+         "measuring naked=ceiling — see NOTES.md's structural-completeness "
+         "discussion. The paired explanatory sentence (old ament-cmake:02) was "
+         "cut; this is the sole surviving claim for the block.",
+    probe_only=True,
+)
+
+
+def _pkg_console_scripts_entry(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"console_scripts") and \
+        bool(re.search(r"my_node\s*=\s*my_package\.my_node:main", src))
+
+
+def _pkg_resource_index(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"resource_index/packages")
+
+
+def _pkg_export_build_type(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"<export>\s*<build_type>\s*ament_python\s*</build_type>\s*</export>", src, re.S))
+
+
+def _pkg_setup_cfg_script_dir(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"script_dir\s*=") and _has(src, r"install_scripts\s*=")
+
+
+P_PKG_PYENTRY = Probe(
+    id="pkg-py-entry",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "Write the setup.py `entry_points` and `data_files` sections, the "
+        "full `package.xml`, and `setup.cfg`, for a ROS 2 Jazzy ament_python "
+        "package `my_package` with node `my_node` (function `main` in "
+        "`my_package/my_node.py`), so `ros2 run my_package my_node` finds it "
+        "and `colcon build` configures it correctly."
+    ),
+    checks={
+        "console_scripts_entry": Check(_pkg_console_scripts_entry, [C_PKG_PYSETUP],
+                                       "a real console_scripts entry point line"),
+        "resource_index": Check(_pkg_resource_index, [C_PKG_PYSETUP],
+                                "registers the package in the ament index"),
+        "setup_cfg_script_dir": Check(_pkg_setup_cfg_script_dir, [C_PKG_SETUP_CFG],
+                                      "setup.cfg routes the console_scripts install to lib/<pkg>/"),
+        "export_build_type": Check(_pkg_export_build_type, [C_PKG_EXPORT_TAG],
+                                   "package.xml declares <export><build_type>ament_python</build_type></export>"),
+    },
+    note="This check's naked baseline (~0.94) is inflated by this probe's own "
+         "prompt explicitly naming 'the full package.xml' — a leading tell "
+         "the pkg-build-ground-truth probe's prompt doesn't have. Trust that "
+         "probe's naked baseline over this one for export_build_type's verdict; "
+         "see NOTES.md.",
+    probe_only=True,
+)
+
+
+def _pkg_separate_cmake_pkg(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"ament_cmake", r"separate", r"new package", r"dedicated")
+
+
+def _pkg_rosidl_generate(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"rosidl_generate_interfaces")
+
+
+def _pkg_iface_xml_tags(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"rosidl_default_generators") and _has(text, r"rosidl_default_runtime") \
+        and _has(text, r"member_of_group")
+
+
+def _pkg_iface_verify_cmd(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"ros2 interface show")
+
+
+P_PKG_INTERFACES = Probe(
+    id="pkg-interfaces",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "I need a custom message `Num.msg` with one `int64 num` field, used by "
+        "a package that's currently `ament_python` called `my_package`. Walk "
+        "me through exactly how to set this up — package structure, "
+        "CMakeLists.txt/package.xml content, and how to verify it worked."
+    ),
+    checks={
+        "separate_cmake_pkg": Check(_pkg_separate_cmake_pkg, [C_PKG_IFACE_LOC],
+                                    "interfaces move to a dedicated ament_cmake package"),
+        "rosidl_generate": Check(_pkg_rosidl_generate, [C_PKG_IFACE_CMAKE],
+                                 "rosidl_generate_interfaces call present"),
+        "iface_xml_tags": Check(_pkg_iface_xml_tags, [C_PKG_IFACE_XML],
+                                "all three package.xml interface tags present"),
+        "verify_cmd": Check(_pkg_iface_verify_cmd, [C_PKG_IFACE_VERIFY],
+                            "names ros2 interface show to confirm generation ran"),
+    },
+    probe_only=True,
+)
+
+
+def _pkg_no_exe_cmake_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"install\(TARGETS", r"lib/\$\{?PROJECT_NAME\}?", r"DESTINATION")
+
+
+def _pkg_no_exe_python_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"console_scripts", r"entry_points", r"setup\.py")
+
+
+def _pkg_colcon_no_see_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"src/", r"package\.xml", r"workspace")
+
+
+def _pkg_list_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"source", r"overlay", r"sourced")
+
+
+P_PKG_DIAG_BUILD = Probe(
+    id="pkg-diagnose-build",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "For each of these ROS 2 Jazzy package problems, give the root cause "
+        "and the fix in one line each:\n"
+        "1. Package builds successfully but `ros2 run my_pkg my_node` says no "
+        "executable found (`ament_cmake` package).\n"
+        "2. Same symptom, but the package is `ament_python`.\n"
+        "3. `colcon build` doesn't seem to see my package at all.\n"
+        "4. Package builds, but `ros2 pkg list` doesn't show it and imports fail."
+    ),
+    checks={
+        "no_exe_cmake_cause": Check(_pkg_no_exe_cmake_cause, [],
+                                    "names the install(TARGETS) destination — its own claim "
+                                    "(old 6symptom:01) was cut, naked was already 1.00"),
+        "no_exe_python_cause": Check(_pkg_no_exe_python_cause, [],
+                                     "names the missing console_scripts entry — its own claim "
+                                     "(old 6symptom:02) was cut, naked was already 1.00"),
+        "colcon_no_see_cause": Check(_pkg_colcon_no_see_cause, [],
+                                     "names workspace location / package.xml — its own claim "
+                                     "(old 6symptom:05) was cut, naked was already 1.00"),
+        "pkg_list_cause": Check(_pkg_list_cause, [C_PKG_BUILD_CMD], "names sourcing the overlay"),
+    },
+    note="Kept as a whole-probe confirmation check even though three of its "
+         "four claims were cut — all four had naked=1.00 in the ablation run, "
+         "so this probe's job now is to prove the reduced body didn't regress, "
+         "not to ablate anything further.",
+    probe_only=True,
+)
+
+
+def _pkg_launch_install_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"install\(DIRECTORY", r"data_files", r"not installed")
+
+
+def _pkg_symlink_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"--symlink-install", r"rebuild")
+
+
+def _pkg_iface_location_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"ament_python", r"ament_cmake", r"member_of_group")
+
+
+def _pkg_link_deps_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"ament_target_dependencies", r"target_link_libraries", r"not linked")
+
+
+def _pkg_headers_export_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"install\(DIRECTORY\s+include", r"export", r"include/")
+
+
+P_PKG_DIAG_IFACE = Probe(
+    id="pkg-diagnose-launch-iface",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "For each of these ROS 2 Jazzy package problems, give the root cause "
+        "and the fix in one line each:\n"
+        "1. `ros2 launch` reports the launch file doesn't exist, though it's "
+        "in the source tree.\n"
+        "2. Edited a Python node, ran it again, behavior is unchanged.\n"
+        "3. Custom message import fails at runtime with ModuleNotFoundError / "
+        "no type support.\n"
+        "4. C++ link fails: undefined reference to an rclcpp symbol.\n"
+        "5. A dependent package can't find your package's headers."
+    ),
+    checks={
+        "launch_install_cause": Check(_pkg_launch_install_cause, [C_PKG_SYM_LAUNCH, C_PKG_CMAKE_WIRING],
+                                      "names launch/ never installed — the one symptom row kept, "
+                                      "plus the CMakeLists block that shows the same install() call"),
+        "symlink_cause": Check(_pkg_symlink_cause, [C_PKG_BUILD_CMD],
+                              "names --symlink-install / rebuild — its own claim (old 6symptom:04) "
+                              "and the explanatory sentence (old 5build:02) were both cut"),
+        "iface_location_cause": Check(_pkg_iface_location_cause,
+                                      [C_PKG_IFACE_LOC],
+                                      "names wrong package type or missing member_of_group — "
+                                      "the symptom row and 'one concern per package' rule were cut; "
+                                      "a prior confirmation run's regression report for this check "
+                                      "(p=0.022) turned out to be an analysis-script artifact "
+                                      "(condition-blind tallying), not a real regression — "
+                                      "recomputed with (probe, condition, check) keys, no "
+                                      "significant regression"),
+        "link_deps_cause": Check(_pkg_link_deps_cause, [C_PKG_CMAKE_WIRING],
+                                 "names the missing link/dependency call — its own claim "
+                                 "(old 6symptom:08) was cut, naked was already 1.00"),
+        "headers_export_cause": Check(_pkg_headers_export_cause, [],
+                                      "names include/ install + export — its own claim "
+                                      "(old 6symptom:09) was cut, naked was already 1.00"),
+    },
+    extra_claims=[C_PKG_RULE_RESOURCE],
+    probe_only=True,
+)
+
+
+def _pkg_flags_missing_dep(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"not (okay|ok|safe)", r"declare", r"missing", r"add.*depend")
+
+
+def _pkg_clean_machine_risk(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"clean machine", r"fresh", r"break", r"another machine", r"CI")
+
+
+P_PKG_DEP_DECLARE = Probe(
+    id="pkg-dep-declare",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "My node includes `#include <tf2_ros/transform_listener.h>` and links "
+        "fine locally because a sibling package in my workspace happens to "
+        "pull in `tf2_ros` already. My `package.xml` only lists `rclcpp` as a "
+        "dependency. Is this OK to ship as-is? What should I check or fix?"
+    ),
+    checks={
+        "flags_missing_dep": Check(_pkg_flags_missing_dep, [],
+                                   "says this is not safe and tf2_ros must be declared — its own "
+                                   "claim (old 7strict-rules:01) was cut, naked was already 1.00"),
+        "clean_machine_risk": Check(_pkg_clean_machine_risk, [],
+                                    "names the failure mode: works here, breaks elsewhere — same cut claim"),
+    },
+    note="Every claim this probe tested was cut (naked=1.00 on both checks in "
+         "the ablation run). Kept in the confirmation sweep only to prove the "
+         "reduced body didn't regress on a behaviour nothing in it states "
+         "anymore.",
+    probe_only=True,
+)
+
+
+def _pkg_builds_clean(answer: str) -> bool | None:
+    b, _ = _build_and_check(answer, "hello_pkg", "hello_node")
+    return b
+
+
+def _pkg_exe_discoverable(answer: str) -> bool | None:
+    b, d = _build_and_check(answer, "hello_pkg", "hello_node")
+    if not b:
+        return None if b is None else False
+    return d
+
+
+P_PKG_BUILD_HYBRID = Probe(
+    id="pkg-build-ground-truth",
+    suite="package",
+    skill="ros2-package",
+    prompt=(
+        "Write a complete, minimal ROS 2 Jazzy ament_python package called "
+        "`hello_pkg` with one node `hello_node` that just prints \"hello\" "
+        "once and exits. I need every file required to build and run it — "
+        "package.xml, setup.py, setup.cfg if needed, and the node script.\n\n"
+        "Format your answer as a series of files: before each file's code "
+        "block, put a line in exactly this form (nothing else on that line):\n"
+        "FILE: <path relative to the package root, e.g. package.xml or "
+        "hello_pkg/hello_node.py>\n\n"
+        "Then the file's content in a fenced code block. No other commentary."
+    ),
+    checks={
+        "builds_clean": Check(_pkg_builds_clean, [], "colcon build --packages-select hello_pkg succeeds"),
+        "exe_discoverable": Check(_pkg_exe_discoverable, [],
+                                  "ros2 pkg executables hello_pkg lists hello_node after install"),
+    },
+    note="Ground truth, not an ablation instrument: real colcon build + "
+         "`ros2 pkg executables` against a fresh workspace per cell. Checks "
+         "own no claims (claim_ids is empty), so conditions() is just the 4 "
+         "baselines — run naked vs full only, never per-claim ablated, to "
+         "keep the cost of a real build off the per-claim sweep entirely.",
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
+    P_PKG_CREATE, P_PKG_CMAKE, P_PKG_PYENTRY, P_PKG_INTERFACES,
+    P_PKG_DIAG_BUILD, P_PKG_DIAG_IFACE, P_PKG_DEP_DECLARE, P_PKG_BUILD_HYBRID,
 ]

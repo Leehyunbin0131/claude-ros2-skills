@@ -88,6 +88,36 @@ is on the table, single-ablation of each candidate is a reading of a state
 nothing ships — the confirmation run against the actual final body is not an
 optional extra step, it is the only measurement of the thing being decided.**
 
+Fourth use: [`../runs/2026-07-27-package/`](../runs/2026-07-27-package/) (plus
+`-additions`, `-confirm`/`-confirm2`/`-confirm3`,
+[`../runs/2026-07-28-package-final/`](../runs/2026-07-28-package-final/)) — the
+first probe graded against real ground truth instead of regex: `colcon build`
+actually runs on the model's generated files in a scratch workspace, and
+`ros2 pkg executables` checks the node exists, rather than pattern-matching the
+answer text. That surfaced two genuine content gaps (a missing `package.xml`
+export tag, a missing `setup.cfg` install path) that no amount of ablation on
+the *existing* text could have found — ablation only tells you whether a line
+you already wrote is load-bearing, not whether a line is missing. Both were
+added and verified at n=16.
+
+The confirmation side of this run is the reason this paragraph exists: three
+consecutive confirmation runs (`-confirm`, `-confirm2`, `-confirm3`) reported
+regressions on two cut candidates, and both were restored on that evidence.
+The regressions were not real. The ad hoc script written for those runs (to
+avoid re-running the full `analyze.py` pipeline for a quick check) tallied
+per-check pass rates keyed on `(probe, check)` instead of
+`(probe, condition, check)`, so `naked`-condition failures — expected to be
+low, that's the baseline the content is supposed to beat — silently pooled
+into the `full` numbers each time. `analyze.py` itself has always keyed
+correctly; the bug was entirely in the throwaway substitute for it. Re-run
+through `analyze.py` on a fresh sweep, there was no regression: the reduced
+body still beats naked significantly on the check the restored lines were
+meant to drive (p=0.041), and every check compared against the pre-revert body
+came back not significant (p≥0.2). **Do not write an inline substitute for
+`analyze.py`, even for a "quick" confirmation — it is exactly as easy to get
+subtly wrong, and the whole point of having one tool that does the tallying is
+that it only has to be gotten right once.**
+
 **Joint ablation is not optional.** Single ablation cannot distinguish "this line
 does nothing" from "this line is one of two that each suffice": drop either member
 of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`

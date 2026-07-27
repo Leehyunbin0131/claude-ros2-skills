@@ -25,12 +25,6 @@ ros2 pkg create --build-type ament_cmake  --license Apache-2.0 --node-name my_no
 ros2 pkg create --build-type ament_python --license Apache-2.0 --node-name my_node my_package
 ```
 
-Created: `ament_cmake` → `CMakeLists.txt`, `package.xml`, `src/`, `include/my_package/`.
-`ament_python` → `setup.py`, `setup.cfg`, `package.xml`, `resource/my_package`, `my_package/`.
-
-Never hand-roll this layout — `resource/<pkg>` and the ament index registration are
-easy to omit and the package then silently fails to be discovered.
-
 ## 3. The Wiring That Makes a Node Runnable
 
 ### ament_cmake
@@ -49,11 +43,6 @@ install(DIRECTORY launch params
 ament_package()                                # last call, exactly once per package
 ```
 
-The `lib/${PROJECT_NAME}` destination is not a convention you may vary — the ament
-guide states it "must be followed exactly for the rest of the ROS tooling to find it."
-`target_link_libraries` with namespaced targets (`Eigen3::Eigen`) is the accepted
-alternative to `ament_target_dependencies`.
-
 ### ament_python
 ```python
 data_files=[
@@ -69,7 +58,21 @@ entry_points={
 },
 ```
 
-A Python node with no `console_scripts` line builds cleanly and is invisible to `ros2 run`.
+`package.xml` also needs `<export><build_type>ament_python</build_type></export>` —
+without it colcon tries to configure the package as `ament_cmake` and fails looking
+for a `CMakeLists.txt` that was never meant to exist. Verify against any installed
+pure-Python package's `package.xml` under `/opt/ros/jazzy/share/`.
+
+`setup.cfg` needs the ROS-specific install location, not just `[metadata]`:
+```ini
+[develop]
+script_dir=$base/lib/my_package
+[install]
+install_scripts=$base/lib/my_package
+```
+Without it, `console_scripts` still builds and installs, just not to
+`lib/${PROJECT_NAME}` — the same place `ros2 run` looks for `ament_cmake`
+executables — so the node is present but undiscoverable.
 
 ## 4. Custom Interfaces (`.msg` / `.srv`)
 
@@ -101,26 +104,12 @@ colcon build --symlink-install --packages-select my_package
 source install/setup.bash        # every new shell, and after adding any new file
 ```
 
-`--symlink-install` links Python sources and installed data instead of copying, so
-edits take effect without rebuilding. C++ still needs a rebuild.
-
 ## 6. Symptom -> Root Cause -> Action
 
 | Symptom | Likely root cause | Action |
 | :--- | :--- | :--- |
-| Build succeeds, `ros2 run <pkg> <exe>` says no executable found | `install(TARGETS ...)` missing, or DESTINATION isn't `lib/${PROJECT_NAME}` | Add/fix the install rule; confirm the binary landed in `install/<pkg>/lib/<pkg>/` |
-| Same, but package is `ament_python` | No matching `console_scripts` entry in `setup.py` | Add `'<exe> = <pkg>.<module>:main'`; rebuild (entry points are generated at install time) |
 | `ros2 launch` reports the launch file doesn't exist, though it's in the source tree | `launch/` never installed | ament_cmake: `install(DIRECTORY launch DESTINATION share/${PROJECT_NAME})`; ament_python: add it to `data_files` |
-| Edited a Python node, behavior unchanged | Built without `--symlink-install`, so `ros2 run` executes the stale installed copy | Rebuild with `--symlink-install`, then re-source |
-| `colcon build` doesn't see the package at all | Not under the workspace `src/`, or `package.xml` missing/malformed | Check location; `colcon list` shows what colcon actually discovers |
-| Package builds but `ros2 pkg list` omits it; imports fail | Shell was sourced before the build, or overlay never sourced | `source install/setup.bash` again in that shell |
-| Custom message: `ModuleNotFoundError` / no type support at runtime | Interfaces declared in an `ament_python` package, or `member_of_group` tag missing | Move interfaces to a dedicated `ament_cmake` package with all three package.xml tags |
-| C++ link fails: undefined reference to `rclcpp::...` | `find_package` present but the target never linked | Add `ament_target_dependencies(<target> rclcpp ...)` for every dependency used |
-| A dependent package can't find your headers | `include/` not installed / target not exported | `install(DIRECTORY include/ DESTINATION include/${PROJECT_NAME})` plus the export calls in the ament_cmake guide |
 
 ## 7. Strict Rules
-1. Declare every dependency in `package.xml` — a build that works only because a
-   sibling package happened to pull the dependency in will break on a clean machine.
-2. One concern per package; keep interfaces in their own `ament_cmake` package.
-3. After adding any new file, directory, or entry point: rebuild **and** re-source
-   before concluding something is broken.
+After adding any new file, directory, or entry point: rebuild **and** re-source
+before concluding something is broken.

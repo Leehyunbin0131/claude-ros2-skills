@@ -27,7 +27,7 @@ right number against a live publisher — not by review.
 | `ros2-core` | ✅ Verified | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) |
 | `ros2-security` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) |
 | `ros2-testing` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
-| `ros2-package` | 🔄 In progress | — |
+| `ros2-package` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
 | `ros2-dev` | 🔄 In progress | — |
 | `ros2-troubleshooting` | 🔄 In progress | — |
 | `ros2-perception` | 🔄 In progress | — |
@@ -106,6 +106,48 @@ both vanish: 104/104 across all 13 checks, p=1.00 against the pre-cut body.
 that will actually ship, not any single-claim reading along the way.** Detail:
 [ablation](./runs/2026-07-27-testing/NOTES.md),
 [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md).
+
+`ros2-package` is the fourth, and the first to grade one probe against real
+ground truth instead of a regex: `pkg-build-ground-truth` actually runs
+`colcon build` on the model's generated files in a scratch workspace and checks
+`ros2 pkg executables` for the node, rather than pattern-matching the answer.
+Against that ground truth the original 126-line, 29-claim body had two real
+content gaps, not just cuttable lines: nothing named `package.xml`'s
+`<export><build_type>ament_python</build_type></export>` tag or `setup.cfg`'s
+`script_dir`/`install_scripts` keys, and generated packages built but the node
+was undiscoverable — both confirmed missing against installed packages under
+`/opt/ros/jazzy/`, then added as pointer-style corrections and verified at
+n=16 (`export_build_type` and `setup_cfg_script_dir` both p<0.002 naked vs
+full). Fifteen lines were cut as things the model already produces unaided
+(a full CMakeLists.txt/setup.py/rosidl reference block was deliberately kept
+regardless of per-clause ceiling effects — structural completeness for a
+"copy this shape" reference has value a per-line naked/full test can't see),
+taking the body to 16 claims.
+
+Closing the efficiency axis took three failed confirmation attempts before a
+correct one. The first sweep's single-ablation results looked clean, but an
+ad hoc analysis script used for the follow-up confirmation runs tallied
+per-check results keyed on `(probe, check)` instead of `(probe, condition,
+check)`, so `naked`-condition failures silently pooled into the `full`
+numbers. That produced three consecutive false regression reports against two
+of the cut candidates (a `ModuleNotFoundError` symptom-table row and a "one
+concern per package" rule), which were restored on the strength of those
+reports. Tracing it down (comparing answer length as a first, discarded
+hypothesis, then reading the one flagged failure cell directly and finding
+the supposedly-missing content present in the answer) pointed straight at the
+scoring bug. Re-run through the project's own `analyze.py` — which has always
+keyed correctly — on a fresh n=8 sweep: the reduced 16-claim body still beats
+naked significantly on the check the restored lines were meant to drive
+(`iface_location_cause` 1/8 naked vs 6/8 full, p=0.041), and every check
+compared against the pre-revert 18-claim body shows no significant
+difference (p≥0.2, most ≥0.47) — both lines were cut back out. **A hand-rolled
+substitute for the project's own analysis tooling reintroduced exactly the
+kind of unverified conclusion this whole project exists to catch; use
+`analyze.py`, not an inline script, even for a quick confirmation.** Detail:
+[initial ablation](./runs/2026-07-27-package/), [content-gap
+additions](./runs/2026-07-27-package-additions/), [the three miscored
+confirmation runs](./runs/2026-07-27-package-confirm3/) (also
+`-confirm`/`-confirm2`), [corrected final confirmation](./runs/2026-07-28-package-final/).
 
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then
