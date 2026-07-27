@@ -15,9 +15,9 @@ Skills que transforman la manera en que los agentes de IA abordan el desarrollo 
 
 <sub>🌐 Este documento es una traducción automática. El original está en [English](README.md).</sub>
 
-| Skills | Protocolo siempre cargado | Enlaces a documentación (verificados por CI) | Verificaciones en robot físico | Evaluaciones: Gazebo A/B |
-| :---: | :---: | :---: | :---: | :---: |
-| **11** | **26 líneas** | **32** | **4 scripts** | **objetivo alcanzado vs. aborto en bringup** |
+| Skills | Protocolo siempre cargado | Enlaces a documentación (verificados por CI) | Verificaciones en robot físico |
+| :---: | :---: | :---: | :---: |
+| **11** | **28 líneas** | **32** | **4 scripts** |
 
 </div>
 
@@ -34,7 +34,6 @@ Skills que transforman la manera en que los agentes de IA abordan el desarrollo 
 - [Scripts de verificación](#scripts-de-verificación)
 - [Cómo funciona](#cómo-funciona)
 - [Actualización](#actualización)
-- [Hoja de ruta](#hoja-de-ruta)
 - [Contribuir](#contribuir)
 - [Licencia](#licencia)
 
@@ -72,77 +71,20 @@ La mayoría de los paquetes de skills de robótica incluyen conocimiento estáti
 | Característica | Paquetes de skills recargados de contenido | **claude-ros2-skills** |
 | :--- | :--- | :--- |
 | Ubicación del conocimiento | Integrado en los archivos del skill (**400–1.800 líneas/skill**) | Enlazado a la documentación oficial (cuerpo de skill de **~60 líneas**); las referencias detalladas se leen **solo cuando es necesario** |
-| Contexto siempre cargado | Archivos `SKILL.md` completos | Protocolo principal de **26 líneas** |
+| Contexto siempre cargado | Archivos `SKILL.md` completos | Protocolo principal de **28 líneas** |
 | Gestión de actualizaciones de la API en Jazzy | Los fragmentos quedan obsoletos silenciosamente; requiere actualizaciones manuales continuas de pruebas | El riesgo de fragmentos obsoletos se minimiza a enlaces de punto de entrada y nombres de símbolos; **32 enlaces a documentación** se verifican semanalmente vía CI |
 | Método de verificación | Análisis estático de código o verificación de logs | **Verificación física y en tiempo de ejecución**: comprobaciones de gravedad en IMU, pruebas de odometría direccional, alineación de frames TF, compatibilidad de QoS en DDS |
-| Alcance de distribución | Afirma soportar múltiples distribuciones de ROS cuando solo apunta a una | **Exclusivo para ROS 2 Jazzy**, diseñado y validado explícitamente |
+| Alcance de distribución | Afirma soportar múltiples distribuciones de ROS cuando solo apunta a una | **Exclusivo para ROS 2 Jazzy**, por diseño — sin evasivas de "también funciona en Humble" |
 
 Este repositorio se optimiza para un único resultado: minimizar el riesgo de generar código con apariencia válida pero que falla al ejecutarse en ROS 2 Jazzy.
 
 ## Evaluaciones
 
-Cada resultado presentado a continuación proviene de una prueba comparativa A/B: el **mismo prompt** ejecutado en sesiones independientes y limpias de Claude Code en modo headless (una vez sin estos skills y otra vez con ellos) utilizando el **mismo modelo** en ambas celdas. La evaluación pasó por cuatro etapas: comparación símbolo por símbolo con las fuentes oficiales fijadas de Jazzy, contra una instalación activa de `/opt/ros/jazzy`, cargando ambas salidas en una **simulación en vivo en Gazebo** y, finalmente, **ejecutando los nodos generados contra publicadores en funcionamiento**. Ahora cada tarea de la suite cuenta con una medición sobre una instalación real. Las transcripciones completas, el código generado y los registros de ejecución están guardados en [`evals/runs/`](./evals/runs/), y el arnés que produce los pares está en [`evals/harness/`](./evals/harness/), para que cualquiera pueda reevaluarlos o reejecutarlos de manera transparente.
+**Un skill se considera verificado aquí solo cuando se responden dos preguntas:** ¿cambia lo que el agente produce en una tarea que ejercita su propio contenido, y es este cuerpo el *más pequeño* que produce dicho cambio? Lo correcto es el suelo, no el listón: menos tokens y menos texto pueden lograr el mismo resultado, y hasta que eso se pruebe, "el agente lo usó" es solo la mitad de una respuesta.
 
-El tamaño de muestra es **n=1 por celda**, y tanto la ejecución como la evaluación las realizó el mismo proyecto que publica estos resultados. La evaluación es mecánica siempre que es posible (¿existe el símbolo en la instalación? ¿el comando termina con éxito?), de modo que puede verificarse de forma independiente.
+**Ningún skill ha completado la verificación aún.** El estado por skill se encuentra en [`evals/RESULTS.md`](./evals/RESULTS.md); los resultados se publicarán allí a medida que cada skill supere ambos ejes, incluidos los que fallen. Las mediciones provisionales se retienen deliberadamente: una ronda anterior produjo una conclusión plausible a partir de una sola ejecución que una reejecución controlada desmintió posteriormente, y los resultados parciales propagan ese tipo de error más rápido de lo que se puede detectar.
 
-### Configuración de Nav2 MPPI — Haiku, instalación en vivo de Jazzy
-
-*Prompt: configura Nav2 con el controlador MPPI para un robot de tracción diferencial en Jazzy y produce el YAML del controller server.*
-
-| | Sin skills | Con skills |
-| :--- | :--- | :--- |
-| Proceso | Respondió de inmediato usando memoria; **cero** verificación a pesar de tener herramientas disponibles | Solicitó **primero** footprint, configuración existente, localización y límites de velocidad, y luego leyó los valores por defecto incluidos en `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml` |
-| Cadena de plugin | `mppi_generic::ControllerServer` — no existe | `nav2_mppi_controller::MPPIController` — correcto |
-| Lista de `critics:` | Ausente por completo | Los 8, con nombres correctos |
-| Claves de parámetros inventadas | **~16** | **0** — cada clave fue comparada mecánicamente contra los valores por defecto instalados |
-| **Cargado en una simulación en vivo de Gazebo** | **`[FATAL] Failed to create controller … does not exist` — Nav2 se aborta en el bringup; el robot nunca se mueve** | **MPPI + los 8 critics se cargan; el robot se desplaza de (−2.0, −0.5) a (0.5, 0.5); `NavigateToPose` devuelve `SUCCEEDED`** |
-
-### Un paquete que debe ejecutarse realmente — Haiku, dentro del contenedor
-
-*Prompt: crea un paquete Python `demo_pkg` que publique `std_msgs/msg/String` en `/greeting` a 1 Hz, junto con un archivo launch; compílalo y muestra `ros2 topic echo /greeting`.*
-
-| | Sin skills | Con skills |
-| :--- | :--- | :--- |
-| `ros2 run` / `ros2 launch` / `topic echo` | **Los tres fallan** — el paquete nunca se registra en el ament index | **Los tres se ejecutan con éxito**, confirmado mediante reejecuciones independientes de cada comando |
-| Costo para obtener ese resultado | $0.17 · 36 turnos · 178 s | **$0.08 · 18 turnos · 61 s** — correcto al primer intento y **2.2 veces más económico** |
-
-### Suscripción a sensores — Haiku, ambos nodos ejecutados contra un publicador activo
-
-*Prompt: escribe un nodo Python para Jazzy que se suscriba a `/scan` y registre la distancia mínima una vez por segundo.* Después, cada nodo generado se ejecutó durante 6 s contra un publicador de `/scan` en modo BEST_EFFORT.
-
-| | Sin skills | Con skills |
-| :--- | :--- | :--- |
-| QoS de la suscripción | `create_subscription(..., 10)` → RELIABLE | `qos_profile_sensor_data` |
-| **Mensajes recibidos en ejecución** | **Cero.** rclpy informó por sí mismo: `offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY` | **Recibe a 5 Hz** |
-| Mínimo reportado (respuesta correcta: 0,45 m) | nunca recibió ninguno | **`0,450 m` — correcto** |
-| Salida limpia con SIGTERM | traceback | sin traceback |
-
-Lo que produjo esta corrección fue precisamente la ronda anterior de este mismo par: entonces ambos nodos filtraban solo `inf`, así que el nodo con skills reportaba `0,020 m` — conectado, pero seguro de un valor equivocado. `ros2-core` incorporó la regla de límites y el patrón de cierre, y la reejecución anterior es la verificación de que el parche cambió realmente la salida. Ambas tablas están en [`evals/RESULTS.md`](./evals/RESULTS.md).
-
-### Preguntar antes de escribir — Haiku, LiDAR montado al revés
-
-*Prompt: mi LiDAR está montado boca abajo en la parte trasera del chasis, mirando hacia atrás; escribe la TF estática y dime cómo confirmar la corrección.*
-
-| | Sin skills | Con skills |
-| :--- | :--- | :--- |
-| Establece primero el montaje físico | Respondió en un solo turno | **Se detuvo y preguntó por la distancia trasera y los desplazamientos** antes de emitir la transformada |
-| Corrección de la transformada | roll≈180° + yaw≈180°, relación padre/hijo según REP 105 — correcto | correcto; al publicar ambas salidas, `check_tf_tree.py` las señaló exactamente como fue diseñado |
-| Consejo de confirmación | RViz con una visualización **PointCloud2** — tipo de mensaje incorrecto para un LiDAR | `tf2_echo` más una visualización **LaserScan** |
-
-### Lo que estos skills no resuelven
-
-Se documenta porque omitirlo restaría credibilidad al resto:
-
-- **Una regla solo existe si el enrutador carga el archivo donde vive.** En la tarea de diagnóstico de QoS, dos ejecuciones del prompt idéntico se enrutaron a skills *distintos*: `ros2-core` una vez, `ros2-perception` la siguiente. Los ejemplos de `ros2-perception` son exclusivamente C++ y es el único skill sin contenido en Python; al pedirle una corrección en Python con nada más que `rclcpp::` en contexto, la respuesta usó `rclcpp.qos` en código Python, lo que lanza `ModuleNotFoundError`. **La línea base, sin ningún skill cargado, acertó esa API.** Es el único caso medido en que el paquete empeora la salida, y la causa está en el contenido del skill, no en el modelo.
-- **La alucinación se desplaza, no desaparece.** En todas las rondas medidas, la salida con skills contuvo símbolos inventados: un paquete inexistente para el script de este propio repositorio, un valor de durability por defecto equivocado, filtrado de límites ausente, un módulo de Python que no existe. Enrutar a la documentación eleva el suelo; no vuelve correcto al modelo.
-- **En problemas que el modelo ya domina, los skills cuestan más y aportan poco.** En el diagnóstico clásico de incompatibilidad de QoS ambas condiciones acertaron en un turno, y la versión con skills añadió un error por ~1,4× el coste.
-- **Los skills cambian lo que el agente *pregunta* con más fiabilidad que lo que *comprueba*.** En las cuatro celdas con skills de esa tarea, con una reproducción en vivo en marcha y `Bash` permitido, **ninguna** ejecutó el `ros2 topic info -v` que recomendaba. La verificación previa a escribir sí se activa —en la Tarea 1 el agente ejecutó `ros2 interface show` primero— pero el "demuéstralo después" no alcanza a las respuestas de diagnóstico.
-
-### El patrón en cada par
-
-Ninguna celda de referencia, en ninguna ejecución, verificó contra los paquetes instalados o la documentación **antes** de escribir código, incluso con WebFetch, Read y Bash explícitamente permitidos; además, una de ellas reportó una compilación completamente funcional para un paquete que `ros2 run` ni siquiera puede encontrar. Las celdas con skills formularon las preguntas previas a la escritura en todas las ejecuciones donde la tarea tenía incógnitas, y sus afirmaciones coincidieron con la reejecución independiente. Los scripts de verificación ya se han ejercitado con datos reales en ambos sentidos: `check_qos_compat.py` produjo su primer `[FAIL]` real frente a una incompatibilidad BEST_EFFORT/RELIABLE genuina, y `check_tf_tree.py` señaló un sensor invertido sin marcar el que estaba correctamente montado.
-
-Consulta las tablas completas de evaluación, los entornos de prueba y los análisis de cada ejecución en [`evals/RESULTS.md`](./evals/RESULTS.md). Para obtener más detalles sobre el protocolo de evaluación, las listas de verificación de tareas y la configuración del contenedor, consulta [`evals/README.md`](./evals/README.md). Los Pull Requests con transcripciones evaluadas adicionales son bienvenidos.
+Qué se mide, cómo se califica y cómo reejecutar cualquier prueba: [`evals/README.md`](./evals/README.md). Las transcripciones y registros de cada ejecución realizada hasta la fecha están guardados en [`evals/runs/`](./evals/runs/).
 
 ## Inicio rápido
 
@@ -222,20 +164,6 @@ cd claude-ros2-skills
 git pull
 cp -r skills/* ~/.claude/skills/   # o el .claude/skills/ de tu proyecto
 ```
-
-## Hoja de ruta
-
-1. ~~Automatizar pares de evaluación dentro de contenedores `ros:jazzy`~~ — **completado (2026-07-25):** Reejecución de la Tarea 4 frente a una instalación en vivo de `/opt/ros/jazzy`; resultados en [`evals/RESULTS.md`](./evals/RESULTS.md).
-2. ~~Publicar resultados de evaluación de la Tarea 5~~ — **completado (2026-07-25):** Resultado binario de compilación/ejecución/echo medido dentro del contenedor; resultados en [`evals/RESULTS.md`](./evals/RESULTS.md).
-3. ~~Extender las evaluaciones sobre instalación en vivo a las Tareas 1–3~~ — **completado (2026-07-26):** ejecutado sobre una instalación nativa de `ros-jazzy-ros-base`, con ambos nodos generados ejecutados contra publicadores activos; arnés en [`evals/harness/`](./evals/harness/), resultados en [`evals/RESULTS.md`](./evals/RESULTS.md).
-4. ~~Corregir los defectos que esas ejecuciones revelaron~~ — **completado (2026-07-26):** `ros2-troubleshooting` ya indica la invocación literal del script (el modelo estaba inventando un paquete) y que `check_tf_tree.py` siempre marca un montaje de ~180° para confirmación física; `ros2-core` incorporó la regla de límites `range_min`/`range_max` y un patrón de cierre limpio. **Las tablas de evaluación miden los skills tal como estaban antes de estas correcciones.**
-5. ~~Reejecutar las Tareas 1–3 con los skills corregidos~~ — **completado (2026-07-26):** dos de los tres defectos quedaron corregidos casi al pie de la letra y la Tarea 1 ya reporta el mínimo correcto en ejecución; la tercera retrocedió por un motivo rastreable (véase el punto 6).
-6. **Duplicar la barrera de la biblioteca cliente entre skills.** `rclpy` aparece en exactamente 1 de 11 skills, así que una pregunta en Python enrutada a cualquier otro solo tiene ejemplos C++ en contexto. Hay que enunciar la separación C++/Python localmente en cada skill que muestre código de biblioteca cliente, o promoverla a `CLAUDE.md`, donde el enrutado no puede omitirla. `ros2-perception` también necesita ejemplos de `cv_bridge` en Python, no solo en C++.
-7. **Medir la distribución del enrutado.** Qué skill se selecciona varía entre ejecuciones idénticas y, con n=1, esa varianza subyace a todas las cifras de las tablas de evaluación.
-8. **Hacer que la Tarea 3 discrimine** — actualmente ambas condiciones aciertan de memoria, así que debe exigir que el diagnóstico de QoS se *demuestre* contra endpoints reales, no que se recomiende.
-9. **Rastrear "correcciones hasta completar" como una métrica clave** — midiendo el número de iteraciones de retroalimentación necesarias antes de que el código se ejecute con éxito.
-10. **Implementar búsquedas deterministas en `references/`** para asegurar que los documentos de referencia detallados se carguen cuando sean relevantes.
-11. **Ampliar la separación cuerpo/`references`** a `ros2-core` y `gazebo-sim`, optimizando la eficiencia del contexto en skills de alta frecuencia con documentación de referencia sustancial.
 
 ## Contribuir
 
