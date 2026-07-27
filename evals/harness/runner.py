@@ -327,7 +327,7 @@ def main() -> int:
         sp.add_argument("--suite", default="all")
         sp.add_argument("--probe", default=None)
         sp.add_argument("--repeats", type=int, default=5)
-        sp.add_argument("--models", default="haiku")
+        sp.add_argument("--models", default="sonnet")
         sp.add_argument("--conditions", default=None)
         sp.add_argument("--workers", type=int, default=10)
         sp.add_argument("--budget", type=float, default=0.10)

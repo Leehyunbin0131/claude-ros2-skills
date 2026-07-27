@@ -24,7 +24,7 @@ right number against a live publisher — not by review.
 
 | Skill | Status | Evidence |
 | :--- | :--- | :--- |
-| `ros2-core` | ✅ Verified | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) |
+| `ros2-core` | ✅ Verified (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
 | `ros2-security` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) |
 | `ros2-testing` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
 | `ros2-package` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
@@ -225,6 +225,51 @@ recorded is that the verdicts are conditional on the grading model, that
 re-checking a verified skill costs about $1.65 and three minutes, and that
 `--models sonnet` belongs in the procedure before any further skill is called
 finished.
+
+## Re-checking the five haiku-verified skills on sonnet
+
+Following directly from the caveat above: every previously-verified skill is
+being re-swept on `sonnet` and re-cut where the evidence supports it, in the
+same order they were originally verified. `ros2-core` is done.
+
+**`ros2-core`**: n=4 sweep, n=8 top-up on every ambiguous claim, one probe
+(`tf-lookup`) got a joint-ablation condition it should have had from the start
+(below) before any cut was decided, then a `naked`/`full` confirmation against
+the real reduced body — 487 ablation cells plus 111 confirmation cells, $14.58
+total (plus $2.71 on an exploratory naked/full probe run, discarded once the
+per-claim sweep made it redundant). Two more lines cut (45 → 43): the TF-exception-catching rule and the TF
+`ExtrapolationException` symptom row, both `naked=full=ablate=1.00` on sonnet
+with no redundancy partner once tested. Confirmation: `tf_exception` and
+`tf_latest_time` both 8/8 before and after, pooled across all 19 checks 91.7% →
+86.7%, not significant (p=0.20).
+
+A third candidate — the TF2 symbols bullet — read identically (ceiling
+everywhere) but **was not cut**. That single bullet bundles the now-redundant
+exception-symbol list with a REP105 frame-convention pointer to
+`ros2-troubleshooting` that no check has ever measured; deleting the bullet on
+the symbol-list evidence would have silently deleted the pointer too. This is
+the same shape the project already applies to reference code blocks (kept in
+`ros2-package`/`ros2-perception` past the point individual clauses cleared) —
+here for the first time on a single line rather than a whole block. Splitting
+the bullet so each half can be judged on its own is future work, not done.
+
+Fixing the probes surfaced a bug older than this re-check. `probes.py`'s claim
+ID constants for `ros2-core` (9 of 16) and `ros2-testing` (4 of 6) had gone
+stale: the confirmation commits that cut each skill (`d647ed8`, `f152b08`)
+renumbered sections, and the constants were never updated to match. Every
+`ablate:<id>` condition on the affected IDs either targeted the wrong line or,
+where the old number no longer existed at all, crashed with `KeyError`. Neither
+skill's original confirmation run caught this because both were `naked`-vs-
+`full` only, which never touches a per-claim ID — this sonnet re-sweep is the
+first full per-claim ablation run against either skill's *shipped* body since
+the cuts that broke the mapping. Both are fixed and every suite's claim IDs are
+now checked to resolve before spending on a sweep.
+
+The `tf-lookup` probe also had a real gap independent of the stale-ID bug: two
+different claims (the TF-catch rule and the TF2 symbols bullet) both drove its
+`tf_exception` check with no `joint=` declaration between them — exactly the
+redundancy-pair blind spot the project's own methodology (see below) exists to
+catch, just never applied to this one probe. Added before either claim was cut.
 
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then

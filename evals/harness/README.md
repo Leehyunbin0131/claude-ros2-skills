@@ -196,6 +196,39 @@ field, which adds an `ablate:a+b` condition. In the first run all three of
 them on the single-ablation reading would have deleted a rule with a runtime-proven
 effect.
 
+**Claim IDs go stale silently when a file is cut, and a `naked`/`full`-only
+confirmation run will not catch it.** Every skill's `SKILL.md` is cut with
+sections renumbered, and `probes.py`'s claim ID constants are string literals
+that do not move with the file. `ros2-core` and `ros2-testing` both shipped
+with stale IDs in `probes.py` for as long as they'd been cut — nine of
+`ros2-core`'s sixteen constants and four of `ros2-testing`'s six pointed at the
+wrong line, or at an ID that no longer existed at all. Neither skill's
+original confirmation run caught it, because both were `naked`-vs-`full` only:
+that condition loads the whole file and never resolves an individual claim ID,
+so a stale constant sits inert until the next `ablate:<id>` sweep touches it —
+which for both skills was this sonnet re-check, run days after the cuts
+shipped. Run this before spending on any sweep, every time, not just when
+writing new probes:
+
+```python
+import json, probes
+valid = {json.loads(l)["id"] for l in open("../claims/claims.jsonl")}
+bad = [(p.id, c) for p in probes.PROBES for c in p.claim_ids if c not in valid]
+assert not bad, bad
+```
+
+**Joint ablation is not optional.** Single ablation cannot distinguish "this line
+does nothing" from "this line is one of two that each suffice": drop either member
+of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`
+field, which adds an `ablate:a+b` condition. In the first run all three of
+`ros2-core`'s groups measured Δ=0 member-by-member and Δ≈+1.00 as a group — cutting
+them on the single-ablation reading would have deleted a rule with a runtime-proven
+effect. The same gap can hide in a probe nobody revisits: `ros2-core`'s
+`tf-lookup` probe had two claims driving one check with no `joint=` between them
+from the day it was written — found only when the sonnet re-check tried to cut
+one of them and both read as ceiling-flat individually. Added before either was
+cut, not after.
+
 **Budget.** `--max-budget-usd` caps a single cell; `--max-total-usd` stops
 dispatching once the sweep's running total is reached. Cells already in flight
 finish, so the cap is approached from below and can be overshot by roughly

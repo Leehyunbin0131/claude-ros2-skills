@@ -183,21 +183,40 @@ class Probe:
 # Claim ids are the ones claims.py emits; they are asserted in tests so a skill
 # edit that moves a line fails loudly instead of silently grading the wrong text.
 
-C_QOS_RULE = "ros2-core:5strict-coding-rules:03"
+# Re-read against claims.jsonl 2026-07-28: the confirmation commit that cut
+# ros2-core to 45 lines (d647ed8) renumbered sections 2, 4 and 5, and these
+# constants were never updated to match. Every ablate:<id> condition on the
+# nine affected ids either hit the wrong line or (for :04/:05/:07/:08, which
+# no longer exist) crashed KeyError -- caught only now, on the first full
+# re-sweep since that cut, because the original confirmation run was
+# naked-vs-full only and never re-exercised per-claim ablation. The ROS1-idiom
+# rule and both Parameters symptom rows were among the five lines that cut;
+# their constants now point at no claim (claims=[] below) rather than at
+# whatever line inherited their old number.
+# Re-read again 2026-07-28 after the sonnet re-check cut two more claims: the
+# TF-catch rule (old 5strict:01) and the TF-Extrapolation symptom row (old
+# 4symptom:03) both hit naked=full=ablate=1.00 -- sonnet needs no prompting for
+# either, joint-tested for the rule (see git history) before cutting. The TF2
+# symbols bullet (2symbols:01) individually read the same way but was kept: it
+# bundles the (now-redundant) exception-symbol list with an untested REP105
+# frame-convention pointer to ros2-troubleshooting in one claim atom, and nothing
+# has measured that pointer's half on its own. Splitting the bullet so each half
+# can be judged on its own evidence is future work, not done here.
+C_QOS_RULE = "ros2-core:5strict-coding-rules:01"
 C_QOS_ROW = "ros2-core:4symptom-root-cause-action:01"
-C_QOS_SYM = "ros2-core:2symbols-to-verify-there-never-write-the:04"
-C_BOUNDS_RULE = "ros2-core:5strict-coding-rules:04"
-C_BOUNDS_ROW = "ros2-core:4symptom-root-cause-action:07"
-C_SHUTDOWN_RULE = "ros2-core:5strict-coding-rules:05"
-C_SHUTDOWN_ROW = "ros2-core:4symptom-root-cause-action:08"
-C_TF_RULE = "ros2-core:5strict-coding-rules:02"
+C_QOS_SYM = "ros2-core:2symbols-to-verify-there-never-write-the:02"
+C_BOUNDS_RULE = "ros2-core:5strict-coding-rules:02"
+C_BOUNDS_ROW = "ros2-core:4symptom-root-cause-action:04"
+C_SHUTDOWN_RULE = "ros2-core:5strict-coding-rules:03"
+C_SHUTDOWN_ROW = "ros2-core:4symptom-root-cause-action:05"
+C_TF_RULE = None  # rule was cut
 C_TF_SYM = "ros2-core:2symbols-to-verify-there-never-write-the:01"
-C_TF_ROW = "ros2-core:4symptom-root-cause-action:05"
-C_ROS1_RULE = "ros2-core:5strict-coding-rules:01"
-C_PARAM_YAML_ROW = "ros2-core:4symptom-root-cause-action:03"
-C_PARAM_CB_ROW = "ros2-core:4symptom-root-cause-action:04"
-C_PARAM_SYM = "ros2-core:2symbols-to-verify-there-never-write-the:03"
-C_EXEC_ROW = "ros2-core:4symptom-root-cause-action:06"
+C_TF_ROW = None  # symptom row was cut
+C_ROS1_RULE = None  # rule was cut; no-ros1 check now owns no claim
+C_PARAM_YAML_ROW = None  # symptom row was cut
+C_PARAM_CB_ROW = None  # symptom row was cut
+C_PARAM_SYM = None  # symbols bullet was cut
+C_EXEC_ROW = "ros2-core:4symptom-root-cause-action:03"
 C_DOMAIN_ROW = "ros2-core:4symptom-root-cause-action:02"
 
 
@@ -283,14 +302,16 @@ P_SCAN = Probe(
         "ros2-core:1documentation-entry-points:03",
         "ros2-core:1documentation-entry-points:04",
         "ros2-core:1documentation-entry-points:05",
-        "ros2-core:2symbols-to-verify-there-never-write-the:02",
-        "ros2-core:2symbols-to-verify-there-never-write-the:05",
+        "ros2-core:2symbols-to-verify-there-never-write-the:03",
         "ros2-core:3local-system-inspection-interfaces-grou:01",
         "ros2-core:3local-system-inspection-interfaces-grou:02",
         "ros2-core:3local-system-inspection-interfaces-grou:03",
-        C_TF_RULE, C_TF_SYM, C_TF_ROW, C_ROS1_RULE,
-        C_PARAM_YAML_ROW, C_PARAM_CB_ROW, C_PARAM_SYM,
+        C_TF_SYM,
         C_EXEC_ROW, C_DOMAIN_ROW,
+        # C_TF_RULE / C_TF_ROW / C_ROS1_RULE / C_PARAM_YAML_ROW / C_PARAM_CB_ROW
+        # / C_PARAM_SYM are not
+        # listed: those four claims were cut from the shipped body, so there is
+        # nothing left at those old ids to ablate for the interference sweep.
     ],
     # Three behaviours that `ros2-core` states in more than one place. The first
     # sweep measured every member of the bounds pair at Δ=0, which is the
@@ -375,10 +396,14 @@ P_TF = Probe(
         "ready to run."
     ),
     checks={
-        "tf_exception": Check(_tf_exception, [C_TF_RULE, C_TF_SYM],
-                              "lookup guarded against TF exceptions"),
-        "tf_latest_time": Check(_tf_latest_time, [C_TF_ROW],
-                                "asks for the latest transform instead of a now() timestamp"),
+        "tf_exception": Check(_tf_exception, [C_TF_SYM],
+                              "lookup guarded against TF exceptions — C_TF_RULE used to co-own "
+                              "this with C_TF_SYM (joint-tested 2026-07-28: naked=full=drop-both="
+                              "1.00, p=1.000); the rule was cut, C_TF_SYM is the one claim left"),
+        "tf_latest_time": Check(_tf_latest_time, [],
+                                "asks for the latest transform instead of a now() timestamp — its "
+                                "own symptom row was cut (naked=full=ablate=1.00, no redundancy "
+                                "partner); ground-truth guard, not an ablation instrument"),
     },
 )
 
@@ -417,12 +442,15 @@ P_PARAMS = Probe(
         "while running when I do `ros2 param set /my_node max_speed 0.4`."
     ),
     checks={
-        "yaml_node_key": Check(_yaml_node_key, [C_PARAM_YAML_ROW],
-                               "YAML top-level key matches the node name or uses /**"),
-        "param_callback": Check(_param_callback, [C_PARAM_CB_ROW],
-                                "a set-parameters callback actually applies the new value"),
-        "param_declare": Check(_param_declare, [C_PARAM_SYM],
-                               "parameter is declared — control check, near-universal prior"),
+        "yaml_node_key": Check(_yaml_node_key, [],
+                               "YAML top-level key matches the node name or uses /** — its own "
+                               "symptom row was cut in the original ros2-core confirmation run"),
+        "param_callback": Check(_param_callback, [],
+                                "a set-parameters callback actually applies the new value — its "
+                                "own symptom row was cut in the original ros2-core confirmation run"),
+        "param_declare": Check(_param_declare, [],
+                               "parameter is declared — control check, near-universal prior; its "
+                               "own symbols bullet was cut in the original ros2-core confirmation run"),
     },
 )
 
@@ -476,8 +504,10 @@ P_ROS1 = Probe(
         "`std_msgs/msg/String` on `/chatter` at 1 Hz. Complete file."
     ),
     checks={
-        "no_ros1": Check(_no_ros1, [C_ROS1_RULE],
-                         "no ROS 1 idioms — expected to be satisfied without any skill"),
+        "no_ros1": Check(_no_ros1, [],
+                         "no ROS 1 idioms — the rule that used to state this was already cut "
+                         "in the original ros2-core confirmation run; kept as a ground-truth "
+                         "guard, not an ablation instrument"),
     },
     note="Deliberately a rule the model should already know. If naked passes at 5/5, the line is a cut candidate.",
 )
@@ -711,12 +741,18 @@ C_T_RUN2 = "ros2-testing:2running-tests:02"
 C_T_WRITER = "ros2-testing:a-programmatic-rosbag2-writer-c:01"
 C_T_LAUNCH = "ros2-testing:b-integration-testing-launch-testing-pyt:01"
 C_T_READY = "ros2-testing:b-integration-testing-launch-testing-pyt:02"
+# Re-read against claims.jsonl 2026-07-28: the ros2-testing cut (78->76 lines)
+# removed the launch_testing-hang and CI rows at old :03/:04 and renumbered the
+# QoS and use_sim_time rows from old :05/:06 down to current :03/:04.
+# C_T_SYM03/04 used to point at the cut rows and now silently pointed at the
+# QoS/sim_time content instead (wrong claim, not a crash, so it went
+# undetected); C_T_SYM05/06 pointed at ids that no longer exist at all.
 C_T_SYM01 = "ros2-testing:4symptom-root-cause-action:01"
 C_T_SYM02 = "ros2-testing:4symptom-root-cause-action:02"
-C_T_SYM03 = "ros2-testing:4symptom-root-cause-action:03"
-C_T_SYM04 = "ros2-testing:4symptom-root-cause-action:04"
-C_T_SYM05 = "ros2-testing:4symptom-root-cause-action:05"
-C_T_SYM06 = "ros2-testing:4symptom-root-cause-action:06"
+C_T_SYM03 = None  # launch_testing-hang row was cut
+C_T_SYM04 = None  # CI row was cut
+C_T_SYM05 = "ros2-testing:4symptom-root-cause-action:03"  # QoS row, renumbered
+C_T_SYM06 = "ros2-testing:4symptom-root-cause-action:04"  # sim_time row, renumbered
 
 REORDER_SYMPTOMS_FIRST = "reorder:4,1,2,3"
 
@@ -850,8 +886,9 @@ P_T_LAUNCH_TESTING = Probe(
                                  "asserts exit codes via launch_testing.asserts"),
     },
     note="The code block and the ReadyToTest() explanation are a second "
-         "candidate redundancy pair, same shape as ros2-core's shutdown pair.",
-    extra_claims=[C_T_SYM03],
+         "candidate redundancy pair, same shape as ros2-core's shutdown pair. "
+         "(The old interference claim here, C_T_SYM03, was the launch_testing-hang "
+         "symptom row; it was cut, so there is nothing left at that id to ablate.)",
     joint=[[C_T_LAUNCH, C_T_READY]],
     probe_only=True,
     extra_conditions=[REORDER_SYMPTOMS_FIRST],
@@ -902,8 +939,10 @@ P_T_DIAGNOSE = Probe(
         "bag file has messages."
     ),
     checks={
-        "hang_cause": Check(_t_hang_cause, [C_T_SYM03], "names ReadyToTest() as the missing boundary"),
-        "ci_cause": Check(_t_ci_cause, [C_T_SYM04], "names wall-clock/workspace state as the cause"),
+        "hang_cause": Check(_t_hang_cause, [], "names ReadyToTest() as the missing boundary — its "
+                            "own symptom row was cut; ground-truth guard, not an ablation instrument"),
+        "ci_cause": Check(_t_ci_cause, [], "names wall-clock/workspace state as the cause — its "
+                          "own symptom row was cut; ground-truth guard, not an ablation instrument"),
         "qos_test_cause": Check(_t_qos_test_cause, [C_T_SYM05], "names a QoS mismatch"),
         "simtime_cause": Check(_t_simtime_cause, [C_T_SYM06], "names use_sim_time/--clock alignment"),
     },
