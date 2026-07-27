@@ -25,6 +25,7 @@ right number against a live publisher — not by review.
 | Skill | Status | Evidence |
 | :--- | :--- | :--- |
 | `ros2-core` | ✅ Verified | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) |
+| `ros2-security` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) |
 | `ros2-package` | 🔄 In progress | — |
 | `ros2-dev` | 🔄 In progress | — |
 | `ros2-troubleshooting` | 🔄 In progress | — |
@@ -34,7 +35,6 @@ right number against a live publisher — not by review.
 | `ros2-moveit` | 🔄 In progress | — |
 | `ros2-testing` | 🔄 In progress | — |
 | `ros2-microros` | 🔄 In progress | — |
-| `ros2-security` | 🔄 In progress | — |
 
 Status vocabulary — a skill is only ✅ when **both** axes have passed:
 
@@ -68,6 +68,16 @@ Two findings from that run are about the pack rather than the skill:
 - **Contamination was looked for and not found.** Adding the protocol on top of
   the body scored 0.92 vs 0.94, p=0.67. Individual checks drop, the aggregate does
   not.
+
+`ros2-security` is the second skill verified, and closes both axes in a single
+run: 0.60 → **1.00** (p<0.0001) pooled over 14 checks across 6 claims, and every
+ablatable claim came back load-bearing — zero cuts, so the 52-line body is
+already the smallest one the harness can find. The same false-negative shape
+`ros2-core` hit showed up here too, on the architecture sentence naming which RMW
+implementations carry DDS-Security: Δ=+0.25, p=0.467 at n=8 looked like a cut,
+and a targeted top-up to n=16 turned it into a real KEEP (p=0.007). Same
+contamination check, same result — 1.00 vs 1.00, p=1.00. Detail:
+[ablation](./runs/2026-07-27-security/NOTES.md).
 
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then

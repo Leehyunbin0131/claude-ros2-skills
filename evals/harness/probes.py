@@ -439,4 +439,179 @@ P_DOMAIN = Probe(
 )
 
 
-PROBES: list[Probe] = [P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM]
+# --- ros2-security suite ------------------------------------------------------
+
+C_SEC_ARCH = "ros2-security:1architecture:01"
+C_SEC_NAV_CONCEPTS = "ros2-security:2documentation-entry-points:01"
+C_SEC_NAV_TUTORIAL = "ros2-security:2documentation-entry-points:02"
+C_SEC_NAV_VERIFY = "ros2-security:2documentation-entry-points:03"
+C_SEC_CLI = "ros2-security:a-sros2-cli-commands:01"
+C_SEC_POLICY = "ros2-security:b-high-level-access-control-policy-polic:01"
+
+
+def _sec_create_keystore(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ros2 security create_keystore")
+
+
+def _sec_create_enclave(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ros2 security create_enclave")
+
+
+def _sec_enclave_flag(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"--enclave\b")
+
+
+def _sec_env_enable(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ROS_SECURITY_ENABLE")
+
+
+def _sec_env_strategy(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ROS_SECURITY_STRATEGY")
+
+
+def _sec_env_keystore(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"ROS_SECURITY_KEYSTORE")
+
+
+P_SEC_KEYSTORE = Probe(
+    id="sros2-keystore",
+    suite="security",
+    skill="ros2-security",
+    prompt=(
+        "I have a ROS 2 Jazzy node called `talker` (package `demo_nodes_cpp`) that I "
+        "need to run inside enclave `/talker_listener/talker` with DDS security "
+        "enabled. Give me every command and environment variable needed, from "
+        "creating the keystore through launching the node with security turned on."
+    ),
+    checks={
+        "create_keystore": Check(_sec_create_keystore, [C_SEC_CLI],
+                                 "creates the root keystore via ros2 security create_keystore"),
+        "create_enclave": Check(_sec_create_enclave, [C_SEC_CLI],
+                                "creates the enclave via ros2 security create_enclave"),
+        "enclave_flag": Check(_sec_enclave_flag, [C_SEC_CLI],
+                              "launches the node with --enclave"),
+        "env_enable": Check(_sec_env_enable, [C_SEC_CLI], "sets ROS_SECURITY_ENABLE"),
+        "env_strategy": Check(_sec_env_strategy, [C_SEC_CLI], "sets ROS_SECURITY_STRATEGY"),
+        "env_keystore": Check(_sec_env_keystore, [C_SEC_CLI], "sets ROS_SECURITY_KEYSTORE"),
+    },
+    note="Covers the whole CLI code block; carries the doc-pointer and architecture "
+         "claims as extras so the interference sweep touches all 6 claims.",
+    extra_claims=[C_SEC_NAV_CONCEPTS, C_SEC_NAV_TUTORIAL, C_SEC_NAV_VERIFY, C_SEC_ARCH],
+)
+
+
+def _sec_policy_root(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"<policy\b", src)) and bool(re.search(r"version\s*=", src))
+
+
+def _sec_policy_enclave_path(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"<enclave\s+path\s*=")
+
+
+def _sec_policy_profile_node(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"<profile\s+node\s*=")
+
+
+def _sec_policy_topics_allow(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r'publish\s*=\s*"ALLOW"', r"publish\s*=\s*'ALLOW'")
+
+
+def _sec_policy_topic_name(answer: str) -> bool | None:
+    src = code(answer)
+    if src is None:
+        return None
+    return _has(src, r"<topic>\s*chatter\s*</topic>")
+
+
+P_SEC_POLICY = Probe(
+    id="sros2-access-policy",
+    suite="security",
+    skill="ros2-security",
+    prompt=(
+        "Write the SROS2 access-control policy XML that goes in the keystore's "
+        "policies folder for enclave `/talker_listener/talker`. It should let the "
+        "node `talker` in namespace `/` publish on topic `chatter`, and nothing else."
+    ),
+    checks={
+        "policy_root": Check(_sec_policy_root, [C_SEC_POLICY], "root <policy version=...> element"),
+        "enclave_path": Check(_sec_policy_enclave_path, [C_SEC_POLICY], "<enclave path=...> element"),
+        "profile_node": Check(_sec_policy_profile_node, [C_SEC_POLICY], "<profile node=...> element"),
+        "topics_allow": Check(_sec_policy_topics_allow, [C_SEC_POLICY], "publish=\"ALLOW\" attribute"),
+        "topic_name": Check(_sec_policy_topic_name, [C_SEC_POLICY], "<topic>chatter</topic> element"),
+    },
+)
+
+
+def _sec_arch_dds_security(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"DDS-Security", r"DDS Security")
+
+
+def _sec_arch_pki(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"X\.509", r"\bPKI\b")
+
+
+def _sec_arch_rmw_backend(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return _has(text, r"Fast ?DDS", r"FastRTPS", r"Cyclone ?DDS")
+
+
+P_SEC_ARCH = Probe(
+    id="sros2-mechanism",
+    suite="security",
+    skill="ros2-security",
+    prompt=(
+        "In ROS 2 Jazzy, when SROS2 security is turned on, what actually "
+        "authenticates nodes to each other and enforces the access-control rules "
+        "under the hood — not the CLI commands, the underlying mechanism?"
+    ),
+    checks={
+        "dds_security": Check(_sec_arch_dds_security, [C_SEC_ARCH], "names DDS-Security"),
+        "pki": Check(_sec_arch_pki, [C_SEC_ARCH], "names X.509/PKI authentication"),
+        "rmw_backend": Check(_sec_arch_rmw_backend, [C_SEC_ARCH], "names a DDS-Security-capable RMW"),
+    },
+    note="Deliberately a fact the model may already know cold — cut candidate if naked is high.",
+)
+
+
+PROBES: list[Probe] = [
+    P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
+    P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH,
+]

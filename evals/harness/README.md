@@ -49,6 +49,13 @@ before shipping, five lines cut in the end. That is the reason joint measurement
 of the reduced body is not optional either, symmetric with the joint-ablation
 point below.
 
+Second use: [`../runs/2026-07-27-security/`](../runs/2026-07-27-security/) — all 6
+`ros2-security` claims, 176 cells, zero cuts. The same false-negative shape hit
+again, on a single-sentence claim this time (single-ablation Δ=+0.25, p=0.467 →
+top-up to n=16, p=0.007), which is the reason that top-up step is now routine
+whenever a single-ablation Δ isn't near zero *and* isn't significant, not
+something to reach for only after a suite-wide confirmation run flags it.
+
 **Joint ablation is not optional.** Single ablation cannot distinguish "this line
 does nothing" from "this line is one of two that each suffice": drop either member
 of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`
