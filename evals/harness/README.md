@@ -89,7 +89,7 @@ nothing ships — the confirmation run against the actual final body is not an
 optional extra step, it is the only measurement of the thing being decided.**
 
 Fourth use: [`../runs/2026-07-27-package/`](../runs/2026-07-27-package/) (plus
-`-additions`, `-confirm`/`-confirm2`/`-confirm3`,
+`-additions`, [`-confirm`](../runs/2026-07-27-package-confirm/),
 [`../runs/2026-07-28-package-final/`](../runs/2026-07-28-package-final/)) — the
 first probe graded against real ground truth instead of regex: `colcon build`
 actually runs on the model's generated files in a scratch workspace, and
@@ -100,12 +100,11 @@ the *existing* text could have found — ablation only tells you whether a line
 you already wrote is load-bearing, not whether a line is missing. Both were
 added and verified at n=16.
 
-The confirmation side of this run is the reason this paragraph exists: three
-consecutive confirmation runs (`-confirm`, `-confirm2`, `-confirm3`) reported
-regressions on two cut candidates, and both were restored on that evidence.
-The regressions were not real. The ad hoc script written for those runs (to
-avoid re-running the full `analyze.py` pipeline for a quick check) tallied
-per-check pass rates keyed on `(probe, check)` instead of
+The confirmation side of this run is the reason this paragraph exists: the
+confirmation run reported regressions on two cut candidates, and both were
+restored on that evidence. The regressions were not real. The ad hoc script
+written for that run (to avoid re-running the full `analyze.py` pipeline for
+a quick check) tallied per-check pass rates keyed on `(probe, check)` instead of
 `(probe, condition, check)`, so `naked`-condition failures — expected to be
 low, that's the baseline the content is supposed to beat — silently pooled
 into the `full` numbers each time. `analyze.py` itself has always keyed

@@ -124,17 +124,16 @@ regardless of per-clause ceiling effects — structural completeness for a
 "copy this shape" reference has value a per-line naked/full test can't see),
 taking the body to 16 claims.
 
-Closing the efficiency axis took three failed confirmation attempts before a
-correct one. The first sweep's single-ablation results looked clean, but an
-ad hoc analysis script used for the follow-up confirmation runs tallied
-per-check results keyed on `(probe, check)` instead of `(probe, condition,
-check)`, so `naked`-condition failures silently pooled into the `full`
-numbers. That produced three consecutive false regression reports against two
-of the cut candidates (a `ModuleNotFoundError` symptom-table row and a "one
-concern per package" rule), which were restored on the strength of those
-reports. Tracing it down (comparing answer length as a first, discarded
-hypothesis, then reading the one flagged failure cell directly and finding
-the supposedly-missing content present in the answer) pointed straight at the
+Closing the efficiency axis took a failed confirmation attempt before a
+correct one. An ad hoc analysis script used to check the confirmation run
+tallied per-check results keyed on `(probe, check)` instead of `(probe,
+condition, check)`, so `naked`-condition failures silently pooled into the
+`full` numbers — producing false regression reports against two of the cut
+candidates (a `ModuleNotFoundError` symptom-table row and a "one concern per
+package" rule), which were restored on the strength of those reports.
+Tracing it down (comparing answer length as a first, discarded hypothesis,
+then reading the one flagged failure cell directly and finding the
+supposedly-missing content present in the answer) pointed straight at the
 scoring bug. Re-run through the project's own `analyze.py` — which has always
 keyed correctly — on a fresh n=8 sweep: the reduced 16-claim body still beats
 naked significantly on the check the restored lines were meant to drive
@@ -145,9 +144,9 @@ substitute for the project's own analysis tooling reintroduced exactly the
 kind of unverified conclusion this whole project exists to catch; use
 `analyze.py`, not an inline script, even for a quick confirmation.** Detail:
 [initial ablation](./runs/2026-07-27-package/), [content-gap
-additions](./runs/2026-07-27-package-additions/), [the three miscored
-confirmation runs](./runs/2026-07-27-package-confirm3/) (also
-`-confirm`/`-confirm2`), [corrected final confirmation](./runs/2026-07-28-package-final/).
+additions](./runs/2026-07-27-package-additions/), [the miscored confirmation
+run](./runs/2026-07-27-package-confirm/), [corrected final
+confirmation](./runs/2026-07-28-package-final/).
 
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then
