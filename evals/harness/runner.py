@@ -111,6 +111,20 @@ def build_context(condition: str, probe: Probe, index: dict[str, claims_mod.Clai
         order = [int(x) for x in condition.split(":", 1)[1].split(",")]
         path = REPO / "skills" / probe.skill / "SKILL.md"
         return _strip_front(claims_mod.reorder_sections(path, order))
+    if condition.startswith("variant:"):
+        # A rewrite, not a transformation. `ablate`/`reorder` are deterministic
+        # functions of the file; "could these three lines be one better line",
+        # "should this table be prose", "is this the right section split" cannot
+        # be derived — an alternative has to be *authored* and then measured
+        # head-to-head against `full` on the same checks. Variants live at
+        # evals/variants/<skill>/<name>.md and are never loaded by Claude Code
+        # itself, only by this harness.
+        name = condition.split(":", 1)[1]
+        path = REPO / "evals" / "variants" / probe.skill / f"{name}.md"
+        if not path.exists():
+            raise FileNotFoundError(
+                f"variant {name!r} for {probe.skill} not found at {path.relative_to(REPO)}")
+        return _strip_front(path.read_text(encoding="utf-8"))
     raise ValueError(f"unknown condition: {condition}")
 
 

@@ -188,6 +188,44 @@ shipping state distinguishes the two.** Detail:
 [confirmation that caught the regression](./runs/2026-07-28-perception-confirm/),
 [final](./runs/2026-07-28-perception-final/).
 
+## Every verdict above is haiku-calibrated, and that is not neutral
+
+All five verified skills were measured on `haiku`. A cross-check of
+`ros2-perception` on `sonnet` ([run](./runs/2026-07-28-perception-sonnet/))
+shows the target model does not merely need *less* — it needs something
+**different**, and the two move in opposite directions:
+
+| Check | haiku naked→full | sonnet naked→full |
+| :--- | ---: | ---: |
+| `cv_bridge` snippet compiles | 0/8→8/8, p=0.0002 | 6/8→8/8, p=0.47 |
+| K vs P matrix row | 0/8→8/8, p=0.0002 | 6/8→7/8, p=1.00 |
+| depth/colour registration row | 3/8→8/8, p=0.026 | 8/8→8/8, p=1.00 |
+| docs-URL convention | 4/8→8/8, p=0.077 | 1/6→8/8, **p=0.003** |
+| `ros2 interface show` habit | 4/8→8/8, p=0.077 | 2/6→8/8, **p=0.015** |
+
+The technical facts lose their effect — a stronger model already knows which
+header Jazzy ships and which matrix pairs with which topic. The *navigational*
+lines gain it. Capability supplies knowledge; it does not supply the
+disposition to build a docs URL from a package name, or to check the local
+install instead of answering from memory. That is the project's stated
+philosophy — corrections point at authoritative docs rather than handing over
+answers — receiving its first direct evidence, and haiku-only measurement was
+pointing the other way: it ranked the inline `cv_bridge` block the strongest
+KEEP in the run and left both pointers as unresolved "unclear".
+
+So the bias in the record has a known direction: **haiku calibration
+over-keeps inlined technical facts and under-values navigational pointers.**
+Two caveats on the table above — it is one skill, and two `naked` cells
+returned empty answers (correctly scored ungradable, so the docs probe is n=6);
+assuming both would have passed, `docs_url` still clears at p=0.026 while
+`interface_show` falls to p=0.077.
+
+Nothing above is being retracted on one skill's evidence. What is being
+recorded is that the verdicts are conditional on the grading model, that
+re-checking a verified skill costs about $1.65 and three minutes, and that
+`--models sonnet` belongs in the procedure before any further skill is called
+finished.
+
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then
 disconfirmed; publishing partial results invites exactly that error to spread

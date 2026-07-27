@@ -149,6 +149,45 @@ while an empty prompt leaves it free to answer from its own knowledge. Naked is
 therefore not the right baseline for a cut decision — full-with-line versus
 full-without-line is, and only the confirmation run produces the latter.
 
+## "Would a different wording be better?" — rewrite variants
+
+Deletion, joint deletion, isolation and reorder are all *deterministic functions
+of the file*: given the body, the harness computes the condition. That bounds
+the search to subsets and permutations of the text already written. It cannot
+ask whether three lines would work better as one, whether a table beats prose,
+or whether the sections are split in the right places — those have no
+mechanical derivation, so an alternative has to be **authored** and then
+measured.
+
+`variant:<name>` reads `evals/variants/<skill>/<name>.md` and runs it through
+the same probes as `full`. Claude Code never loads these; only the harness does.
+
+```bash
+python3 runner.py run --suite perception --probe perc-depth-encoding \
+        --conditions full,variant:merge-encoding --repeats 8 \
+        --out $(date +%F)-perception-variant
+python3 analyze.py 2026-07-28-perception-variant     # prints a "Rewrite variants" table
+```
+
+**Adoption rule: on a tie, the smaller body wins.** A variant that loses any
+check significantly is rejected. A variant that wins one is adopted. A variant
+indistinguishable from the current body is adopted only if it is *smaller* —
+which is the efficiency axis applied to wording instead of to deletion, and the
+only way "fewer tokens for the same result" can be claimed about a rewrite.
+
+Candidates should not be invented at random; the sweep already points at them:
+
+| Signal already in the output | Rewrite it suggests |
+| :--- | :--- |
+| A **redundancy group** (members Δ=0 alone, load-bearing together) | Several lines doing one job — try merging them into one |
+| **INERT** (P(naked) low, Δ≈0 — present and doing nothing) | The wording isn't landing; try restating or moving it |
+| A check that only ever reads `prose()` while its claim is a table row | The table may be the wrong container for that content |
+| Ablating a row makes the model borrow a *neighbouring* row's framing | The section groups things that don't belong together |
+
+The last one is not hypothetical: it is what the `pointcloud_to_laserscan` row
+did in `ros2-perception`, and a merge or a regroup is the response that
+deletion alone cannot express.
+
 **Joint ablation is not optional.** Single ablation cannot distinguish "this line
 does nothing" from "this line is one of two that each suffice": drop either member
 of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`

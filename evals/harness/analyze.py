@@ -231,6 +231,41 @@ def main() -> int:
                 print(f"| {short} | {check_name} | {t_full.passed}/{t_full.graded} | "
                       f"{t_j.passed}/{t_j.graded} | {delta:+.2f} | {p_val:.3f} | {reading} |")
 
+    # --- rewrite variants ----------------------------------------------------
+    # Deletion can only find lines that do nothing. It cannot ask whether three
+    # lines would work better as one, whether a table beats prose, or whether
+    # the sections are split in the right places -- those need an authored
+    # alternative measured against the current body on the same checks.
+    variants = sorted({cond for (_pid, cond, _c) in tallies if cond.startswith("variant:")})
+    if variants:
+        print("\n## Rewrite variants — an authored alternative vs the current body\n")
+        print("`full` is the body as it stands; each variant is a rewrite of it. A variant "
+              "that ties on every check and costs fewer tokens is an improvement — on a tie "
+              "the smaller body wins, which is the efficiency axis applied to wording rather "
+              "than to deletion.\n")
+        print("| Variant | Probe | Check | P(full) | P(variant) | Δ | p | Reading |")
+        print("| :--- | :--- | :--- | ---: | ---: | ---: | ---: | :--- |")
+        for cond in variants:
+            for pid, probe in probes.items():
+                for check_name in probe.checks:
+                    t_full = tallies.get((pid, "full", check_name))
+                    t_var = tallies.get((pid, cond, check_name))
+                    if not t_full or not t_var or not t_full.graded or not t_var.graded:
+                        continue
+                    p_val = fisher_exact_two_sided(
+                        t_full.passed, t_full.graded - t_full.passed,
+                        t_var.passed, t_var.graded - t_var.passed)
+                    delta = t_var.rate - t_full.rate
+                    if p_val < args.alpha and delta < 0:
+                        reading = "**variant is worse** — reject the rewrite"
+                    elif p_val < args.alpha and delta > 0:
+                        reading = "**variant is better** — adopt it"
+                    else:
+                        reading = "indistinguishable — adopt only if it is smaller"
+                    print(f"| `{cond.split(':',1)[1]}` | `{pid}` | {check_name} | "
+                          f"{t_full.passed}/{t_full.graded} | {t_var.passed}/{t_var.graded} | "
+                          f"{delta:+.2f} | {p_val:.3f} | {reading} |")
+
     # --- interference --------------------------------------------------------
     print("\n## Interference — ablations that moved a check they do not own\n")
     print("A claim's removal should not disturb an unrelated check. Where it does, "
