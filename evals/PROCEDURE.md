@@ -233,7 +233,6 @@ Status values:
 | :--- | :--- |
 | IN PROGRESS | not measured yet, or only one axis done |
 | VERIFIED | both questions answered, n≥5, run linked |
-| VERIFIED (haiku) | axis 2 passed before the switch to sonnet grading — re-check before calling it closed |
 | DID NOT CLEAR | question 1 failed — the body does not beat an empty context |
 
 ## Rules that are not negotiable

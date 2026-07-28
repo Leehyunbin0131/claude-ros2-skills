@@ -99,10 +99,10 @@ Three outcomes, and only one of them is "keep":
   **verbatim** by the agent, so the file manufactured the hallucination it existed
   to prevent. **A wrong line is worse than a missing one.**
 
-Intuition about where an agent errs is unreliable. This repo carries a
-[retraction](./evals/runs/2026-07-26-guardrail/NOTES.md) where a plausible failure
-mechanism was inferred from one run and disconfirmed by a controlled one — the
-error it explained turned out to occur once in 13 cells. If you add a rule
+Intuition about where an agent errs is unreliable. This project has already
+had to retract one finding: a plausible failure mechanism was inferred from a
+single run and then disconfirmed by a controlled one — the error it claimed to
+explain turned out to occur once in 13 cells. If you add a rule
 *because* you believe the model errs there, say so in the PR and attach the
 failing cell.
 

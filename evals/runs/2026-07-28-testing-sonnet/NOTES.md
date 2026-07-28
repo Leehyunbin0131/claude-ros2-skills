@@ -3,10 +3,11 @@
 
 # `ros2-testing` re-checked on sonnet, then rewritten — 2026-07-28
 
-The haiku pass ([`../2026-07-27-testing/`](../2026-07-27-testing/NOTES.md)) cut
-this skill from 78 lines to 76. This pass re-ran it on sonnet, the model that
-actually ships, and the result was not another two-line trim: **76 lines to 42**,
-and the change that got there was a rewrite, not a deletion.
+An earlier pass graded on haiku had cut this skill from 78 lines to 76 (those
+runs have since been deleted — see [`../../RESULTS.md`](../../RESULTS.md) for
+why haiku verdicts were not kept). This pass re-ran it on sonnet, the model
+that actually ships, and the result was not another two-line trim: **76 lines
+to 42**, and the change that got there was a rewrite, not a deletion.
 
 | | |
 | :--- | :--- |

@@ -858,16 +858,17 @@ P_T_DIAGNOSE = Probe(
 # suites), one dedicated real-build probe for ground truth (below), kept out
 # of the ablation sweep entirely so its cost doesn't multiply by claim count.
 
-# Claim ids below match the body as reduced 2026-07-27 after the ros2-package
-# ablation run: 15 claims cut (naked already at ceiling, no other claim depended
-# on them alone), 2 added (package.xml export tag, setup.cfg script_dir — see
-# ../runs/2026-07-27-package/NOTES.md), the two full reference code blocks
-# (ament-cmake:01, ament-python:01) and the 4custom-interfaces CMake/XML blocks
-# kept regardless of per-clause ceiling effects (structural completeness, not
-# purely statistical — also in that NOTES.md). Ids shift when a section's
-# numbering closes a gap, exactly like ablate() does to a reduced body; these
-# are the *current* ids, re-read from claims.jsonl after the edit, not the ones
-# the original 400-cell sweep ran against.
+# Claim ids below match the shipped body, which an earlier haiku-graded pass had
+# already reduced: 15 claims cut (naked at ceiling, nothing else depended on
+# them alone), 2 added (package.xml export tag, setup.cfg script_dir), and the
+# two full reference code blocks (ament-cmake:01, ament-python:01) plus the
+# 4custom-interfaces CMake/XML blocks kept regardless of per-clause ceiling
+# effects, on structural-completeness grounds rather than statistical ones.
+# Those runs were deleted with the rest of the haiku-era record; the skill is
+# back to IN PROGRESS pending a sonnet sweep, and these ids will need
+# re-validating against claims.jsonl before it runs -- ids shift whenever a
+# section's numbering closes a gap, exactly like ablate() does to a reduced
+# body.
 #
 # The symptom row (old 6symptom:02, ModuleNotFoundError) and the "one concern
 # per package" rule (old 7strict-rules:01) were briefly restored after three

@@ -35,7 +35,7 @@ bad trade, and without the number "should this content stay?" is an opinion.
 
 ```bash
 # needs a sourced ROS 2 Jazzy install; ros-jazzy-ros-base is enough for tasks 1-3
-MODEL=haiku ./harness/run_ab.sh 1 runs/$(date +%F)-native
+MODEL=sonnet ./harness/run_ab.sh 1 runs/$(date +%F)-native
 ```
 
 Each task brings up the live scenario it needs, and the **same** scenario is up

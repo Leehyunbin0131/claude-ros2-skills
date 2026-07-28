@@ -14,12 +14,12 @@ Pick by the question, not by the filename.
 | :--- | :--- |
 | [`run_ab.sh`](./run_ab.sh) | Brings up the live scenario a task needs, runs the baseline and with-skills cells with identical flags in fresh directories, reduces both transcripts. Tasks 1–3. |
 | [`summarize_run.py`](./summarize_run.py) | Reduces a `stream-json` log to the final message plus the tool calls actually invoked, so "verified before writing" is read off the transcript rather than recalled. |
-| [`isolate_guardrail.sh`](./isolate_guardrail.sh) | Forces one suspected condition (a single skill, with and without `CLAUDE.md`) and uses the **pre-patch body read out of git** as a true control. This is the run that produced the retraction written up in [`../runs/2026-07-26-guardrail/NOTES.md`](../runs/2026-07-26-guardrail/NOTES.md). |
+| [`isolate_guardrail.sh`](./isolate_guardrail.sh) | Forces one suspected condition (a single skill, with and without `CLAUDE.md`) and uses the **pre-patch body read out of git** as a true control. Written after a task-level result turned out to be an artifact of skill routing rather than skill content — the retraction that motivated it is why this script exists. |
 | [`fake_scan_pub.py`](./fake_scan_pub.py), [`fake_camera_pub.py`](./fake_camera_pub.py), [`reliable_image_sub.py`](./reliable_image_sub.py), [`task3_scenario.sh`](./task3_scenario.sh) | The live scenarios. Both cells always face the same one. |
 
 ```bash
 # needs a sourced ROS 2 Jazzy install; ros-jazzy-ros-base is enough for 1-3
-MODEL=haiku ./run_ab.sh 1 ../runs/$(date +%F)-native
+MODEL=sonnet ./run_ab.sh 1 ../runs/$(date +%F)-native
 ```
 
 This generation measures the **effect** axis. It cannot attribute a result to any
@@ -43,109 +43,69 @@ python3 claims.py inventory                       # -> ../claims/claims.jsonl
 python3 runner.py plan --suite core --repeats 8    # cells and estimated spend
 python3 runner.py run  --suite core --repeats 8 --workers 12 \
         --out $(date +%F)-core --max-total-usd 5
-python3 analyze.py 2026-07-26-core
+python3 analyze.py 2026-07-28-core-sonnet
 ```
 
-First real use: [`../runs/2026-07-26-core/`](../runs/2026-07-26-core/) — all 26
-`ros2-core` claims, 558 cells, six lines cut on single-ablation evidence. The
-[confirmation run](../runs/2026-07-26-core-confirm/NOTES.md) that measured the
-reduced body as a whole caught one of those six as a false negative — restored
-before shipping, five lines cut in the end. That is the reason joint measurement
-of the reduced body is not optional either, symmetric with the joint-ablation
-point below.
+### Lessons the runs paid for
 
-Second use: [`../runs/2026-07-27-testing/`](../runs/2026-07-27-testing/) — added
-two condition types beyond deletion. `only:<id>` (addition — does this claim
-alone, with nothing else in the system prompt, already produce its own effect)
-and `reorder:<n1,n2,...>` (position — the same claims, sections moved). Both are
-opt-in per probe (`Probe.probe_only`, `Probe.extra_conditions`) so existing
-suites are unaffected. `reorder:` needed a new primitive,
-`claims.reorder_sections()`, which moves whole `## N. Title` sections and
-renumbers headers without touching a single claim's text — the same
-"the model must not see a seam" discipline `ablate()` already applies to
-numbered lists. Position came back a clean null (52/52 either order, p=1.00 —
-not underpowered, both sides at ceiling). Addition turned the single-ablation
-redundancy story from one-sided to two-sided: a group's members had already
-shown Δ=0 when removed singly; `only:` now showed each one *alone* reproduces
-the group's effect too — sufficient alone, unnecessary next to a sibling, proven
-from both directions instead of inferred from one. Repeats were held to n=4 (the
-floor where Fisher's exact can resolve anything — n=3 can never reach p<0.05),
-which meant most claims needed a targeted top-up before their verdict was
-trustworthy, same discipline as the first two runs, just triggered more often
-because the starting power was lower on purpose.
+The runs that produced these were graded on `haiku` and have been deleted (see
+[`../RESULTS.md`](../RESULTS.md) for why a smaller model's verdicts were not
+worth keeping). The findings below are about the *instrument*, not about any
+skill's content, so they survive the grading model that produced them. Each one
+cost a wrong decision that had to be caught and reversed.
 
-Cutting its two dead lines surfaced a failure mode neither prior run had: not a
-false negative from too little power, but a false *signal* from testing the
-wrong state. Single-ablating each of two cut candidates individually — the only
-read available before the candidates are actually removed together — showed a
-borderline real-looking effect on one claim's own check, and both dragged down
-a check neither owns. Both vanished when the real candidate (both rows gone at
-once, the body about to ship) was measured directly: 104/104 across every
-check. The lesson generalizes past this one run: **whenever more than one cut
-is on the table, single-ablation of each candidate is a reading of a state
-nothing ships — the confirmation run against the actual final body is not an
-optional extra step, it is the only measurement of the thing being decided.**
-
-Third use: [`../runs/2026-07-27-package/`](../runs/2026-07-27-package/) (plus
-`-additions`, [`-confirm`](../runs/2026-07-27-package-confirm/),
-[`../runs/2026-07-28-package-final/`](../runs/2026-07-28-package-final/)) — the
-first probe graded against real ground truth instead of regex: `colcon build`
-actually runs on the model's generated files in a scratch workspace, and
-`ros2 pkg executables` checks the node exists, rather than pattern-matching the
-answer text. That surfaced two genuine content gaps (a missing `package.xml`
-export tag, a missing `setup.cfg` install path) that no amount of ablation on
-the *existing* text could have found — ablation only tells you whether a line
-you already wrote is load-bearing, not whether a line is missing. Both were
-added and verified at n=16.
-
-The confirmation side of this run is the reason this paragraph exists: the
-confirmation run reported regressions on two cut candidates, and both were
-restored on that evidence. The regressions were not real. The ad hoc script
-written for that run (to avoid re-running the full `analyze.py` pipeline for
-a quick check) tallied per-check pass rates keyed on `(probe, check)` instead of
-`(probe, condition, check)`, so `naked`-condition failures — expected to be
-low, that's the baseline the content is supposed to beat — silently pooled
-into the `full` numbers each time. `analyze.py` itself has always keyed
-correctly; the bug was entirely in the throwaway substitute for it. Re-run
-through `analyze.py` on a fresh sweep, there was no regression: the reduced
-body still beats naked significantly on the check the restored lines were
-meant to drive (p=0.041), and every check compared against the pre-revert body
-came back not significant (p≥0.2). **Do not write an inline substitute for
-`analyze.py`, even for a "quick" confirmation — it is exactly as easy to get
-subtly wrong, and the whole point of having one tool that does the tallying is
-that it only has to be gotten right once.**
-
-Fourth use: [`../runs/2026-07-28-perception/`](../runs/2026-07-28-perception/)
-(+ [`-confirm`](../runs/2026-07-28-perception-confirm/),
-[`-final`](../runs/2026-07-28-perception-final/)) — ground truth got cheap.
-`_compiles_cpp()` runs `g++ -fsyntax-only` over whatever C++ the answer
-contains, against every per-package include dir under `/opt/ros/jazzy`, in
-about two seconds and with no workspace to build. Verify a new compile grader
-*discriminates* before trusting it: the skill's own snippet was compiled, then
-recompiled with the pre-Jazzy `cv_bridge/cv_bridge.h` spelling to confirm the
-second form actually fails. It does, and unaided the model writes it 7 times
-out of 8 — an error no regex over the answer text would have caught, since
-both spellings look equally plausible.
-
-This run also fixed a flaw in `ablate()` itself. Removing the only claim under
-a `### A. cv_bridge ...` subheading left the heading standing over nothing: a
-seam that still names the topic, so the ablated body scores higher than a body
-that never mentioned it, understating the claim's effect and biasing toward
-cutting. `_drop_orphaned_headings()` now closes that gap the way `_renumber()`
-already closed it for numbered lists. It changes ablation bodies for 27 claims
-across every skill; all 27 had been KEPT, so no shipped decision rested on a
-seam — but that was checked, not assumed, and the same check is owed to any
-future primitive that edits a body.
+**A single ablation reads a state that never ships.** Six lines were once cut
+on single-ablation evidence; measuring the reduced body as a whole caught one
+of them as a false negative and it was restored. Later, two cut candidates each
+single-ablated to a borderline real-looking effect *and* dragged down a check
+neither owned — both vanished once the actual final body (both rows gone at
+once) was measured: 104/104 across every check. Whenever more than one cut is
+on the table, single-ablation of each candidate describes a body nothing will
+ship. The confirmation run is not an extra step; it is the only measurement of
+the thing being decided.
 
 **A line can be inert against nothing and load-bearing against its own table.**
-The `pointcloud_to_laserscan` row single-ablated at Δ=+0.12, p=1.000 with naked
-already at 7/8 — inert by every reading available before the cut. Removed for
-real, it scored 5/8, *below* the 8/8 that no context at all achieves. The
-failing answers show the mechanism: with its own row gone the model borrows the
-neighbouring rows' framings (`frame_id`, TF, QoS) rather than the height band,
-while an empty prompt leaves it free to answer from its own knowledge. Naked is
-therefore not the right baseline for a cut decision — full-with-line versus
+One row single-ablated at Δ=+0.12, p=1.000, with naked already 7/8 — inert by
+every reading available before the cut. Removed for real it scored 5/8, *below*
+what no context at all achieves. The failing answers show why: with its own row
+gone the model borrows the neighbouring rows' framings instead of the right
+one, while an empty prompt leaves it free to answer from its own knowledge.
+Naked is therefore not the baseline for a cut decision — full-with-line versus
 full-without-line is, and only the confirmation run produces the latter.
+
+**Do not write an inline substitute for `analyze.py`.** A throwaway tally
+script written to avoid re-running the pipeline keyed per-check pass rates on
+`(probe, check)` instead of `(probe, condition, check)`, so `naked`-condition
+failures silently pooled into the `full` numbers. It reported two regressions
+that did not exist, and two lines were restored on that evidence before the bug
+was found. `analyze.py` has always keyed correctly. The whole point of one tool
+doing the tallying is that it only has to be right once.
+
+**Ablation must not leave a seam.** Removing the only claim under a
+`### A. cv_bridge ...` subheading left the heading standing over nothing — a
+seam that still names the topic, so the ablated body scored *higher* than a
+body that never mentioned it, understating the claim's effect and biasing
+toward cutting. `_drop_orphaned_headings()` closes that the way `_renumber()`
+already closed it for numbered lists. It changed ablation bodies for 27 claims;
+all 27 had been KEPT, so no shipped decision rested on a seam — but that was
+checked, not assumed, and the same check is owed to any future primitive that
+edits a body.
+
+**Verify a new grader discriminates before trusting it.** `_compiles_cpp()`
+runs `g++ -fsyntax-only` over whatever C++ an answer contains, against every
+per-package include dir under `/opt/ros/jazzy`, in about two seconds with no
+workspace to build. It was validated by compiling the correct snippet, then
+recompiling with the pre-Jazzy `cv_bridge/cv_bridge.h` spelling to confirm the
+wrong form actually fails. It does — and unaided the model writes it 7 times
+out of 8, an error no regex over the answer text would have caught, since both
+spellings look equally plausible.
+
+**Ablation cannot find a missing line.** Grading one probe against real ground
+truth — actually running `colcon build` on the model's generated files and
+checking `ros2 pkg executables` for the node — surfaced two genuine content
+gaps (a missing `package.xml` export tag, a missing `setup.cfg` install path)
+that no amount of ablation could have found. Ablation only tells you whether a
+line you already wrote is load-bearing, never whether one is absent.
 
 ## "Would a different wording be better?" — rewrite variants
 
@@ -161,10 +121,9 @@ measured.
 the same probes as `full`. Claude Code never loads these; only the harness does.
 
 ```bash
-python3 runner.py run --suite perception --probe perc-depth-encoding \
-        --conditions full,variant:merge-encoding --repeats 8 \
-        --out $(date +%F)-perception-variant
-python3 analyze.py 2026-07-28-perception-variant     # prints a "Rewrite variants" table
+python3 runner.py run --suite testing --conditions full,variant:compressed \
+        --repeats 8 --models sonnet --out $(date +%F)-testing-variant
+python3 analyze.py 2026-07-28-testing-variant     # prints a "Rewrite variants" table
 ```
 
 **Adoption rule: on a tie, the smaller body wins.** A variant that loses any
