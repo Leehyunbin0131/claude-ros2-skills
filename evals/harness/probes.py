@@ -1644,9 +1644,10 @@ P_PERC_DEPTH = Probe(
                                    "says to read msg->encoding / use passthrough rather than "
                                    "assuming a colour encoding"),
     },
-    # Both rows are about "the encoding is not what you assumed"; either one
-    # alone may carry the whole behaviour, which single ablation cannot see.
-    joint=[[C_PERC_SYM_ENC, C_PERC_SYM_DEPTH]],
+    # Both rows were about "the encoding is not what you assumed" and were a
+    # declared joint group; the joint ablation came back clean at naked=1.00, so
+    # both were cut (delete, not merge -- the model supplies this unaided). No
+    # group left to declare.
     probe_only=True,
 )
 
@@ -1746,6 +1747,218 @@ P_PERC_DOCS = Probe(
 )
 
 
+# --- ros2-troubleshooting suite ---------------------------------------------
+#
+# Biggest skill in the repo: 119 lines, 50 claims. Probe design started from a
+# measurement rather than from the file, because the file's generic content was
+# expected to be at ceiling and turned out to be: asked naked, sonnet diagnoses
+# the silent-QoS case correctly and unprompted, works the inverted-drive bug
+# layer by layer, and gives the ROS_DOMAIN_ID range as 0-232 *with* the 0-101
+# ephemeral-port caveat and the 7400 + 250*id port arithmetic behind it -- a
+# superset of what this skill says. Writing probes around REP 103 axes, executor
+# deadlocks or domain IDs would have measured nothing.
+#
+# What the model cannot know is the part of this skill that is local to this
+# repository: four scripts that ship next to the SKILL.md, how they are invoked,
+# and one behaviour of check_tf_tree.py that is deliberately counter-intuitive.
+# Those are the probes below. This follows the project's own finding that what
+# survives ablation is what the model cannot supply -- project-local facts and
+# pointers -- not correct general knowledge.
+
+C_TS_SCRIPTS_PATH = "ros2-troubleshooting:1a-runnable-ground-truth-checks:01"
+C_TS_PYTHON3_RULE = "ros2-troubleshooting:1a-runnable-ground-truth-checks:02"
+C_TS_EXAMPLE_CMD = "ros2-troubleshooting:1a-runnable-ground-truth-checks:03"
+C_TS_RUN_FIRST = "ros2-troubleshooting:1a-runnable-ground-truth-checks:04"
+C_TS_IMU_SCRIPT = "ros2-troubleshooting:1a-runnable-ground-truth-checks:05"
+C_TS_ODOM_SCRIPT = "ros2-troubleshooting:1a-runnable-ground-truth-checks:06"
+C_TS_TF_SCRIPT = "ros2-troubleshooting:1a-runnable-ground-truth-checks:07"
+C_TS_QOS_SCRIPT = "ros2-troubleshooting:1a-runnable-ground-truth-checks:08"
+
+
+def _ts_names_a_script(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"check_(imu_gravity|odom_direction|tf_tree|qos_compat)\.py", text))
+
+
+def _ts_invokes_with_python3(answer: str) -> bool | None:
+    """The scripts are plain files, not a ROS 2 package. `python3 <path>` is
+    correct; `ros2 run <anything> check_*.py` is the documented failure mode."""
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"check_\w+\.py", text):
+        return False
+    return bool(re.search(r"python3\s+\S*check_\w+\.py", text))
+
+
+def _ts_no_ros2_run_for_script(answer: str) -> bool | None:
+    """Negative form: true when the answer does NOT invent a ROS 2 package to
+    `ros2 run` the script from. Ungradable unless a script was actually named --
+    otherwise an answer that never mentions the scripts at all passes trivially,
+    which is the empty-check failure mode this project has already been bitten
+    by once."""
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"check_\w+\.py", text):
+        return None
+    return not re.search(r"ros2\s+run\s+\S+\s+check_\w+\.py", text)
+
+
+def _ts_qos_script_named(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"check_qos_compat\.py", text))
+
+
+def _ts_imu_script_named(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"check_imu_gravity\.py", text))
+
+
+def _ts_odom_script_named(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"check_odom_direction\.py", text))
+
+
+def _ts_tf_script_named(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"check_tf_tree\.py", text))
+
+
+def _ts_advisory_not_a_verdict(answer: str) -> bool | None:
+    """check_tf_tree.py prints VERIFY PHYSICALLY for any ~180 deg roll/yaw even
+    when the mounting is intentional. Reporting it to the user as 'your TF is
+    wrong' is the failure this claim exists to prevent."""
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(
+        r"(always|even when|even if|regardless|intentional|by design|not a verdict"
+        r"|prompt to (compare|check)|advisory)", text, re.I))
+
+
+P_TS_SILENT_TOPIC = Probe(
+    id="ts-silent-topic",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "ROS 2 Jazzy. `ros2 topic hz /scan` reports a steady 10 Hz, but my "
+        "subscriber node never gets a single callback. I do not want a theory "
+        "-- I want to turn this into a definite pass/fail answer. What exact "
+        "command do I run to settle it?"
+    ),
+    checks={
+        "names_a_script": Check(_ts_names_a_script, [C_TS_QOS_SCRIPT],
+                                "names one of the shipped check_*.py scripts"),
+        "qos_script": Check(_ts_qos_script_named, [C_TS_QOS_SCRIPT],
+                            "names check_qos_compat.py specifically"),
+        "python3_invocation": Check(_ts_invokes_with_python3,
+                                    [C_TS_PYTHON3_RULE, C_TS_EXAMPLE_CMD],
+                                    "invokes it as python3 <path>, not via ros2 run"),
+        "no_ros2_run": Check(_ts_no_ros2_run_for_script, [C_TS_PYTHON3_RULE],
+                             "does not invent a ros2 run package for the script"),
+    },
+    note="The silent-QoS diagnosis itself is at ceiling -- naked answers reach "
+         "ros2 topic info -v unprompted. What is measurable is whether the "
+         "agent reaches for the shipped script, which it cannot know exists, "
+         "and whether it invokes it correctly. Prompts here deliberately do NOT "
+         "say skills are installed: an earlier draft did, and it sent naked and "
+         "protocol cells hunting for the skill with a tool this harness has "
+         "turned off, stubbing 9 of 16 naked cells and leaving the baseline at "
+         "n=1. A probe prompt must read like a user's question, not like a hint "
+         "that context exists to be found.",
+    extra_claims=[C_TS_SCRIPTS_PATH, C_TS_RUN_FIRST],
+    joint=[[C_TS_PYTHON3_RULE, C_TS_EXAMPLE_CMD]],
+    probe_only=True,
+)
+
+
+P_TS_IMU_MOUNT = Probe(
+    id="ts-imu-mount",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "My robot's EKF odometry drifts and occasionally spins on the spot, "
+        "but every topic looks healthy and nothing errors. I suspect the IMU "
+        "mounting. I want evidence, not a hunch -- give me the exact command "
+        "that turns that suspicion into a pass or fail."
+    ),
+    checks={
+        "imu_script": Check(_ts_imu_script_named, [C_TS_IMU_SCRIPT],
+                            "names check_imu_gravity.py"),
+        "python3_invocation": Check(_ts_invokes_with_python3,
+                                    [C_TS_PYTHON3_RULE, C_TS_EXAMPLE_CMD],
+                                    "invokes it as python3 <path>"),
+        "no_ros2_run": Check(_ts_no_ros2_run_for_script, [C_TS_PYTHON3_RULE],
+                             "does not invent a ros2 run package for the script"),
+    },
+    extra_claims=[C_TS_SCRIPTS_PATH, C_TS_RUN_FIRST],
+    probe_only=True,
+)
+
+
+P_TS_DRIVE_BACKWARD = Probe(
+    id="ts-drive-backward",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "Differential drive robot, ROS 2 Jazzy. Publishing "
+        "`cmd_vel.linear.x = 0.2` drives it backward. Nothing errors anywhere. "
+        "Before I touch any code I want to establish, as a measured fact, "
+        "whether odometry agrees with which way the robot physically moved. "
+        "What exact command do I run?"
+    ),
+    checks={
+        "odom_script": Check(_ts_odom_script_named, [C_TS_ODOM_SCRIPT],
+                             "names check_odom_direction.py"),
+        "names_a_script": Check(_ts_names_a_script, [C_TS_ODOM_SCRIPT],
+                                "reaches for a shipped script at all"),
+        "python3_invocation": Check(_ts_invokes_with_python3,
+                                    [C_TS_PYTHON3_RULE, C_TS_EXAMPLE_CMD],
+                                    "invokes it as python3 <path>"),
+    },
+    extra_claims=[C_TS_SCRIPTS_PATH, C_TS_RUN_FIRST],
+    probe_only=True,
+)
+
+
+P_TS_TF_ADVISORY = Probe(
+    id="ts-tf-advisory",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "I ran a TF tree check script on my robot and it printed a "
+        "`VERIFY PHYSICALLY` advisory for my LiDAR's 180 degree roll. The "
+        "LiDAR really is mounted upside-down and the URDF declares that "
+        "correctly. Is my TF wrong? Explain what that output actually means "
+        "and name the script that produces it."
+    ),
+    checks={
+        "tf_script": Check(_ts_tf_script_named, [C_TS_TF_SCRIPT],
+                           "names check_tf_tree.py"),
+        "advisory_not_verdict": Check(_ts_advisory_not_a_verdict, [C_TS_TF_SCRIPT],
+                                      "says the advisory always prints and is not a verdict"),
+    },
+    note="The one claim here that is neither general knowledge nor a filename: "
+         "the advisory fires on any ~180 deg roll/yaw including a correct "
+         "intentional mount, so reporting it as 'your TF is broken' is wrong. "
+         "A model that has never read this skill cannot know the script's "
+         "behaviour, only guess it.",
+    extra_claims=[C_TS_SCRIPTS_PATH],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
@@ -1753,4 +1966,5 @@ PROBES: list[Probe] = [
     P_PKG_DIAG_BUILD, P_PKG_DIAG_IFACE, P_PKG_DEP_DECLARE, P_PKG_BUILD_HYBRID,
     P_PERC_CVBRIDGE, P_PERC_PCL, P_PERC_QOS, P_PERC_DEPTH,
     P_PERC_DIAGNOSE, P_PERC_DOCS,
+    P_TS_SILENT_TOPIC, P_TS_IMU_MOUNT, P_TS_DRIVE_BACKWARD, P_TS_TF_ADVISORY,
 ]

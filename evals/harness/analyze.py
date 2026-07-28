@@ -306,6 +306,9 @@ def main() -> int:
         print("| Group | Check | P(full) | P(drop all) | Δ | p | Reading |")
         print("| :--- | :--- | ---: | ---: | ---: | ---: | :--- |")
         for probe, g in groups:
+            g = [c for c in g if c]
+            if len(g) < 2:
+                continue  # members were cut since the group was declared
             cond = f"ablate:{'+'.join(g)}"
             for check_name, check in probe.checks.items():
                 if not any(cid in check.claims for cid in g):

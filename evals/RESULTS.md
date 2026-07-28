@@ -39,7 +39,7 @@ it cannot drift away from what actually ships.
 | `ros2-package` | 0.844 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
 | `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
-| `ros2-troubleshooting` | — | IN PROGRESS | — |
+| `ros2-troubleshooting` | 0.031 → 0.943 *(section 1a only)* | IN PROGRESS | [section 1a measured](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) — 8 of 50 claims |
 | `gazebo-sim` | — | IN PROGRESS | — |
 | `ros2-control` | — | IN PROGRESS | — |
 | `ros2-moveit` | — | IN PROGRESS | — |
@@ -49,7 +49,7 @@ Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 
 | | Meaning |
 | :--- | :--- |
-| IN PROGRESS | not yet measured, or measured on one axis only |
+| IN PROGRESS | not yet measured, measured on one axis only, or measured over only part of the body — the evidence column says which |
 | VERIFIED | effect **and** efficiency, at n≥5, with the run linked |
 | DID NOT CLEAR | measured and failed axis 1 — the body does not beat an empty context, so there is no effect for axis 2 to apportion. Recorded, not hidden |
 
@@ -301,6 +301,51 @@ matching the pattern. Detail:
 [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md),
 [rewrite comparison](./runs/2026-07-28-perception-variant2/),
 [confirmation](./runs/2026-07-28-perception-confirm-sonnet/).
+
+**`ros2-troubleshooting`** is the first skill with no pre-existing probes and
+the largest in the repo (119 lines, 50 claims). Eight claims were measured. The
+other 42 were not, and the reason is the useful part.
+
+Probe design started from a measurement rather than from the file. Asked with
+nothing in context, sonnet diagnoses the silent-QoS case correctly and reaches
+for `ros2 topic info -v` unprompted, works the inverted-drive bug layer by
+layer, and gives the `ROS_DOMAIN_ID` range as **0-232 with the 0-101
+ephemeral-port caveat and the `7400 + 250*id` arithmetic behind it** — a
+superset of what the skill says. Probes built around REP 103 axes, executor
+deadlocks, lifecycle states or domain IDs would have returned a table of CUT
+verdicts that was really a table about the probes.
+
+So all four probes target the one part of this skill that is local to this
+repository: four scripts that ship next to the `SKILL.md`, their filenames, the
+rule that they are plain files run with `python3 <path>` rather than a ROS 2
+package, and one counter-intuitive behaviour of `check_tf_tree.py`. Pooled over
+12 checks: **`naked` 3/96 = 0.031, `full` 133/141 = 0.943** — and four KEEP
+verdicts clearing q<0.05, against two in the entire project before this run.
+`naked` is structurally 0.00 on the filename checks, because those filenames
+exist nowhere but this repository.
+
+The `python3`-not-`ros2 run` rule and its worked example each ablate to Δ≈0 and
+read INERT. The joint ablation settles them: **12/12 present, 0/4 with both
+removed, p=0.001 — load-bearing as a group.** Declared before the run, not
+discovered from the collision afterwards.
+
+**The axis-1 number is biased upward and the status row says so.** 0.031 is the
+lowest baseline measured here, but only because every probe targets the section
+the model structurally cannot know. It measures what section 1a is worth, not
+what the 119-line file is worth. The pre-measurement suggests the remaining 42
+claims are cuttable; "probably cuttable" and "measured" are different claims and
+this run only supports the second, so the skill stays IN PROGRESS with the
+partial result recorded rather than being called finished on a favourable
+subset. Detail:
+[run notes](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md).
+
+One design mistake is worth carrying forward. The first version of all four
+prompts said *"I have this repo's Claude skills installed"*, meaning to make it
+fair to expect the agent to find the script. It did the opposite: it told the
+model context existed to be hunted for, and with tools off the hunt stalls —
+nine of sixteen `naked` cells stubbed and the baseline landed at n=1. **A probe
+prompt must read like a user's question, not like a hint that context exists to
+be found.** $4.74 discarded relearning that.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

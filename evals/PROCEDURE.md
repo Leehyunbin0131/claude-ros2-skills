@@ -67,6 +67,24 @@ Anything listed is a bug to fix before running. A claim that was cut should be
 set to `None` in `probes.py`, and the checks that used to own it should carry
 an empty claim list.
 
+**Writing probes for a skill that has none yet?** Two rules, both learned the
+expensive way.
+
+*Measure before you design.* Ask the model your candidate questions with nothing
+in context first — a handful of one-off calls, far cheaper than a sweep. Any
+question it already answers correctly is a question that will measure nothing,
+and building a probe suite out of those produces a table of CUT verdicts that is
+really a table about the probes. Aim the probes at what the model **cannot**
+know: facts local to this project, filenames and paths that exist nowhere else,
+behaviours of tools that ship with the skill.
+
+*The prompt must read like a user's question.* Do not tell the model that a
+skill, a repo, or any other context exists — not even to be "fair" about
+expecting it to find something. That turns the cell into a hunt for context,
+and with tools off the hunt stalls into a non-answer. One run put "I have this
+repo's skills installed" in four prompts and stubbed nine of sixteen baseline
+cells, leaving the comparison at n=1 and the run unusable.
+
 **2. Will the answers actually be gradable?** The model sometimes tries to use
 a tool, gets blocked (the harness runs with tools off), and writes a stub
 instead of an answer. Those must be graded "ungradable", not "wrong". Run two
@@ -510,3 +528,7 @@ State these when reporting; do not pretend they are solved.
   biggest gap, and closing it means building a different harness, not writing
   a different probe.
 - **Results are tied to a model.** Verified on sonnet means verified on sonnet.
+- **A skill is only measured where its probes point.** Covering the part of a
+  file the model cannot know produces a very large effect and says nothing about
+  the rest. Report the coverage — how many claims have a probe at all — next to
+  the effect number, and do not call a skill finished on a favourable subset.
