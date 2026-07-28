@@ -242,6 +242,26 @@ python3 harness/runner.py run --suite <suite> \
 check is rejected. A variant that wins one is adopted. A variant that ties is
 adopted if it is shorter.
 
+**Compare variants against each other, not only against the current body.**
+Three rewrites of one skill were each measured against `full` alone, each lost
+a different check, and the repetition read as a pattern — "another line that
+measured CUT was actually load-bearing". Laid side by side, two of the three
+numbers said the opposite: one check scored perfectly in the variant that
+*omitted its topic entirely* and broke only in the next variant, which had
+added a short summary of a different topic. The contradiction was in data
+already collected and cost nothing to find, only the question.
+
+**A terse summary can be worse than the full text and worse than nothing.**
+That is what those two checks were showing. Omit a topic and the model answers
+from its own knowledge, completely. Summarise it badly and the summary becomes
+the frame the answer is built on — whatever the summary dropped is dropped from
+the answer too. In that run the shipped body explained a *cause* ("a
+single-threaded executor cannot process service responses while executing a
+blocking callback") and the rewrite compressed it to the *fix* alone
+("use `MultiThreadedExecutor` with a `ReentrantCallbackGroup`"). The model
+reproduced the fix without the cause, and the check that looked for the cause
+failed. When compressing, keep the reason, not just the instruction.
+
 Every redundancy group from step 2 is a candidate. So is any worked example
 that the model might not need — see the ceiling note near the top of this file.
 
@@ -341,16 +361,11 @@ deleting it, check what the model does with no file at all. If that is bad, the
 content is load-bearing and only its wording is redundant.
 
 *Here:* six claims looked jointly removable. One of them scored **0/8** unaided
-— the strongest single line in the skill. On another, larger skill three
-successive rewrites were rejected, each on a *different* check whose claim had
-measured `naked = full = ablate = 1.00`. When a file's content reinforces
-itself, per-claim CUT verdicts stop predicting what happens to the body they
-are cut from; the confirmation or variant run is the only thing that knows.
+— the strongest single line in the skill.
 
-*Know when to stop.* If two or three rewrites are each rejected on a different
-CUT-verdict line, the answer is "this file does not compress that way", not
-"try a fourth". Record it and move on -- each further round buys one line back
-and finds another.
+*Know when to stop.* If two or three rewrites are each rejected, the answer may
+be "this file does not compress the way I keep writing it", not "try a fourth".
+Record what failed and why, and move on.
 
 ### A grader tests a pattern, not knowledge
 

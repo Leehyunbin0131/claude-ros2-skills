@@ -39,7 +39,7 @@ it cannot drift away from what actually ships.
 | `ros2-package` | 0.844 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
 | `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
-| `ros2-troubleshooting` | 0.440 → 0.990 | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
+| `ros2-troubleshooting` | 0.795 → 1.000 *(0.050 → 0.982 on the scripts section)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
 | `gazebo-sim` | — | IN PROGRESS | — |
 | `ros2-control` | — | IN PROGRESS | — |
 | `ros2-moveit` | — | IN PROGRESS | — |
@@ -304,53 +304,85 @@ matching the pattern. Detail:
 
 **`ros2-troubleshooting`** is the largest skill (119 lines, 50 claims) and the
 first with no pre-existing probes. All 50 claims were measured. **Nothing was
-cut** — three rewrites were authored and all three were rejected on
-measurement, which is the finding.
+cut**, and the reason is not the one this section originally gave — see the
+correction below, which is the more useful finding.
 
 Probe design started from a measurement rather than from the file. Asked cold,
 sonnet diagnoses the silent-QoS case and reaches for `ros2 topic info -v`
 unprompted, works the inverted-drive bug layer by layer, and gives the
 `ROS_DOMAIN_ID` range as **0-232 with the 0-101 ephemeral-port caveat and the
-`7400 + 250*id` arithmetic** — a superset of what the skill says. Its unaided
-answers are sometimes better than the file, adding `twist_mux` re-signing as a
-candidate cause and a way to confirm frame orientation from a known
-front-mounted sensor's `x` sign.
+`7400 + 250*id` arithmetic** — a superset of what the skill says.
 
-Five claims cleared q<0.05, all in the shipped-scripts section, where `naked` is
-structurally 0.00 because those filenames exist nowhere else. The sharpest is
-`advisory_not_verdict`: it scores **1.00 unaided and 0.00 ablated**. Asked cold
-the model reasons correctly that a `VERIFY PHYSICALLY` advisory on a
-deliberately inverted mount is not a verdict; given the rest of the skill with
-that one line removed, it stops. The surrounding text creates a wrong
-expectation that only that line corrects.
+**Axis 1 has to be read in two halves, not pooled.** The file's two parts behave
+completely differently:
 
-The other 45 claims measured CUT or unclear at `naked` 0.75–1.00 — and cutting
-them failed three times, each on a different check that single ablation had
-scored `naked = full = ablate = 1.00`:
+| | naked | full |
+| :--- | ---: | ---: |
+| Shipped-scripts section (1a) | 4/80 = **0.050** | 109/111 = 0.982 |
+| Everything else (42 claims) | 70/88 = **0.795** | 92/92 = 1.000 |
+| Pooled | 74/168 = 0.440 | 201/203 = 0.990 |
 
-| Rewrite | Lines | Rejected on | full vs variant | p |
-| :--- | ---: | :--- | :--- | ---: |
-| `compressed` | 44 | `tf2_echo` | 8/8 vs 2/6 | 0.015 |
-| `compressed2` | 58 | `domain_default` | 15/16 vs 7/16 | 0.006 |
-| `compressed3` | 62 | `single_thread` | 16/16 vs 9/16 | 0.007 |
+The pooled 0.440 is not a summary of this skill, it is an artifact of how many
+checks point at each half. Roughly half the graded baseline cells belong to
+probes whose checks ask for filenames that exist nowhere but this repository, so
+`naked` there is structurally near zero. The honest reading: the scripts section
+is worth a great deal, the rest is worth about +0.20 over an unaided model.
 
-Each rejection was repaired in the next attempt and a different CUT-verdict line
-broke instead. **For this file a per-claim CUT verdict does not predict what
-happens when the section around it goes.** With the whole table present any one
-row is redundant; with most of the table gone the survivors stop being enough.
-The project's rule that the state which matters is the one that will ship held
-three times consecutively, at $14.56. Cutting was abandoned after the third
-rejection rather than iterating — the pattern was established and further runs
-would have been paying to reconfirm it. Detail:
+Five claims cleared q<0.05, all in the scripts section. The sharpest is
+`advisory_not_verdict`, at **1.00 unaided and 0/7 ablated**: asked cold the
+model reasons correctly that a `VERIFY PHYSICALLY` advisory on a deliberately
+inverted mount is not a verdict, and given the rest of the skill with that one
+line removed it stops. The surrounding text creates a wrong expectation that
+only that line corrects.
+
+### Correction: three rewrites were rejected, and not for the reason first recorded
+
+Three compressed rewrites were authored and all three lost a check
+significantly, so none shipped. The first write-up concluded that per-claim
+`CUT` verdicts had been wrong — that each rewrite had removed a line which was
+secretly load-bearing. **Re-reading the three variant runs side by side rather
+than each against `full` alone shows that is true for only one of the three.**
+
+| Check | `full` | v1 (topic absent) | v2 (terse summary added) | v3 (more added) |
+| :--- | ---: | ---: | ---: | ---: |
+| `tf2_echo` | 8/8 | **2/6** | 7/8 | 13/14 |
+| `domain_default` | 15/16 | 8/8 | **7/16** | 16/16 |
+| `single_thread` | 16/16 | 7/8 | 13/16 | **9/16** |
+
+`tf2_echo` behaves as first described: the line was dropped, the check
+collapsed, restoring the line fixed it. The other two do the opposite.
+`domain_default` scored a clean 8/8 in the variant that omitted DDS content
+**entirely**, and only broke in the next variant, which still omitted it but had
+gained an unrelated summary section. `single_thread` got monotonically *worse*
+as content about it was added back.
+
+The mechanism is visible in the text. The `single_thread` check looks for the
+words `single-threaded`. The shipped body explains the cause — *"a
+single-threaded executor cannot process service responses while executing a
+blocking callback"* — while the rewrite compressed it to *"needs a
+`MultiThreadedExecutor` plus a `ReentrantCallbackGroup`"*, which is the fix with
+the cause deleted. The model followed the shorter framing and produced the fix
+without the cause.
+
+**A terse summary of a topic can be worse than both the full treatment and
+saying nothing at all.** Omit a topic and the model answers from its own
+knowledge, completely. Summarise it badly and the summary becomes the frame the
+answer is built on, and whatever the summary dropped is dropped from the answer
+too. That is a sharper and more actionable finding than "the content is
+mutually reinforcing", which is what was recorded first.
+
+So what is established is **"these three rewrites failed"**, not "this file
+cannot be compressed". The failures trace to how the rewrites were written —
+they kept actions and discarded causes — not to a property of the file. A
+compression that preserves the causal explanations was never tried, and the
+skill ships unchanged at 119 lines either way. Detail:
 [run notes](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md).
 
-One probe-design lesson cost a full run. The first version of all four original
-prompts said *"I have this repo's Claude skills installed"*, meant to make it
-fair to expect the agent to find the script. It did the opposite: it told the
-model context existed to be hunted for, and with tools off the hunt stalls —
-nine of sixteen `naked` cells stubbed and the baseline landed at n=1. **A probe
-prompt must read like a user's question, not like a hint that context exists to
-be found.**
+The miss is worth naming as a method failure: each variant was compared only
+against `full`, never against the other variants, so three runs each produced
+"another CUT-verdict line broke" and the pattern looked like confirmation. Two
+of the three numbers contradict that reading and the contradiction was sitting
+in data already collected.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

@@ -12,11 +12,23 @@ authored rewrites were built and all three were rejected on measurement.
 | Method | probe design driven by a pre-measurement, n=4 sweep with targeted top-ups, then three rewrite attempts |
 | Probes | 10 new, 35 checks, covering 50/50 claims |
 | Spend | $20.68 sweep and top-ups, $14.56 across three rejected rewrites, $4.74 on a discarded first probe design — $39.98 |
-| Outcome | file unchanged at 119 lines. `naked` 0.440 vs `full` 0.990 |
+| Outcome | file unchanged at 119 lines. `naked` 0.795 vs `full` 1.000 off the scripts section, 0.050 vs 0.982 on it |
 
-## Axis 1
+## Axis 1 — read in two halves, not pooled
 
-Pooled over all 35 checks: **`naked` 74/168 = 0.440, `full` 201/203 = 0.990.**
+| | naked | full |
+| :--- | ---: | ---: |
+| Shipped-scripts section (1a) | 4/80 = **0.050** | 109/111 = 0.982 |
+| Everything else (42 claims) | 70/88 = **0.795** | 92/92 = 1.000 |
+| Pooled | 74/168 = 0.440 | 201/203 = 0.990 |
+
+The pooled 0.440 is an artifact of how many checks point at each half, not a
+summary of the skill: about half the graded baseline cells belong to probes
+asking for filenames that exist nowhere but this repository, where `naked` is
+structurally near zero. The scripts section is worth a great deal; the rest is
+worth roughly +0.20 over an unaided model. Quoting the pooled figure alone
+overstates the file by more than a factor of two on its larger half.
+
 `protocol` (CLAUDE.md alone) is 0.362, below `naked` — the familiar artifact of
 telling a tools-off model to go verify against the install.
 
@@ -38,7 +50,7 @@ verdict. Given the rest of the skill with that one line removed, it stops doing
 so. The surrounding text creates the wrong expectation and only that line
 corrects it.
 
-## Axis 2, part two: everything else measured CUT, and cutting it failed anyway
+## Axis 2, part two: everything else measured CUT, and three attempts to cut it failed
 
 The other 45 claims came back CUT or unclear, with `naked` between 0.75 and
 1.00. The pre-measurement had predicted exactly this: asked cold, sonnet
@@ -51,8 +63,7 @@ cause and a way to confirm frame orientation from a known front-mounted sensor's
 `x` sign, neither of which the skill mentions.
 
 So three rewrites were authored, each dropping the sections that measured CUT
-and keeping section 1a. **All three were rejected**, each by a different check
-that single ablation had scored `naked = full = ablate = 1.00`:
+and keeping section 1a. **All three were rejected:**
 
 | Rewrite | Lines | Rejected on | full vs variant | p |
 | :--- | ---: | :--- | :--- | ---: |
@@ -60,21 +71,52 @@ that single ablation had scored `naked = full = ablate = 1.00`:
 | `compressed2` | 58 | `domain_default` | 15/16 vs 7/16 | 0.006 |
 | `compressed3` | 62 | `single_thread` | 16/16 vs 9/16 | 0.007 |
 
-Each rejection was repaired in the next attempt — the `tf2_echo` action line
-went back, then the `ROS_DOMAIN_ID` default, then the executor explanation — and
-each time a different line that had also measured CUT broke instead.
+### Corrected reading of those three rejections
 
-**That is the result, and it is not a failed experiment.** For this file, a
-single-claim ablation verdict of CUT does not predict what happens when the
-section around it goes. The content is mutually reinforcing in a way the
-per-claim instrument cannot resolve: with the whole table present, any one row
-is redundant; with most of the table gone, the survivors stop being enough. The
-project's own rule — that the state which matters is the one that will ship —
-held three times in a row here, at a cost of $14.56 to establish.
+The first version of these notes concluded that each rewrite had removed a line
+which was secretly load-bearing despite a `CUT` verdict — that per-claim
+ablation had simply been wrong. **Comparing the three variant runs against each
+other, rather than each against `full` alone, shows that holds for one of the
+three and is contradicted by the other two.**
 
-Cutting was abandoned after the third rejection rather than iterating further.
-Each round buys one line back and finds another; the pattern was clear and more
-runs would have been spending to confirm something already demonstrated.
+| Check | `full` | v1 (topic absent) | v2 (terse summary added) | v3 (more added) |
+| :--- | ---: | ---: | ---: | ---: |
+| `tf2_echo` | 8/8 | **2/6** | 7/8 | 13/14 |
+| `domain_default` | 15/16 | 8/8 | **7/16** | 16/16 |
+| `single_thread` | 16/16 | 7/8 | 13/16 | **9/16** |
+
+`tf2_echo` behaves as first described — dropped, collapsed, restored, fixed.
+The other two do the opposite. `domain_default` scored **8/8 in the variant
+that omitted DDS content entirely** and only broke in the next one, which still
+omitted it but had gained an unrelated summary section. `single_thread` got
+monotonically worse as content about it was added back.
+
+The mechanism is in the wording. `_ts_single_thread_cause` searches for
+`single[- ]?threaded`. The shipped body gives the cause — *"a single-threaded
+executor cannot process service responses while executing a blocking
+callback"* — and the rewrite compressed that to *"needs a
+`MultiThreadedExecutor` plus a `ReentrantCallbackGroup`"*: the fix with the
+cause deleted. The model followed the shorter framing and produced the fix
+without the cause.
+
+**A terse summary of a topic can be worse than both the full treatment and
+saying nothing.** Omit a topic and the model answers from its own knowledge,
+completely. Summarise it badly and the summary becomes the frame the answer is
+built on, and what the summary dropped is dropped from the answer.
+
+What is therefore established is **"these three rewrites failed"**, not "this
+file cannot be compressed". The failures trace to how the rewrites were written
+— actions kept, causes discarded — not to a property of the file. A compression
+that preserves the causal explanations was never attempted. The skill ships
+unchanged at 119 lines either way, so that attempt was not made rather than
+spending further on a body that was not going to change.
+
+**How the misreading happened, since it is the reusable part:** each variant was
+compared only against `full`, never against the other variants. Three runs each
+reported "another CUT-verdict line broke" and the repetition read as
+confirmation. Two of the three numbers contradict that story and the
+contradiction was sitting in data already collected — it cost nothing to find,
+only the question.
 
 ## Method notes
 
