@@ -127,7 +127,6 @@ Redémarrez Claude Code (ou démarrez une nouvelle session) pour appliquer les s
 | **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
 | **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, API C++/Python rosbag2, ros2trace |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | Agent micro-ROS, API client rclc, transports personnalisés, mémoire statique |
-| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, génération de keystore PKI, contrôle d'accès, sécurité DDS |
 | **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | Arbre TF de vérité terrain REP 103/105, alignement LiDAR/IMU, vérification physique |
 
 ## Scripts de vérification

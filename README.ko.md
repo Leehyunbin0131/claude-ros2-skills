@@ -127,7 +127,6 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 | **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
 | **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python API, ros2trace |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc 클라이언트 API, 커스텀 트랜스포트, 정적 메모리 |
-| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, PKI 키스토어 생성, 접근 제어, DDS Security |
 | **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 기준 좌표 TF 트리, LiDAR/IMU 정렬, 물리 검증 |
 
 ## 검증 스크립트

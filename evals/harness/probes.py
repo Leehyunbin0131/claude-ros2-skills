@@ -46,8 +46,8 @@ _TOOL_STUB_RE = re.compile(
     # swept up. Went through three narrower drafts before this one --
     # "**Tool:", "**tool_call**:", an icon glyph in front of the word, and
     # "Tool Call:" (a space instead of an underscore) were each a distinct
-    # miss found re-checking ros2-security on 2026-07-28, and each scored a
-    # hard False rather than ungradable before being caught. Anchoring to
+    # miss found on 2026-07-28, and each scored a hard False rather than
+    # ungradable before being caught. Anchoring to
     # "right after **" or to an exact separator character kept losing to the
     # next rendering; matching the word and the colon loosely does not.
     r"\bTool\b.{0,20}:"
@@ -58,9 +58,9 @@ _TOOL_STUB_RE = re.compile(
     r"|\*\[Tool\s+execution\s+failed\]\*"
     r"|\[Errno\s+2\]\s+No\s+such\s+file\s+or\s+directory:\s*'[a-zA-Z_]+'"
     # Function-call-shaped tool invocation rendering, e.g.
-    # `Search(pattern: "ros2-*", path: "...")` -- found 2026-07-28 re-checking
-    # ros2-security, where "let me check for a relevant skill... Search(...)"
-    # scored a hard False on real content questions instead of ungradable.
+    # `Search(pattern: "ros2-*", path: "...")` -- found 2026-07-28, where
+    # "let me check for a relevant skill... Search(...)" scored a hard False
+    # on real content questions instead of ungradable.
     r"|\b[A-Z][A-Za-z]*\([a-z_]+\s*:\s*[\"']",
     re.M,
 )
@@ -602,205 +602,6 @@ P_DOMAIN = Probe(
 )
 
 
-# --- ros2-security suite (RETIRED 2026-07-28) ---------------------------------
-#
-# The skill these probes measured no longer exists. It was deleted, not trimmed:
-# sonnet scored naked 92/92 = 1.000 across every check here, every single
-# ablation also 1.000, and a follow-up naked test at a precision these checks
-# never reached -- exact flags, not just command names -- came back 4/4 correct
-# against the live Jazzy install (`create_enclave ROOT NAME` positional,
-# `generate_artifacts -k/-e/-p`, `create_permission ROOT NAME POLICY_FILE_PATH`,
-# `--ros-args --enclave`, all three env vars). There was no measurable behaviour
-# left for the file to change. See evals/RESULTS.md.
-#
-# The probes stay in the tree, and stay runnable, because they are the evidence
-# for that deletion and the starting point for re-testing it. The one hypothesis
-# the deletion does NOT settle is whether a documentation pointer earns its place
-# by making an agent go *verify* before answering -- behaviour, not recall. No
-# cell in this harness can see that: every cell is single-turn with `--tools ""`,
-# which is the exact condition under which a pointer cannot pay off. If a
-# tools-enabled multi-turn harness is ever built, re-run these first.
-#
-# They are excluded from PROBES so ordinary sweeps skip them, and their claim
-# constants are None so the drift check does not chase ids into a deleted file.
-C_SEC_ARCH = None
-C_SEC_NAV_CONCEPTS = None
-C_SEC_NAV_TUTORIAL = None
-C_SEC_NAV_VERIFY = None
-C_SEC_CLI = None
-C_SEC_POLICY = None
-
-
-def _sec_create_keystore(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"ros2 security create_keystore")
-
-
-def _sec_create_enclave(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"ros2 security create_enclave")
-
-
-def _sec_enclave_flag(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"--enclave\b")
-
-
-def _sec_env_enable(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"ROS_SECURITY_ENABLE")
-
-
-def _sec_env_strategy(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"ROS_SECURITY_STRATEGY")
-
-
-def _sec_env_keystore(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"ROS_SECURITY_KEYSTORE")
-
-
-P_SEC_KEYSTORE = Probe(
-    id="sros2-keystore",
-    suite="security",
-    skill="ros2-security",
-    prompt=(
-        "I have a ROS 2 Jazzy node called `talker` (package `demo_nodes_cpp`) that I "
-        "need to run inside enclave `/talker_listener/talker` with DDS security "
-        "enabled. Give me every command and environment variable needed, from "
-        "creating the keystore through launching the node with security turned on."
-    ),
-    checks={
-        "create_keystore": Check(_sec_create_keystore, [],
-                                 "creates the root keystore via ros2 security create_keystore — "
-                                 "its own code block was cut, naked was already 8/8"),
-        "create_enclave": Check(_sec_create_enclave, [],
-                                "creates the enclave via ros2 security create_enclave"),
-        "enclave_flag": Check(_sec_enclave_flag, [],
-                              "launches the node with --enclave"),
-        "env_enable": Check(_sec_env_enable, [], "sets ROS_SECURITY_ENABLE"),
-        "env_strategy": Check(_sec_env_strategy, [], "sets ROS_SECURITY_STRATEGY"),
-        "env_keystore": Check(_sec_env_keystore, [], "sets ROS_SECURITY_KEYSTORE"),
-    },
-    note="Was the CLI code block's ablation instrument; that block was cut "
-         "(8/8 naked = 8/8 full = 8/8 ablated on every check, n=8), and the "
-         "skill itself was deleted after the remaining pointers scored naked "
-         "1.000 too. Retired -- see the suite header.",
-)
-
-
-def _sec_policy_root(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return bool(re.search(r"<policy\b", src)) and bool(re.search(r"version\s*=", src))
-
-
-def _sec_policy_enclave_path(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"<enclave\s+path\s*=")
-
-
-def _sec_policy_profile_node(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    # Was `<profile\s+node\s*=`, order-sensitive: valid XML can write
-    # `<profile ns="/" node="talker">` just as correctly, and sonnet does.
-    # Found 2026-07-28 -- a naked answer with exactly that attribute order
-    # was scored False despite being fully correct.
-    return bool(re.search(r"<profile\b[^>]*\bnode\s*=", src))
-
-
-def _sec_policy_topics_allow(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r'publish\s*=\s*"ALLOW"', r"publish\s*=\s*'ALLOW'")
-
-
-def _sec_policy_topic_name(answer: str) -> bool | None:
-    src = code(answer)
-    if src is None:
-        return None
-    return _has(src, r"<topic>\s*chatter\s*</topic>")
-
-
-P_SEC_POLICY = Probe(
-    id="sros2-access-policy",
-    suite="security",
-    skill="ros2-security",
-    prompt=(
-        "Write the SROS2 access-control policy XML that goes in the keystore's "
-        "policies folder for enclave `/talker_listener/talker`. It should let the "
-        "node `talker` in namespace `/` publish on topic `chatter`, and nothing else."
-    ),
-    checks={
-        "policy_root": Check(_sec_policy_root, [], "root <policy version=...> element — its own "
-                             "code block was cut, naked was already 8/8 on every check"),
-        "enclave_path": Check(_sec_policy_enclave_path, [], "<enclave path=...> element"),
-        "profile_node": Check(_sec_policy_profile_node, [], "<profile node=...> element"),
-        "topics_allow": Check(_sec_policy_topics_allow, [], "publish=\"ALLOW\" attribute"),
-        "topic_name": Check(_sec_policy_topic_name, [], "<topic>chatter</topic> element"),
-    },
-)
-
-
-def _sec_arch_dds_security(answer: str) -> bool | None:
-    text = prose(answer)
-    if text is None:
-        return None
-    return _has(text, r"DDS-Security", r"DDS Security")
-
-
-def _sec_arch_pki(answer: str) -> bool | None:
-    text = prose(answer)
-    if text is None:
-        return None
-    return _has(text, r"X\.509", r"\bPKI\b")
-
-
-def _sec_arch_rmw_backend(answer: str) -> bool | None:
-    text = prose(answer)
-    if text is None:
-        return None
-    return _has(text, r"Fast ?DDS", r"FastRTPS", r"Cyclone ?DDS")
-
-
-P_SEC_ARCH = Probe(
-    id="sros2-mechanism",
-    suite="security",
-    skill="ros2-security",
-    prompt=(
-        "In ROS 2 Jazzy, when SROS2 security is turned on, what actually "
-        "authenticates nodes to each other and enforces the access-control rules "
-        "under the hood — not the CLI commands, the underlying mechanism?"
-    ),
-    checks={
-        "dds_security": Check(_sec_arch_dds_security, [], "names DDS-Security — its own "
-                              "sentence was cut, naked was already 8/8 on every check"),
-        "pki": Check(_sec_arch_pki, [], "names X.509/PKI authentication"),
-        "rmw_backend": Check(_sec_arch_rmw_backend, [], "names a DDS-Security-capable RMW"),
-    },
-    note="Deliberately a fact the model may already know cold — cut candidate if naked is high.",
-)
-
-
 # --- ros2-testing suite -------------------------------------------------------
 # Third skill; also the first suite that turns on the "addition" and "position"
 # cases (`only:<id>` = does this one claim alone suffice; `reorder:4,1,2,3` =
@@ -809,7 +610,7 @@ P_SEC_ARCH = Probe(
 # floor (n=4 — the smallest sample where a clean 0/n vs n/n can still reach
 # p<0.05) since the case count per claim roughly triples; anything that looks
 # ambiguous gets a targeted top-up rather than a blanket re-run, same as the
-# false negatives caught in ros2-core and ros2-security.
+# false negatives caught in ros2-core.
 
 # Re-read against claims.jsonl 2026-07-28, twice. First pass: the 78->76 cut
 # removed the launch_testing-hang and CI rows at old :03/:04 and renumbered the
@@ -1919,9 +1720,3 @@ PROBES: list[Probe] = [
     P_PERC_CVBRIDGE, P_PERC_PCL, P_PERC_QOS, P_PERC_DEPTH,
     P_PERC_DIAGNOSE, P_PERC_DOCS,
 ]
-
-# Probes whose skill no longer exists. Not swept, but kept constructible so the
-# evidence behind a deletion stays runnable -- point `--probe` at one by name to
-# re-measure it. See the ros2-security suite header for what it would take to
-# overturn that deletion.
-RETIRED_PROBES: list[Probe] = [P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH]

@@ -8,7 +8,7 @@
     {
       "name": "claude-ros2-skills",
       "source": "./",
-      "description": "ROS 2 Jazzy skills covering core, Nav2, Gazebo, control, MoveIt, perception, testing, micro-ROS, security, and troubleshooting.",
+      "description": "ROS 2 Jazzy skills covering core, Nav2, Gazebo, control, MoveIt, perception, testing, micro-ROS, and troubleshooting.",
       "license": "Apache-2.0",
       "category": "robotics",
       "keywords": ["ros2", "jazzy", "gazebo", "nav2", "moveit", "robotics"],

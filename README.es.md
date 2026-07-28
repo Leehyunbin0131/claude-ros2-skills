@@ -127,7 +127,6 @@ Reinicia Claude Code (o inicia una nueva sesión) para aplicar los skills instal
 | **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
 | **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, API C++/Python de rosbag2, ros2trace |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, API cliente rclc, transportes personalizados, memoria estática |
-| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, generación de keystore PKI, control de acceso, DDS Security |
 | **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | árbol TF de referencia REP 103/105, alineación de LiDAR/IMU, verificación física |
 
 ## Scripts de verificación

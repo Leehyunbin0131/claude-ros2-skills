@@ -35,7 +35,6 @@ it cannot drift away from what actually ships.
 | Skill | Effect (naked → full, shipped body) | Status | Evidence |
 | :--- | :--- | :--- | :--- |
 | `ros2-core` | 0.689 → 0.949 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
-| `ros2-security` | 1.000 → 1.000 (sonnet) | DID NOT CLEAR — **skill deleted** | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
 | `ros2-testing` | 0.762 → 1.000 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
 | `ros2-package` | 0.787 → 0.958 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
 | `ros2-perception` | 0.704 → 0.993 (haiku) | VERIFIED (haiku) | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
@@ -83,16 +82,6 @@ Two findings from that run are about the pack rather than the skill:
 - **Contamination was looked for and not found.** Adding the protocol on top of
   the body scored 0.92 vs 0.94, p=0.67. Individual checks drop, the aggregate does
   not.
-
-`ros2-security` is the second skill verified, and closes both axes in a single
-run: 0.60 → **1.00** (p<0.0001) pooled over 14 checks across 6 claims, and every
-ablatable claim came back load-bearing — zero cuts, so the 52-line body is
-already the smallest one the harness can find. The same false-negative shape
-`ros2-core` hit showed up here too, on the architecture sentence naming which RMW
-implementations carry DDS-Security: Δ=+0.25, p=0.467 at n=8 looked like a cut,
-and a targeted top-up to n=16 turned it into a real KEEP (p=0.007). Same
-contamination check, same result — 1.00 vs 1.00, p=1.00. Detail:
-[ablation](./runs/2026-07-27-security/NOTES.md).
 
 `ros2-testing` is the third, and the first run to test more than deletion: every
 claim was also tried alone (`only:<id>`, does one line by itself already produce
@@ -313,77 +302,12 @@ different claims (the TF-catch rule and the TF2 symbols bullet) both drove its
 redundancy-pair blind spot the project's own methodology (see below) exists to
 catch, just never applied to this one probe. Added before either claim was cut.
 
-**`ros2-security`**, the smallest skill (6 claims), reversed hardest. The
-original haiku pass found *zero* cuttable lines — every claim load-bearing,
-including a targeted top-up to n=16 to confirm the architecture sentence
-survived. On sonnet, three of the six claims (architecture, the SROS2 CLI code
-block, the `policy.xml` block) hit `naked=full=ablate=1.00` on **every one of
-their 14 owned checks**, at n=8, no exceptions and no UNDERPOWERED reads — the
-cleanest signal measured anywhere in this project. Verified past the regex
-before cutting anything this size on a security skill: naked policy-XML
-answers were pulled and read whole, reproducing the skill's own example
-byte-for-byte including nesting the checks don't verify, and all 8 naked
-architecture answers named the untested AES-GCM-GMAC cipher suite unaided.
-52 lines cut to 13 (architecture, CLI commands, and the policy block all
-removed; only the documentation-pointer section survives), confirmed against
-the real shipped body: naked 59/60 vs full 68/69, p=1.000 — indistinguishable.
-Detail: [ablation](./runs/2026-07-28-security-sonnet/),
-[confirmation](./runs/2026-07-28-security-sonnet-confirm/).
-
-**Read that last number as axis 1, not as a successful confirmation.** It says
-the cut did no damage, but it says so because `naked` is already at the ceiling
-— 92/92 = 1.000 in the ablation run, every one of the six single-claim
-ablations also 1.000. A perfect unaided score leaves no room for a file to add
-anything, so what the run establishes is not "these 13 lines help a little"
-but "this instrument cannot detect any help at all."
-
-The obvious next move was to make the probe harder, so that was tried before
-deciding anything. The checks only ever asked whether the right *command name*
-appeared — never whether the invocation would actually run. So sonnet was asked
-`naked`, four times, for the exact shell commands to stand up SROS2 for
-`/talker`, and the answers were diffed against the live Jazzy install rather
-than against a regex. All four were correct at a precision the checks never
-reached: `create_keystore ROOT` and `create_enclave ROOT NAME` positional and
-in the right order, `generate_artifacts -k/-e/-p` with the right short flags,
-`create_permission ROOT NAME POLICY_FILE_PATH`, `--ros-args --enclave`
-(`RCL_ENCLAVE_FLAG` in `rcl/arguments.h`), and all three env vars with
-`ROS_SECURITY_STRATEGY=Enforce`. One answer reached for `create_permission`
-instead of `generate_artifacts` — also a real subcommand, also the right
-signature. Not one wrong flag in four samples. The precision direction is a
-measured dead end, not an untried option.
-
-**So the skill was deleted, not trimmed further.** Keeping 13 lines had been
-justified on the grounds that they cost nothing, and that pricing was wrong.
-A skill's `description` sits in context for routing whether or not the body is
-ever read; every verification sweep has to carry the file (this one was
-re-verified twice in a day); and a `ros2-security/` entry in the skills
-directory reads as coverage of a domain that is in fact two URLs. Absence is
-more honest than a stub. The retention argument also leaned on CLAUDE.md,
-which turns out never to mention security at all — and for this domain the
-local install is the better ground truth anyway, since `ros2 security --help`
-*is* the answer and CLAUDE.md already points there.
-
-One hypothesis survives the deletion, and it is worth stating precisely
-because nothing here tests it: a documentation pointer might earn its place not
-by supplying knowledge but by changing *behaviour* — making the agent go check
-before it answers. Every cell in this harness is single-turn with `--tools ""`,
-the one condition under which a pointer provably cannot pay off. That is a gap
-in the instrument, not a finding. The probes are retired rather than removed
-(`RETIRED_PROBES` in `probes.py`) and the runs stay linked above, so if a
-tools-enabled multi-turn harness is ever built, this is the first thing to
-re-measure and the deletion is one commit to undo.
-
-This is not evidence the haiku-era verdict was performed carelessly — it
-passed every check this project had at the time. It is the starkest
-demonstration yet of the caveat two sections up: a "load-bearing, zero cuts"
-result is a fact about the grading model, not about the skill, and the two
-can point in opposite directions on the same file.
-
-Closing this run also fixed two bugs the confirmation step itself surfaced.
-`_sec_policy_profile_node` required `<profile node=...>` with `node` as the
-first attribute; sonnet correctly writes `<profile ns="/" node="...">` just as
-often, and the order-sensitive regex scored valid XML `False`. And the
-tool-call stub detector (see the sonnet-switch caveat above) kept meeting new
+The sonnet re-checks also surfaced two grading bugs worth recording, because
+both scored *correct* answers as failures and neither was visible in the
+aggregate. One check was order-sensitive on XML attributes — it demanded a
+particular attribute first, and sonnet writes them in a different but equally
+valid order just as often, so real answers scored `False`. And the tool-call
+stub detector (see the sonnet-switch caveat above) kept meeting new
 renderings it didn't cover — an icon glyph in front of "Tool:", then
 `**Tool Call:**` with a space instead of an underscore — each one scoring a
 hard `False` on a real question instead of ungradable until caught. Both
@@ -395,9 +319,8 @@ one flagged "false positive" turned out to be the same class of bug again — a
 negative-form check (`no_python_qos_in_cpp`, true whenever the wrong syntax is
 *absent*) trivially passing a stub that never answered at all.
 
-**`ros2-testing`** went the other way from `ros2-security` on both axes, and
-produced the most useful method result so far. Axis 1 is the strongest measured
-anywhere: on the shipped body at n=8, `naked` 77/101 = 0.762 against `full`
+**`ros2-testing`** produced the most useful method result so far. Axis 1 is the
+strongest measured anywhere: on the shipped body at n=8, `naked` 77/101 = 0.762 against `full`
 104/104 = 1.000. Two checks carry most of that gap — `writer_create_topic` is
 **0/8 unaided**, because sonnet reaches for the templated
 `writer.write(msg, topic, time)` overload and never registers the topic, and
@@ -480,7 +403,7 @@ Gazebo, ros2_control, MoveIt and the perception stack were installed:
 
 | Runnable now | Blocked until installed |
 | :--- | :--- |
-| `ros2-core`, `ros2-package`, `ros2-troubleshooting`, `ros2-testing`, `ros2-security`, `ros2-perception`, `ros2-dev`, `gazebo-sim`, `ros2-control`, `ros2-moveit` | `ros2-microros` (`micro-ros-agent` has no apt package — needs the `micro_ros_setup` source build) |
+| `ros2-core`, `ros2-package`, `ros2-troubleshooting`, `ros2-testing`, `ros2-perception`, `ros2-dev`, `gazebo-sim`, `ros2-control`, `ros2-moveit` | `ros2-microros` (`micro-ros-agent` has no apt package — needs the `micro_ros_setup` source build) |
 
 Re-check with `ros2 pkg prefix <pkg>` rather than trusting this table — it is a
 snapshot of one machine.

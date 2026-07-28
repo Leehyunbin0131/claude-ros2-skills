@@ -127,7 +127,6 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 | **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport、cv_bridge、vision_msgs、depth_image_proc、PCL |
 | **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing、gtest/pytest、rosbag2 C++/Python API、ros2trace |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent、rclc 客户端 API、自定义传输层、静态内存 |
-| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2、PKI 密钥库生成、访问控制、DDS 安全机制 |
 | **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 基准 TF 树、激光雷达/IMU 对齐、实体机器人验证 |
 
 ## 验证脚本

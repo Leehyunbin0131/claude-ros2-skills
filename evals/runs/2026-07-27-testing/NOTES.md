@@ -174,7 +174,7 @@ stay unverified for effect, same limitation noted on both prior skills.
 
 ## A third failure mode, distinct from the two prior runs' false negatives
 
-`ros2-core` and `ros2-security` each caught single-ablation Δ=0 hiding a real
+`ros2-core` caught single-ablation Δ=0 hiding a real
 effect (a false *negative* — power too low to see it). This run's `4symptom:03`/
 `:04` pair is a different mistake shape: single-ablation showed a real-looking
 signal — `ci_cause` regressing to the naked baseline, and both removals dragging

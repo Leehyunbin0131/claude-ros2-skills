@@ -127,7 +127,6 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 | **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
 | **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python API, ros2trace |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc クライアント API, カスタムトランスポート, 静的メモリ割り当て |
-| **ros2-security** | `skills/ros2-security/SKILL.md` | SROS2, PKI キーストア生成, アクセス制御, DDS Security |
 | **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 グラウンドトゥルース TF ツリー, LiDAR/IMU アライメント, 実機検証 |
 
 ## 検証スクリプト

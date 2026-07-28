@@ -54,14 +54,7 @@ before shipping, five lines cut in the end. That is the reason joint measurement
 of the reduced body is not optional either, symmetric with the joint-ablation
 point below.
 
-Second use: [`../runs/2026-07-27-security/`](../runs/2026-07-27-security/) — all 6
-`ros2-security` claims, 176 cells, zero cuts. The same false-negative shape hit
-again, on a single-sentence claim this time (single-ablation Δ=+0.25, p=0.467 →
-top-up to n=16, p=0.007), which is the reason that top-up step is now routine
-whenever a single-ablation Δ isn't near zero *and* isn't significant, not
-something to reach for only after a suite-wide confirmation run flags it.
-
-Third use: [`../runs/2026-07-27-testing/`](../runs/2026-07-27-testing/) — added
+Second use: [`../runs/2026-07-27-testing/`](../runs/2026-07-27-testing/) — added
 two condition types beyond deletion. `only:<id>` (addition — does this claim
 alone, with nothing else in the system prompt, already produce its own effect)
 and `reorder:<n1,n2,...>` (position — the same claims, sections moved). Both are
@@ -93,7 +86,7 @@ is on the table, single-ablation of each candidate is a reading of a state
 nothing ships — the confirmation run against the actual final body is not an
 optional extra step, it is the only measurement of the thing being decided.**
 
-Fourth use: [`../runs/2026-07-27-package/`](../runs/2026-07-27-package/) (plus
+Third use: [`../runs/2026-07-27-package/`](../runs/2026-07-27-package/) (plus
 `-additions`, [`-confirm`](../runs/2026-07-27-package-confirm/),
 [`../runs/2026-07-28-package-final/`](../runs/2026-07-28-package-final/)) — the
 first probe graded against real ground truth instead of regex: `colcon build`
@@ -122,7 +115,7 @@ came back not significant (p≥0.2). **Do not write an inline substitute for
 subtly wrong, and the whole point of having one tool that does the tallying is
 that it only has to be gotten right once.**
 
-Fifth use: [`../runs/2026-07-28-perception/`](../runs/2026-07-28-perception/)
+Fourth use: [`../runs/2026-07-28-perception/`](../runs/2026-07-28-perception/)
 (+ [`-confirm`](../runs/2026-07-28-perception-confirm/),
 [`-final`](../runs/2026-07-28-perception-final/)) — ground truth got cheap.
 `_compiles_cpp()` runs `g++ -fsyntax-only` over whatever C++ the answer
@@ -268,7 +261,7 @@ Three design choices worth knowing before reading the code:
   one: `**Tool: bash**`, `**tool_call**: Bash`, an icon glyph in front of the
   word, `**Tool Call:**` with a space instead of an underscore, and a bare
   function-call shape (`Search(pattern: "x")`) were each a separate miss found
-  re-checking `ros2-core` and `ros2-security` on 2026-07-28, each scoring a hard
+  re-checking earlier runs on 2026-07-28, each scoring a hard
   `False` before being caught. The pattern that survived stopped trying to
   anchor the surrounding punctuation and just matched the word `Tool` followed
   by a colon within 20 characters, case-sensitive so lowercase "the tool: X" in

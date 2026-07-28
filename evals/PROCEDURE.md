@@ -13,8 +13,8 @@ Everything here exists to answer two questions, **in this order**:
 
 Question 2 only matters if question 1 is yes. If a file does not beat an empty
 context, the answer is not "trim it" — it is **delete it**. That has already
-happened once: `ros2-security` was deleted, not shortened, because the model
-scored a perfect 1.000 with no file at all.
+happened once: a skill scored a perfect 1.000 with no file at all, so the file
+was removed rather than shortened.
 
 A skill is not finished because it is correct. Correct is the floor. It is
 finished when both questions have a number behind them.
@@ -49,8 +49,10 @@ python3 - <<'EOF'
 import sys; sys.path.insert(0, 'evals/harness')
 import claims as C, probes as P
 ids = {c.id for c in C.inventory()}
-bad = [(pr.name, n, cl) for pr in P.PROBES for n, ch in pr.checks.items()
+bad = [(pr.id, n, cl) for pr in P.PROBES for n, ch in pr.checks.items()
        for cl in (ch.claims or []) if cl and cl not in ids]
+bad += [(pr.id, cl) for pr in P.PROBES
+        for cl in (pr.extra_claims or []) if cl and cl not in ids]
 print('dangling:', bad or 'none')
 EOF
 ```
@@ -96,8 +98,8 @@ The conditions it runs:
 | `reorder:...` | the same lines in a different order |
 
 **Use `sonnet`, not `haiku`.** A verdict from a small model does not transfer
-upward: `ros2-security` came back "zero cuttable lines" on haiku and lost 39 of
-52 lines on sonnet. The one direction that does transfer is CUT — if a small
+upward: one skill came back "zero cuttable lines" on haiku and then lost most
+of its body on sonnet. The one direction that does transfer is CUT — if a small
 model does not need a line, a bigger one will not either.
 
 **`--repeats 4` is the floor, not a default to lower.** With 3 samples, even a
@@ -163,16 +165,16 @@ wastes most of the spend.
 
 The checks are text patterns. They can be fooled — an answer can match the
 pattern and still be wrong, or fail the pattern and be right. Two real
-examples: a check demanded `<profile node=...>` with the attributes in one
-specific order and scored valid XML as wrong; a check scored tool stubs as
-wrong answers instead of ungradable.
+examples: a check demanded one specific attribute order in generated XML and
+scored equally valid output as wrong; a check scored tool stubs as wrong
+answers instead of ungradable.
 
 So for every line you are about to cut, open the `naked` answers and read them
 whole. You are asking: **does the model really know this, or did it just
-happen to match?** Look past what the check tests. When `ros2-security` was
-cut, the naked answers reproduced the skill's own XML example byte-for-byte
-including nesting no check verified, and named a cipher suite no check asked
-for. That is knowing it.
+happen to match?** Look past what the check tests. In the run that produced
+this project's one whole-file deletion, the naked answers reproduced the
+skill's own example byte-for-byte, including structure no check verified, and
+named details no check asked for. That is knowing it.
 
 If anything in those answers is wrong, cancel the cut. The written answer
 outranks the number.

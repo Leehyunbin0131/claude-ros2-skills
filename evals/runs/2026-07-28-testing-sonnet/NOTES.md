@@ -20,9 +20,8 @@ and the change that got there was a rewrite, not a deletion.
 Pooled over all 13 checks on the shipped 42-line body at n=8:
 **`naked` 77/101 = 0.762, `full` 104/104 = 1.000.** Perfect score with the file,
 three-quarters without it. That matters because it is the opposite of the
-situation that got `ros2-security` deleted the same day, where `naked` was
-already 1.000 and there was no room for a file to add anything. Here there is
-room, and the file fills all of it.
+ceiling case, where `naked` is already at 1.000 and there is no room for a file
+to add anything. Here there is room, and the file fills all of it.
 
 Two checks carry most of the gap and are worth naming, because they are what a
 skill is *for*:
