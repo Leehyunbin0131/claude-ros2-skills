@@ -37,7 +37,7 @@ it cannot drift away from what actually ships.
 | `ros2-core` | 0.689 → 0.949 | VERIFIED | [ablation](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
 | `ros2-testing` | 0.762 → 1.000 | VERIFIED | [ablation](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
 | `ros2-package` | 0.844 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
-| `ros2-perception` | — | IN PROGRESS | [partial sonnet cross-check](./runs/2026-07-28-perception-sonnet/) |
+| `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
 | `ros2-troubleshooting` | — | IN PROGRESS | — |
 | `gazebo-sim` | — | IN PROGRESS | — |
@@ -88,8 +88,7 @@ The one direction that does transfer is CUT: if a smaller model does not need
 a line, a larger one will not either.
 
 `ros2-package` and `ros2-perception` had no evidence left once the haiku runs
-were removed. `ros2-package` has since been re-swept on sonnet;
-`ros2-perception` is still pending.
+were removed; both have since been re-swept on sonnet.
 
 ## Skills verified on sonnet
 
@@ -257,6 +256,51 @@ sentences naming only the facts that matter, and the compressed body tied `full`
 on all 27 checks at n=8 — including both real-build checks. Two skills is not
 proof, but "try prose before assuming the code block is doing the work" now has
 evidence from more than one place.
+
+**`ros2-perception`** is the smallest skill (43 lines) and was expected to be
+the hardest to measure — a cross-check had `naked` at 0.908, leaving nine points
+of room. That held: ten of sixteen claim-check pairs came back
+`naked = full = ablate = 1.00` and no sampling would move them. It also produced
+**the only two claims in this project that clear the corrected significance
+bar.** 43 lines to 38, `naked` 0.849 vs `full` 0.987 on the shipped body.
+
+| Claim | Check | naked | full | ablate | q |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+| K-vs-P symptom row | k_vs_p_cause | 0.90 | 1.00 | **0.00** | 0.000 |
+| docs-URL convention | docs_url | 0.25 | 1.00 | 0.30 | 0.025 |
+
+The K-vs-P row matters for its shape more than its size. Unaided the model is
+already right nine times in ten, so by the naked baseline the line looks
+redundant. Removing it drives the check to **zero** — the ablated answers
+explain "detection boxes drawn at wrong image positions" as box-coordinate
+scaling rather than as a camera-matrix mix-up, borrowing a neighbouring row's
+framing to produce a confident wrong answer. A line can be nearly invisible
+against an empty prompt and still be the only thing standing between the rest of
+its table and a plausible error. Checked against ground truth before it was
+trusted: the installed `sensor_msgs/msg/CameraInfo` documents `K` as the
+intrinsic matrix for raw images and `P` as the one for rectified images, exactly
+as the skill says.
+
+The docs-URL line is the navigational-pointer effect confirmed properly for the
+first time. At `naked` 0.25, sonnet does not build
+`https://docs.ros.org/en/jazzy/p/<package>/` from a package name unaided; it
+reaches for a URL it remembers. That was previously inferred from a baseline
+comparison across grading models — here it is a direct ablation.
+
+This run also sharpened the merge-versus-delete rule from `ros2-testing`. The
+encoding + depth-units pair ablated jointly clean, which normally reads as
+"merge, not delete". It does not here, and the distinguishing fact is the naked
+baseline: on `ros2-testing` the jointly-ablatable group sat at **0/8** unaided —
+the lines said one true thing redundantly and the model could not supply it. Here
+`naked` is **1.00**. **A clean joint ablation means merge when the model cannot
+produce the content unaided, and delete when it can. The joint result alone does
+not distinguish those.** Five of seven symptom rows were cut on that basis, after
+reading the naked answers whole to confirm the model really does know
+`16UC1`-is-millimetres, `32FC1`-is-metres and `passthrough` rather than merely
+matching the pattern. Detail:
+[ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md),
+[rewrite comparison](./runs/2026-07-28-perception-variant2/),
+[confirmation](./runs/2026-07-28-perception-confirm-sonnet/).
 
 ## The efficiency axis rests on an assumption that had never been measured
 

@@ -1361,14 +1361,32 @@ C_PERC_NAV_VERIFY = "ros2-perception:1documentation-entry-points:03"
 # where an empty one does not" interaction that made the CPU row a KEEP at
 # p=0.007. Not significant on its own (p=0.20 at the n=8 cap), so the row is
 # kept precautionarily rather than cut on an unresolved reading.
+# Re-mapped 2026-07-28 after variant:compressed shipped (43 -> 38 lines). Five of
+# the seven symptom rows were cut, so the two survivors renumbered: the QoS row
+# keeps :01, and the K-vs-P row moved from :06 down to :02. C_PERC_SYM_KP is the
+# stable NAME for that row and no longer matches the digits in its id; that is
+# deliberate, not a bug to tidy up.
+#
+# Cut (all naked = full = ablate = 1.00 on sonnet, n=4, and the naked answers
+# were read whole first -- they get 16UC1-is-millimetres / 32FC1-is-metres and
+# passthrough right unaided, not just past the regex): the encoding-exception,
+# depth-units, depth-registration, pointcloud_to_laserscan height-band and
+# compressed-transport rows.
+# Kept: the QoS row (UNDERPOWERED on one of its four checks) and the K-vs-P row,
+# which is the strongest KEEP measured anywhere in this project -- ablate 0.00
+# against naked 0.90, q=0.000. Removing it does not return the model to its
+# unaided answer, it actively misleads: ablated answers blame box-coordinate
+# scaling instead of the camera matrix. Verified against the installed
+# sensor_msgs/msg/CameraInfo, whose own comments say K is for raw images and P
+# for rectified ones.
 C_PERC_CVBRIDGE = "ros2-perception:cv-bridge-opencv-conversion-c:01"
 C_PERC_SYM_QOS = "ros2-perception:3symptom-root-cause-action:01"
-C_PERC_SYM_ENC = "ros2-perception:3symptom-root-cause-action:02"
-C_PERC_SYM_DEPTH = "ros2-perception:3symptom-root-cause-action:03"
-C_PERC_SYM_REG = "ros2-perception:3symptom-root-cause-action:04"
-C_PERC_SYM_P2L = "ros2-perception:3symptom-root-cause-action:05"
-C_PERC_SYM_KP = "ros2-perception:3symptom-root-cause-action:06"
-C_PERC_SYM_CPU = "ros2-perception:3symptom-root-cause-action:07"
+C_PERC_SYM_ENC = None  # encoding-exception row cut
+C_PERC_SYM_DEPTH = None  # depth-units row cut
+C_PERC_SYM_REG = None  # depth-registration row cut
+C_PERC_SYM_P2L = None  # pointcloud_to_laserscan height-band row cut
+C_PERC_SYM_KP = "ros2-perception:3symptom-root-cause-action:02"  # renumbered from :06
+C_PERC_SYM_CPU = None  # compressed-transport row cut
 
 PERC_REORDER = "reorder:3,1,2"
 

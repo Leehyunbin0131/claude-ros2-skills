@@ -149,14 +149,20 @@ groups jointly, but **only if the group was declared in `probes.py` before the
 run** (`joint=[[...]]`). Declare them by reading the file, not by looking for
 suspicious zeros afterwards.
 
-**A clean joint ablation does not mean "delete the group."** This is the
-easiest mistake in the whole procedure, and it has been made here. A group that
-can be removed with no measured loss is a group whose lines *say the same thing
-more than once* — which is an argument for **merging** them, not for dropping
-them. In one run, six claims looked jointly ablatable; one of those same claims
-turned out to score **0/8** without the file. Deleting on the joint result
-would have removed the strongest line in the skill. Treat a clean joint
-ablation as a pointer to step 5, not to the delete key.
+**A clean joint ablation does not tell you whether to merge or to delete.**
+It only says the lines cover each other. Which action is right depends on a
+different number — the naked baseline:
+
+| Joint ablation clean, and... | Meaning | Action |
+| :--- | :--- | :--- |
+| `naked` is low | the lines say one true thing the model cannot supply, said more than once | **merge** (step 5) |
+| `naked` is at ceiling | the model already knows it; the lines are covering for each other *and* for nothing | **delete** |
+
+Both cases have been hit here. In one skill a jointly-ablatable group of six
+claims contained a line scoring **0/8** unaided — deleting on the joint result
+would have removed the strongest line in the file. In another, a jointly
+ablatable pair sat at `naked` **1.00** and was correctly cut. Never act on the
+joint number alone.
 
 ## Step 3 — top up only what is unclear
 
@@ -482,7 +488,7 @@ will not prompt anyone to check anything.
   verified, write that plainly and write what would be needed.
 - **Never lower `--repeats` below 4.** It cannot resolve anything.
 - **Never cut on statistics alone.** Read the answers (step 4).
-- **Never read a clean joint ablation as "delete the group."** It means merge.
+- **Never act on a joint ablation without the naked baseline** (step 2).
 - **Never cut several lines without a confirmation run** (step 6).
 - **Never hand-roll a substitute for `analyze.py`.** If it does not answer the
   question, fix it; a one-off script that skips the corrections will mislead
