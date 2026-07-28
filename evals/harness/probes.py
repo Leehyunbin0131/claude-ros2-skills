@@ -602,20 +602,31 @@ P_DOMAIN = Probe(
 )
 
 
-# --- ros2-security suite ------------------------------------------------------
-
-# Re-read against claims.jsonl 2026-07-28. Architecture, CLI commands, and the
-# policy.xml block were all cut the same day: naked=full=ablate=1.00 on
-# sonnet across all 14 owned checks at n=8, no exceptions, no UNDERPOWERED
-# reads -- manually spot-checked past the regex too (full naked policy XML
-# reproduced the skill's example byte-for-byte including nesting the checks
-# don't verify; naked architecture answers named the untested AES-GCM-GMAC
-# cipher suite unaided in 8/8 samples). Section numbering was also dropped
-# from the file (one section left), so nav ids lost their leading digit.
+# --- ros2-security suite (RETIRED 2026-07-28) ---------------------------------
+#
+# The skill these probes measured no longer exists. It was deleted, not trimmed:
+# sonnet scored naked 92/92 = 1.000 across every check here, every single
+# ablation also 1.000, and a follow-up naked test at a precision these checks
+# never reached -- exact flags, not just command names -- came back 4/4 correct
+# against the live Jazzy install (`create_enclave ROOT NAME` positional,
+# `generate_artifacts -k/-e/-p`, `create_permission ROOT NAME POLICY_FILE_PATH`,
+# `--ros-args --enclave`, all three env vars). There was no measurable behaviour
+# left for the file to change. See evals/RESULTS.md.
+#
+# The probes stay in the tree, and stay runnable, because they are the evidence
+# for that deletion and the starting point for re-testing it. The one hypothesis
+# the deletion does NOT settle is whether a documentation pointer earns its place
+# by making an agent go *verify* before answering -- behaviour, not recall. No
+# cell in this harness can see that: every cell is single-turn with `--tools ""`,
+# which is the exact condition under which a pointer cannot pay off. If a
+# tools-enabled multi-turn harness is ever built, re-run these first.
+#
+# They are excluded from PROBES so ordinary sweeps skip them, and their claim
+# constants are None so the drift check does not chase ids into a deleted file.
 C_SEC_ARCH = None
-C_SEC_NAV_CONCEPTS = "ros2-security:documentation-entry-points:01"
-C_SEC_NAV_TUTORIAL = "ros2-security:documentation-entry-points:02"
-C_SEC_NAV_VERIFY = "ros2-security:documentation-entry-points:03"
+C_SEC_NAV_CONCEPTS = None
+C_SEC_NAV_TUTORIAL = None
+C_SEC_NAV_VERIFY = None
 C_SEC_CLI = None
 C_SEC_POLICY = None
 
@@ -685,9 +696,9 @@ P_SEC_KEYSTORE = Probe(
         "env_keystore": Check(_sec_env_keystore, [], "sets ROS_SECURITY_KEYSTORE"),
     },
     note="Was the CLI code block's ablation instrument; that block was cut "
-         "(8/8 naked = 8/8 full = 8/8 ablated on every check, n=8). Kept with "
-         "no claims as a ground-truth guard on the confirmation run.",
-    extra_claims=[C_SEC_NAV_CONCEPTS, C_SEC_NAV_TUTORIAL, C_SEC_NAV_VERIFY],
+         "(8/8 naked = 8/8 full = 8/8 ablated on every check, n=8), and the "
+         "skill itself was deleted after the remaining pointers scored naked "
+         "1.000 too. Retired -- see the suite header.",
 )
 
 
@@ -1886,10 +1897,15 @@ P_PERC_DOCS = Probe(
 
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
-    P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
     P_PKG_CREATE, P_PKG_CMAKE, P_PKG_PYENTRY, P_PKG_INTERFACES,
     P_PKG_DIAG_BUILD, P_PKG_DIAG_IFACE, P_PKG_DEP_DECLARE, P_PKG_BUILD_HYBRID,
     P_PERC_CVBRIDGE, P_PERC_PCL, P_PERC_QOS, P_PERC_DEPTH,
     P_PERC_DIAGNOSE, P_PERC_DOCS,
 ]
+
+# Probes whose skill no longer exists. Not swept, but kept constructible so the
+# evidence behind a deletion stays runnable -- point `--probe` at one by name to
+# re-measure it. See the ros2-security suite header for what it would take to
+# overturn that deletion.
+RETIRED_PROBES: list[Probe] = [P_SEC_KEYSTORE, P_SEC_POLICY, P_SEC_ARCH]

@@ -31,7 +31,7 @@ it cannot drift away from what actually ships.
 | Skill | Effect (naked → full, shipped body) | Status | Evidence |
 | :--- | :--- | :--- | :--- |
 | `ros2-core` | 0.689 → 0.949 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
-| `ros2-security` | 0.983 → 0.986 (sonnet) | EFFECT NOT SHOWN (sonnet re-check) | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
+| `ros2-security` | 1.000 → 1.000 (sonnet) | DID NOT CLEAR — **skill deleted** | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
 | `ros2-testing` | 0.485 → 1.000 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
 | `ros2-package` | 0.787 → 0.958 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
 | `ros2-perception` | 0.704 → 0.993 (haiku) | VERIFIED (haiku) | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
@@ -48,8 +48,7 @@ Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 | :--- | :--- |
 | IN PROGRESS | not yet measured, or measured on one axis only |
 | VERIFIED | effect **and** efficiency, at n≥5, with the run linked |
-| EFFECT NOT SHOWN | axis 2 measured, but the shipped body does not beat `naked` on this harness — the body is retained on a stated argument, not on a measurement. This is a verdict, not a gap in coverage: the run happened, and the grading model is named in the status the same way a VERIFIED row names it |
-| DID NOT CLEAR | measured and failed — recorded, not hidden |
+| DID NOT CLEAR | measured and failed axis 1 — the body does not beat an empty context, so there is no effect for axis 2 to apportion. Recorded, not hidden; the runs stay linked after the skill is gone |
 
 `VERIFIED (haiku)` marks a skill whose axis-2 pass predates the switch to
 sonnet grading. The cut direction transfers (see the model-dependence section
@@ -328,18 +327,47 @@ Detail: [ablation](./runs/2026-07-28-security-sonnet/),
 [confirmation](./runs/2026-07-28-security-sonnet-confirm/).
 
 **Read that last number as axis 1, not as a successful confirmation.** It says
-the cut did no damage, but it says so because `naked` is already at 0.983 — the
-shipped 13 lines do not beat an empty context on this harness. By the ordering
-stated at the top of this file, the rule-following outcome is to delete the
-file, and the file was kept anyway. The argument for keeping it: all 13 lines
-are documentation pointers, and every cell in this harness runs single-turn
-with `--tools ""`, which is precisely the condition under which a pointer
-cannot pay off — there is no second turn in which to follow it and no tool with
-which to fetch it. The instrument cannot see this claim type, so its silence is
-not evidence of absence. That is an argument, not a measurement, and the status
-table labels it as one. `ros2-security` is the first skill to re-measure if a
-tools-enabled, multi-turn harness is ever built; it is the only skill whose
-retention currently rests on reasoning rather than on a number.
+the cut did no damage, but it says so because `naked` is already at the ceiling
+— 92/92 = 1.000 in the ablation run, every one of the six single-claim
+ablations also 1.000. A perfect unaided score leaves no room for a file to add
+anything, so what the run establishes is not "these 13 lines help a little"
+but "this instrument cannot detect any help at all."
+
+The obvious next move was to make the probe harder, so that was tried before
+deciding anything. The checks only ever asked whether the right *command name*
+appeared — never whether the invocation would actually run. So sonnet was asked
+`naked`, four times, for the exact shell commands to stand up SROS2 for
+`/talker`, and the answers were diffed against the live Jazzy install rather
+than against a regex. All four were correct at a precision the checks never
+reached: `create_keystore ROOT` and `create_enclave ROOT NAME` positional and
+in the right order, `generate_artifacts -k/-e/-p` with the right short flags,
+`create_permission ROOT NAME POLICY_FILE_PATH`, `--ros-args --enclave`
+(`RCL_ENCLAVE_FLAG` in `rcl/arguments.h`), and all three env vars with
+`ROS_SECURITY_STRATEGY=Enforce`. One answer reached for `create_permission`
+instead of `generate_artifacts` — also a real subcommand, also the right
+signature. Not one wrong flag in four samples. The precision direction is a
+measured dead end, not an untried option.
+
+**So the skill was deleted, not trimmed further.** Keeping 13 lines had been
+justified on the grounds that they cost nothing, and that pricing was wrong.
+A skill's `description` sits in context for routing whether or not the body is
+ever read; every verification sweep has to carry the file (this one was
+re-verified twice in a day); and a `ros2-security/` entry in the skills
+directory reads as coverage of a domain that is in fact two URLs. Absence is
+more honest than a stub. The retention argument also leaned on CLAUDE.md,
+which turns out never to mention security at all — and for this domain the
+local install is the better ground truth anyway, since `ros2 security --help`
+*is* the answer and CLAUDE.md already points there.
+
+One hypothesis survives the deletion, and it is worth stating precisely
+because nothing here tests it: a documentation pointer might earn its place not
+by supplying knowledge but by changing *behaviour* — making the agent go check
+before it answers. Every cell in this harness is single-turn with `--tools ""`,
+the one condition under which a pointer provably cannot pay off. That is a gap
+in the instrument, not a finding. The probes are retired rather than removed
+(`RETIRED_PROBES` in `probes.py`) and the runs stay linked above, so if a
+tools-enabled multi-turn harness is ever built, this is the first thing to
+re-measure and the deletion is one commit to undo.
 
 This is not evidence the haiku-era verdict was performed carelessly — it
 passed every check this project had at the time. It is the starkest
