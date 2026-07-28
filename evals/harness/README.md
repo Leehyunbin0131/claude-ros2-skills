@@ -1,5 +1,10 @@
 # Harness
 
+This file is the tool reference — what each script does and why it works the
+way it does. If you are here to *run* a verification, read
+[`../PROCEDURE.md`](../PROCEDURE.md) first: it is the ordered checklist, in
+plain language, and it links back here for detail.
+
 Two generations of tooling live here because they answer two different questions.
 Pick by the question, not by the filename.
 

@@ -811,26 +811,37 @@ P_SEC_ARCH = Probe(
 # ambiguous gets a targeted top-up rather than a blanket re-run, same as the
 # false negatives caught in ros2-core and ros2-security.
 
+# Re-read against claims.jsonl 2026-07-28, twice. First pass: the 78->76 cut
+# removed the launch_testing-hang and CI rows at old :03/:04 and renumbered the
+# QoS and use_sim_time rows down from :05/:06, so C_T_SYM03/04 had been silently
+# pointing at the wrong claim's text (wrong content, not a crash, so nothing
+# caught it) and C_T_SYM05/06 at ids that no longer existed.
+#
+# Second pass, same day: `variant:compressed` was adopted (76 -> 42 lines) after
+# tying `full` on all 13 checks at n=8. That rewrite merged two redundancy
+# groups the sweep had flagged, which collapsed four claims into two and
+# renumbered the symptom table again:
+#   * the colcon code block, its prose, and symptom rows :01 (test count) and
+#     :02 (--verbose) all became one sentence -> C_T_RUN1. RUN2/SYM01/SYM02 gone.
+#   * the launch_testing code block and the ReadyToTest prose became one
+#     sentence -> C_T_LAUNCH. READY gone.
+#   * the QoS and use_sim_time rows are the only symptom rows left, so they
+#     renumbered from :03/:04 to :01/:02 -- which is why SYM05/SYM06 (their
+#     stable names here) now hold the *low* numbers. Do not "tidy" that up.
 C_T_NAV1 = "ros2-testing:1documentation-entry-points:01"
 C_T_NAV2 = "ros2-testing:1documentation-entry-points:02"
 C_T_NAV3 = "ros2-testing:1documentation-entry-points:03"
-C_T_RUN1 = "ros2-testing:2running-tests:01"
-C_T_RUN2 = "ros2-testing:2running-tests:02"
+C_T_RUN1 = "ros2-testing:2running-tests:01"  # merged colcon sentence
+C_T_RUN2 = None  # merged into C_T_RUN1 by variant:compressed
 C_T_WRITER = "ros2-testing:a-programmatic-rosbag2-writer-c:01"
-C_T_LAUNCH = "ros2-testing:b-integration-testing-launch-testing-pyt:01"
-C_T_READY = "ros2-testing:b-integration-testing-launch-testing-pyt:02"
-# Re-read against claims.jsonl 2026-07-28: the ros2-testing cut (78->76 lines)
-# removed the launch_testing-hang and CI rows at old :03/:04 and renumbered the
-# QoS and use_sim_time rows from old :05/:06 down to current :03/:04.
-# C_T_SYM03/04 used to point at the cut rows and now silently pointed at the
-# QoS/sim_time content instead (wrong claim, not a crash, so it went
-# undetected); C_T_SYM05/06 pointed at ids that no longer exist at all.
-C_T_SYM01 = "ros2-testing:4symptom-root-cause-action:01"
-C_T_SYM02 = "ros2-testing:4symptom-root-cause-action:02"
+C_T_LAUNCH = "ros2-testing:b-integration-testing-launch-testing-pyt:01"  # merged
+C_T_READY = None  # merged into C_T_LAUNCH by variant:compressed
+C_T_SYM01 = None  # test-count row folded into C_T_RUN1
+C_T_SYM02 = None  # --verbose row folded into C_T_RUN1
 C_T_SYM03 = None  # launch_testing-hang row was cut
 C_T_SYM04 = None  # CI row was cut
-C_T_SYM05 = "ros2-testing:4symptom-root-cause-action:03"  # QoS row, renumbered
-C_T_SYM06 = "ros2-testing:4symptom-root-cause-action:04"  # sim_time row, renumbered
+C_T_SYM05 = "ros2-testing:4symptom-root-cause-action:01"  # QoS row, renumbered twice
+C_T_SYM06 = "ros2-testing:4symptom-root-cause-action:02"  # sim_time row, renumbered twice
 
 REORDER_SYMPTOMS_FIRST = "reorder:4,1,2,3"
 
@@ -867,19 +878,19 @@ P_T_COLCON = Probe(
         "the truth, and what commands do I run?"
     ),
     checks={
-        "names_verbose": Check(_t_verbose_flag, [C_T_RUN1, C_T_SYM02],
+        "names_verbose": Check(_t_verbose_flag, [C_T_RUN1],
                                "names --verbose to see per-case detail"),
-        "checks_test_count": Check(_t_checks_test_count, [C_T_RUN2, C_T_SYM01],
+        "checks_test_count": Check(_t_checks_test_count, [C_T_RUN1],
                                    "checks the test count against what's expected, not just the exit code"),
-        "names_test_result": Check(_t_names_test_result, [C_T_RUN1, C_T_SYM01],
+        "names_test_result": Check(_t_names_test_result, [C_T_RUN1],
                                    "names colcon test-result as the place the real detail lives"),
     },
-    note="Three claims (2running-tests x2, symptom row 01) all push the same "
-         "'don't trust the summary' behaviour, plus symptom row 02 pushes "
-         "--verbose specifically. Declared as one joint group rather than found "
-         "after the fact from single-ablation collisions.",
+    note="Was a declared four-claim redundancy group (2running-tests x2 plus "
+         "symptom rows 01/02) all pushing the same 'don't trust the summary' "
+         "behaviour. The joint ablation came back Δ=0 on all three checks, and "
+         "variant:compressed then merged the four into one sentence with no "
+         "loss, so there is a single claim here now and nothing left to join.",
     extra_claims=[C_T_NAV1, C_T_NAV2, C_T_NAV3],
-    joint=[[C_T_RUN1, C_T_RUN2, C_T_SYM01, C_T_SYM02]],
     probe_only=True,
     extra_conditions=[REORDER_SYMPTOMS_FIRST],
 )
@@ -956,18 +967,23 @@ P_T_LAUNCH_TESTING = Probe(
         "process exited cleanly after shutdown. Complete file."
     ),
     checks={
-        "ready_to_test": Check(_t_ready_to_test, [C_T_LAUNCH, C_T_READY],
+        "ready_to_test": Check(_t_ready_to_test, [C_T_LAUNCH],
                                "marks the launch/test boundary with ReadyToTest()"),
-        "post_shutdown": Check(_t_post_shutdown, [C_T_LAUNCH, C_T_READY],
+        "post_shutdown": Check(_t_post_shutdown, [C_T_LAUNCH],
                                "uses a @post_shutdown_test() class for exit checks"),
         "exit_code_check": Check(_t_exit_code_check, [C_T_LAUNCH],
                                  "asserts exit codes via launch_testing.asserts"),
     },
-    note="The code block and the ReadyToTest() explanation are a second "
-         "candidate redundancy pair, same shape as ros2-core's shutdown pair. "
+    note="The code block and the ReadyToTest() explanation were a declared "
+         "redundancy pair, same shape as ros2-core's shutdown pair; the joint "
+         "ablation showed no effect and variant:compressed replaced both with "
+         "one sentence, tying 8/8 on all three checks. Worth recording that the "
+         "prose version produced *better* code than the block it replaced -- "
+         "answers added @pytest.mark.launch_test, assertWaitForStartup, and the "
+         "add_launch_test() CMake call, all verified present in the Jazzy "
+         "install, none of which the original example showed. "
          "(The old interference claim here, C_T_SYM03, was the launch_testing-hang "
          "symptom row; it was cut, so there is nothing left at that id to ablate.)",
-    joint=[[C_T_LAUNCH, C_T_READY]],
     probe_only=True,
     extra_conditions=[REORDER_SYMPTOMS_FIRST],
 )

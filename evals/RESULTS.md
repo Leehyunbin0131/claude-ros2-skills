@@ -5,6 +5,10 @@ before working on a skill, and the last thing to update after — the final stag
 a verification run writes its own row here, so the record cannot drift from the
 runs behind it.
 
+For *how* to run a verification — the steps, in order, in plain language —
+see **[`PROCEDURE.md`](./PROCEDURE.md)**. For the tools themselves, see
+[`harness/README.md`](./harness/README.md).
+
 ## What "verified" means here
 
 A skill is not verified because it is correct. Correct is the floor. It is
@@ -32,7 +36,7 @@ it cannot drift away from what actually ships.
 | :--- | :--- | :--- | :--- |
 | `ros2-core` | 0.689 → 0.949 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
 | `ros2-security` | 1.000 → 1.000 (sonnet) | DID NOT CLEAR — **skill deleted** | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
-| `ros2-testing` | 0.485 → 1.000 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
+| `ros2-testing` | 0.762 → 1.000 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
 | `ros2-package` | 0.787 → 0.958 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
 | `ros2-perception` | 0.704 → 0.993 (haiku) | VERIFIED (haiku) | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
 | `ros2-dev` | — | IN PROGRESS | — |
@@ -390,6 +394,48 @@ already-graded `True` answers across every stored run before trusting it:
 one flagged "false positive" turned out to be the same class of bug again — a
 negative-form check (`no_python_qos_in_cpp`, true whenever the wrong syntax is
 *absent*) trivially passing a stub that never answered at all.
+
+**`ros2-testing`** went the other way from `ros2-security` on both axes, and
+produced the most useful method result so far. Axis 1 is the strongest measured
+anywhere: on the shipped body at n=8, `naked` 77/101 = 0.762 against `full`
+104/104 = 1.000. Two checks carry most of that gap — `writer_create_topic` is
+**0/8 unaided**, because sonnet reaches for the templated
+`writer.write(msg, topic, time)` overload and never registers the topic, and
+`simtime_cause` is 4/8, connecting "rosbag playback produces no callbacks" to
+`use_sim_time`/`--clock` only half the time.
+
+Axis 2 is where the interesting part is. The n=4 sweep returned CUT on 12 of 16
+claim-check pairs, plus two declared redundancy groups whose joint ablations
+came back at Δ=0 — the colcon block, its prose, and two symptom rows (4 claims);
+and the `launch_testing` example plus its `ReadyToTest()` explanation (2 claims).
+Reading that as "delete six claims" would have been wrong, and the targeted
+top-ups proved it: the same claims that looked inert under ablation include the
+one scoring 0/8 naked. **Jointly ablatable is not the same as unnecessary.**
+What a clean joint ablation actually reports is that those lines say the same
+thing more than once — which argues for merging them, not for dropping them.
+
+So they were merged by hand and the rewrite was measured rather than assumed:
+[`variants/ros2-testing/compressed.md`](./variants/ros2-testing/compressed.md),
+four claims about `colcon test` collapsed to one sentence and the 23-line
+`launch_testing` example plus its explanation collapsed to one sentence, run
+against the live body at n=8. **Tied on all 13 checks, 8/8 versus 8/8, p=1.000
+everywhere**, so the adoption rule (on a tie the smaller body wins) took it:
+76 lines to 42. Detail: [re-check](./runs/2026-07-28-testing-sonnet/NOTES.md),
+[rewrite comparison](./runs/2026-07-28-testing-variant/),
+[confirmation](./runs/2026-07-28-testing-confirm-sonnet/).
+
+The finding worth carrying forward is what the merged prose did to the answers.
+Working from one sentence of description instead of a worked example, the
+variant's `launch_testing` answers included `@pytest.mark.launch_test`,
+`proc_info.assertWaitForStartup`, `proc_output.assertWaitFor`, and the
+`add_launch_test()` CMake call — none of which the deleted example showed, all
+four verified present in the local Jazzy install. The checks score those answers
+identically, so the measurement is a tie; read whole, the shorter body is
+better. **A worked example appears to act as a ceiling**: the model reproduces
+it and stops. Naming the concept and leaving the code to the model got more
+correct API surface, not less. That is a hypothesis from one probe, not a law,
+but it is the first concrete reason found in this project to prefer prose over
+an example, and it is directly testable on the remaining skills.
 
 ## The efficiency axis rests on an assumption that had never been measured
 
