@@ -21,7 +21,7 @@ finished when both questions have a number behind them.
 
 ## What we are actually looking for
 
-The useful mental model, learned from five skills:
+The useful mental model, from the skills measured so far:
 
 - **Lines that get cut are usually not wrong.** They are correct explanations,
   correct code, correct concepts — that the model already knows. Being right is
@@ -33,6 +33,12 @@ The useful mental model, learned from five skills:
 - **Short is not the goal.** This was measured: adding 85% more harmless filler
   to a skill changed nothing on 19 checks. Cutting is for the humans who have
   to read and maintain the file, not for the model.
+- **A worked example may act as a ceiling.** Replacing a 23-line code example
+  with one sentence describing the concept did not lose anything — the answers
+  got *better*, gaining four correct API details the example never showed. The
+  model reproduces an example and stops; name the concept and it brings its own
+  knowledge. One probe, not a law, but try prose before assuming a code block
+  is doing the work.
 
 ## Before you start
 
@@ -138,10 +144,19 @@ some will look significant by luck alone; `q` is the corrected version that
 accounts for that.
 
 **Third, the redundancy groups.** When two lines say overlapping things, each
-can look useless alone because the other covers for it — and cutting both
-breaks things. The harness tests those groups jointly, but **only if the group
-was declared in `probes.py` before the run** (`joint=[[...]]`). Declare them by
-reading the file, not by looking for suspicious zeros afterwards.
+can look useless alone because the other covers for it. The harness tests those
+groups jointly, but **only if the group was declared in `probes.py` before the
+run** (`joint=[[...]]`). Declare them by reading the file, not by looking for
+suspicious zeros afterwards.
+
+**A clean joint ablation does not mean "delete the group."** This is the
+easiest mistake in the whole procedure, and it has been made here. A group that
+can be removed with no measured loss is a group whose lines *say the same thing
+more than once* — which is an argument for **merging** them, not for dropping
+them. In one run, six claims looked jointly ablatable; one of those same claims
+turned out to score **0/8** without the file. Deleting on the joint result
+would have removed the strongest line in the skill. Treat a clean joint
+ablation as a pointer to step 5, not to the delete key.
 
 ## Step 3 — top up only what is unclear
 
@@ -179,28 +194,16 @@ named details no check asked for. That is knowing it.
 If anything in those answers is wrong, cancel the cut. The written answer
 outranks the number.
 
-## Step 5 — cutting several lines at once needs its own run
+## Step 5 — try rewriting, not just deleting
 
-Per-line results do not add up. Line A can look harmless because line B was
-covering for it. So after you edit `SKILL.md`, measure the **real edited file**
-in a fresh directory:
+**Do this before you commit to any edit.** Deletion is only one way to make a
+file smaller, and usually not the best one. Three lines might work better as
+one. The harness cannot invent that — every other condition is derived
+mechanically from the text that already exists — so the alternative has to be
+**authored by you** and then measured.
 
-```bash
-python3 harness/runner.py run --suite <suite> --conditions naked,full \
-        --repeats 8 --models sonnet --out $(date +%F)-<skill>-confirm
-```
-
-The new `full` must hold up against the old one, and against `naked`. If it
-does not, put the lines back.
-
-## Step 6 — try rewriting, not just deleting
-
-Deletion is only one way to make a file smaller. Three lines might work better
-as one. The harness cannot invent that — every other condition is derived
-mechanically from the text that exists — so you have to **write the
-alternative yourself**:
-
-1. Save a complete alternative body as `evals/variants/<skill>/<name>.md`
+1. Write a complete alternative body to `evals/variants/<skill>/<name>.md`.
+   It is a whole `SKILL.md`, frontmatter included, not a patch.
 2. Run it against the current body:
 
 ```bash
@@ -209,19 +212,57 @@ python3 harness/runner.py run --suite <suite> \
         --out $(date +%F)-<skill>-variant
 ```
 
+`analyze.py` prints a "Rewrite variants" table comparing the two per check.
+
 **Adoption rule: on a tie, the smaller body wins.** A variant that loses any
 check is rejected. A variant that wins one is adopted. A variant that ties is
 adopted if it is shorter.
 
-This is the step most easily forgotten, because the ablation output never
-suggests it. Redundancy groups — several lines that each look useless alone
-but break when all are removed — are the obvious place to try a merged
-rewrite.
+Every redundancy group from step 2 is a candidate. So is any worked example
+that the model might not need — see the ceiling note near the top of this file.
+
+This is the step most easily skipped, because nothing in the ablation output
+suggests it. The ablation only ever answers "should this line go?", never
+"should these three lines be one?"
+
+## Step 6 — measure the body that will actually ship
+
+**Per-line results do not add up.** Line A can look harmless because line B was
+covering for it, and a variant was measured as a *proposal*, not as the shipped
+file. So once `SKILL.md` is edited — whether by cutting, by adopting a variant,
+or both — measure that exact file in a fresh directory:
+
+```bash
+python3 harness/runner.py run --suite <suite> --conditions naked,full \
+        --repeats 8 --models sonnet --out $(date +%F)-<skill>-confirm
+```
+
+Two things have to hold:
+
+- `full` must not have dropped against the pre-edit body.
+- `full` must still beat `naked`. Pool every check to get one number — that
+  pooled `naked → full` pair is what goes in the RESULTS.md effect column, so
+  it describes the shipped file and cannot drift from it.
+
+If either fails, put the lines back.
+
+**If the edit changed the number of claims, re-map `probes.py` first.**
+Merging four claims into one renumbers everything after it, so constants that
+pointed at the right lines yesterday now point at the wrong ones — or at
+nothing. Re-run the claim-ID check from "Before you start", set cut claims to
+`None`, drop the `joint=[[...]]` groups whose members no longer exist
+separately, and leave a comment saying what moved and why. Stable *names* in
+`probes.py` deliberately do not track the numbers in the IDs; the mismatch
+looks like a bug and is not, so say so in the comment or someone will "fix" it.
 
 ## Step 7 — write it down
 
 1. `evals/runs/<run>/NOTES.md` — what was measured, the numbers, and why each
-   decision was made. Include what you rejected and why.
+   decision was made. Four things belong here that are easy to leave out:
+   the axis-1 number first (`naked` vs `full` on the shipped body), what you
+   **rejected** and why, anything you got wrong during the run, and any answer
+   you read by hand that changed a decision. A run whose notes only list what
+   worked is not a record, it is an advertisement.
 2. `evals/RESULTS.md` — update the status row. The effect column takes the
    `naked → full` number from the confirmation run, so the table cannot drift
    away from what actually ships.
@@ -235,13 +276,214 @@ Status values:
 | VERIFIED | both questions answered, n≥5, run linked |
 | DID NOT CLEAR | question 1 failed — the body does not beat an empty context |
 
+## The whole thing in order
+
+```
+check claim IDs resolve          <- before you start
+check answers are gradable       <- before you start
+sweep at n=4                     <- step 1
+read analyze.py                  <- step 2   (naked first; joint clean = merge, not delete)
+top up only unclear claims       <- step 3
+read naked answers by hand       <- step 4   (can cancel a cut; nothing else can)
+author and measure a rewrite     <- step 5   (before editing SKILL.md)
+edit SKILL.md
+re-map probes.py claim IDs       <- step 6   (only if the claim count changed)
+confirmation run on the real body<- step 6
+NOTES.md, RESULTS.md, commit     <- step 7
+```
+
+## Failure modes to expect
+
+These are written as general failure modes, because they are not specific to
+this harness or to ROS 2 — any setup that measures whether written guidance
+changes a model's output will hit them. Each is stated as the rule first, then
+the concrete case here that paid for it.
+
+They are listed because **none of them looked like a mistake at the time.**
+Every one produced a clean, plausible number. If a step in this file seems like
+pointless ceremony, it exists because of one of these.
+
+### Two things being interchangeable is not the same as either being useless
+
+When several lines cover the same ground, removing any one of them costs
+nothing, and removing all of them may also cost nothing — because the model
+already knew it. Those are different situations with the same measurement. The
+first calls for merging; only the second calls for deleting.
+
+*Why it hides:* the group measurement is correct. Both readings fit it exactly.
+
+*Rule:* a group that ablates cleanly is a **rewrite candidate first**. Before
+deleting it, check what the model does with no file at all. If that is bad, the
+content is load-bearing and only its wording is redundant.
+
+*Here:* six claims looked jointly removable. One of them scored **0/8** unaided
+— the strongest single line in the skill.
+
+### A grader tests a pattern, not knowledge
+
+Any mechanical check accepts some correct answers and rejects others. The
+rejections look identical to genuine failures, and the acceptances look
+identical to genuine successes.
+
+*Why it hides:* failures on a check that is *supposed* to be hard are exactly
+what you expect to see.
+
+*Rule:* before acting on a score, read the raw answers behind it. A pattern is
+evidence about a pattern. Never let a regex be the last thing that looked at
+the output.
+
+*Here:* a check required one specific attribute order in generated XML, so
+every equally valid answer written in a different order scored as wrong.
+
+### A non-answer is not a wrong answer
+
+Models fail in ways that are neither right nor wrong: refusing, truncating,
+asking a clarifying question, or trying to use a tool that is not available and
+stopping. Counting those as failures corrupts every rate you compute.
+
+*Why it hides:* it shows up only as a score being a little lower than expected
+— easy to explain away as the model being weaker than you thought.
+
+*Rule:* grade three-valued — pass, fail, **ungradable** — and never count
+ungradable as fail. Sample the raw output before a large run to see which
+non-answers your setup provokes. Expect the shape to keep changing and prefer
+a loose detector to a precise one; precise patterns keep being precisely wrong
+about the next format.
+
+*Here:* tool-call stubs were scored as failures, and in two checks a stub that
+merely *mentioned* the target function while trying to look it up was scored a
+pass. The stub rendering changed four times before a loose pattern held.
+
+### An identifier that survives an edit may no longer mean the same thing
+
+Any scheme that references parts of a document by position or index breaks
+silently when the document is edited. The run still completes; the labels are
+just wrong.
+
+*Why it hides:* nothing errors. The output looks completely ordinary, and only
+reading the referenced content next to the result reveals the mismatch.
+
+*Rule:* validate every reference resolves **before** each run, and record a
+hash of the document each result set was collected against so stale analysis is
+detectable later.
+
+*Here:* claim IDs pointed at renumbered lines three separate times — twice
+after a cut, once after a rewrite that merged four claims into one.
+
+### A quick substitute for the real analysis tool will be subtly wrong
+
+Aggregation code is easy to write and easy to get wrong in ways that produce
+believable numbers. A second implementation doubles the surface where that can
+happen, and it is always the unreviewed one.
+
+*Why it hides:* the throwaway version is simple enough to look obviously
+correct.
+
+*Rule:* one tool does the tallying. If it does not answer your question, extend
+it. It only has to be right once.
+
+*Here:* a quick script keyed pass rates on `(probe, check)` instead of
+`(probe, condition, check)`, pooling baseline failures into the treatment
+numbers. It reported two regressions that did not exist, and two lines were
+restored on that evidence.
+
+### Removing content can leave a trace that changes the result
+
+When you generate a modified document to test against, the modification itself
+can leak information — an empty heading, a gap in a numbered list, a dangling
+reference. The model reacts to the trace, not just to the missing content.
+
+*Why it hides:* the modified document is generated and thrown away. Nobody
+reads it.
+
+*Rule:* the modified version must read as though it were authored that way.
+Any new code that edits a document owes this check explicitly — verify it, do
+not assume it.
+
+*Here:* removing the only item under a subheading left the heading standing
+over nothing. It still named the topic, so the ablated body scored *higher*
+than one that never mentioned it — biasing every such verdict toward cutting.
+Fixing it changed the test inputs for 27 claims.
+
+### A grader that has never seen a wrong answer proves nothing
+
+A check that passes every good answer is not validated — a check that returns
+"pass" unconditionally does that too. Negative-form checks ("true when the bad
+thing is absent") are the worst case, since anything empty passes them.
+
+*Why it hides:* a grader agreeing with you on every case you looked at feels
+validated. You have tested one half of it.
+
+*Rule:* feed every new grader something that *should* fail and confirm it does.
+
+*Here:* a check that was true whenever the wrong syntax was absent passed a
+stub that never answered at all.
+
+### The baseline for "should this go" is not "no document at all"
+
+Removing something has two possible comparisons: against nothing, and against
+the rest of the document. They can point opposite ways, because surrounding
+content shapes the answer in a way an empty prompt does not.
+
+*Why it hides:* the empty baseline is the natural-looking one and is genuinely
+useful — for the other question, whether the document helps at all.
+
+*Rule:* "does this document help" compares against nothing. "should this part
+go" compares with-it against without-it, in the document that will actually
+ship.
+
+*Here:* one line measured inert (Δ=+0.12, p=1.000, baseline already 7/8).
+Removed for real it scored *below* what no document at all achieves — with its
+own row gone the model borrowed neighbouring rows' framings.
+
+### A verdict is about the model that produced it
+
+Results do not transfer across models, and the disagreement has structure
+rather than being noise. A stronger model needs less factual content and more
+pointers; a weaker one is the reverse.
+
+*Why it hides:* cheaper models are attractive for large sweeps, and their
+results look just as clean.
+
+*Rule:* grade on the model you actually ship against. If you must use a cheaper
+one, only "remove it" transfers upward — never "keep it".
+
+*Here:* a full pass on a smaller model returned "keep everything" for a skill
+that lost most of its body on the real one. Those runs were deleted rather than
+kept, because their most likely error direction was known and unfixed.
+
+### Measure only what is actually unresolved
+
+When one result is ambiguous, the reflex is to re-run everything around it.
+Sampling is the expensive part of this work and the ambiguity is usually
+narrow.
+
+*Rule:* widen the sample for the specific comparison in question, not the whole
+group it belongs to.
+
+*Here:* two ambiguous checks were resolved by re-running two entire probes —
+64 cells to answer what a dozen would have.
+
+### The instrument can be the finding
+
+Roughly half of what this project has "discovered" turned out to be bugs in its
+own measurement rather than facts about the documents. That ratio is normal
+early on and it is not a reason to distrust the work — it is a reason to treat
+every surprising result as a claim about the instrument until it survives a
+second look.
+
+*Rule:* when a number is surprising, check the measurement before writing the
+conclusion. When a number is *unsurprising*, that is the dangerous case — it
+will not prompt anyone to check anything.
+
 ## Rules that are not negotiable
 
 - **Never report a result you did not measure.** If something could not be
   verified, write that plainly and write what would be needed.
 - **Never lower `--repeats` below 4.** It cannot resolve anything.
 - **Never cut on statistics alone.** Read the answers (step 4).
-- **Never cut several lines without a confirmation run** (step 5).
+- **Never read a clean joint ablation as "delete the group."** It means merge.
+- **Never cut several lines without a confirmation run** (step 6).
 - **Never hand-roll a substitute for `analyze.py`.** If it does not answer the
   question, fix it; a one-off script that skips the corrections will mislead
   you.

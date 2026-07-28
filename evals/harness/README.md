@@ -54,6 +54,11 @@ worth keeping). The findings below are about the *instrument*, not about any
 skill's content, so they survive the grading model that produced them. Each one
 cost a wrong decision that had to be caught and reversed.
 
+The same failures are written up from the operator's side, with what stops each
+one, in [`../PROCEDURE.md`](../PROCEDURE.md#failure-modes-to-expect). Read
+that one if you are about to run a verification; read this one if you are about
+to change the harness.
+
 **A single ablation reads a state that never ships.** Six lines were once cut
 on single-ablation evidence; measuring the reduced body as a whole caught one
 of them as a false negative and it was restored. Later, two cut candidates each
