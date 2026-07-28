@@ -31,7 +31,7 @@ it cannot drift away from what actually ships.
 | Skill | Effect (naked → full, shipped body) | Status | Evidence |
 | :--- | :--- | :--- | :--- |
 | `ros2-core` | 0.689 → 0.949 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
-| `ros2-security` | 0.983 → 0.986 (sonnet) | EFFECT NOT SHOWN | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
+| `ros2-security` | 0.983 → 0.986 (sonnet) | EFFECT NOT SHOWN (sonnet re-check) | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
 | `ros2-testing` | 0.485 → 1.000 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
 | `ros2-package` | 0.787 → 0.958 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
 | `ros2-perception` | 0.704 → 0.993 (haiku) | VERIFIED (haiku) | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
@@ -48,7 +48,7 @@ Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 | :--- | :--- |
 | IN PROGRESS | not yet measured, or measured on one axis only |
 | VERIFIED | effect **and** efficiency, at n≥5, with the run linked |
-| EFFECT NOT SHOWN | axis 2 measured, but the shipped body does not beat `naked` on this harness — the body is retained on a stated argument, not on a measurement |
+| EFFECT NOT SHOWN | axis 2 measured, but the shipped body does not beat `naked` on this harness — the body is retained on a stated argument, not on a measurement. This is a verdict, not a gap in coverage: the run happened, and the grading model is named in the status the same way a VERIFIED row names it |
 | DID NOT CLEAR | measured and failed — recorded, not hidden |
 
 `VERIFIED (haiku)` marks a skill whose axis-2 pass predates the switch to
