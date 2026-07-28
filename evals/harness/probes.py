@@ -30,6 +30,39 @@ from typing import Callable
 
 FENCE = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.S)
 
+# Tools are off in this harness by design (see README: measuring unaided prior
+# knowledge, not tool use), but sonnet reaches for one more readily than haiku
+# did and, finding none, sometimes stops after the attempt instead of
+# answering. The stub text varies by tool/rendering ("**Tool: bash**",
+# "**tool_call**: Bash", raw `{"command": ...}` JSON, `<tool_call name=...>`),
+# but is always short. Found 2026-07-28 re-checking ros2-core on sonnet: every
+# `param_callback`/`param_declare` failure in a confirmation run was one of
+# these, not a real miss -- and worse, a few had accidentally been scored a
+# *pass* because the tool-call payload happened to mention the target function
+# name while trying to look it up, never having written it.
+_TOOL_STUB_RE = re.compile(
+    r"\*\*\s*(?:the\s+)?tool(?:_call)?\s*:\s*\S"
+    r"|<\s*tool_call\b"
+    r"|^\s*tool_use\s*$"
+    r"|\bINPUT:\s*[`{]"
+    r"|^\s*\*{0,2}\s*\{\s*\"(?:command|description)\"\s*:"
+    r"|\*\[Tool\s+execution\s+failed\]\*"
+    r"|\[Errno\s+2\]\s+No\s+such\s+file\s+or\s+directory:\s*'[a-zA-Z_]+'",
+    re.I | re.M,
+)
+
+
+def _is_tool_stub(answer: str | None) -> bool:
+    """True when the answer is a stub tool-call attempt with nothing real
+    after it. Length-gated (real answers to these probes run well over 700
+    chars; every stub sampled was under 400) so a long answer that merely
+    mentions a tool in passing while still delivering real content is never
+    swept up.
+    """
+    if not answer or len(answer) >= 700:
+        return False
+    return bool(_TOOL_STUB_RE.search(answer))
+
 
 def code(answer: str, lang_hint: str = "python") -> str | None:
     """Concatenated fenced code, or None when the answer contains none.
@@ -37,6 +70,8 @@ def code(answer: str, lang_hint: str = "python") -> str | None:
     Falls back to the whole answer only when it looks like bare code, so a prose
     reply that merely mentions `range_min` is never graded as if it wrote it.
     """
+    if _is_tool_stub(answer):
+        return None
     blocks = FENCE.findall(answer or "")
     if blocks:
         return "\n".join(blocks)
@@ -46,6 +81,8 @@ def code(answer: str, lang_hint: str = "python") -> str | None:
 
 
 def prose(answer: str) -> str | None:
+    if _is_tool_stub(answer):
+        return None
     return answer if (answer or "").strip() else None
 
 
@@ -418,15 +455,15 @@ def _yaml_node_key(answer: str) -> bool | None:
 
 
 def _param_callback(answer: str) -> bool | None:
-    text = answer or ""
-    if not text.strip():
+    text = prose(answer)
+    if text is None:
         return None
     return _has(text, r"add_on_set_parameters_callback")
 
 
 def _param_declare(answer: str) -> bool | None:
-    text = answer or ""
-    if not text.strip():
+    text = prose(answer)
+    if text is None:
         return None
     return _has(text, r"declare_parameter")
 

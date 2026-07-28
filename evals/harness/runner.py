@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures as cf
+import gzip
 import hashlib
 import json
 import os
@@ -300,6 +301,49 @@ def cmd_run(args) -> int:
     return 0
 
 
+def cmd_regrade(args) -> int:
+    """Re-apply current probes.py check functions to a run's stored answers,
+    without spending anything. For when a check function itself was buggy
+    (e.g. the 2026-07-28 tool-stub fix), not when the skill body changed --
+    a changed body needs a real re-run, since the model never saw the new text.
+    """
+    out_dir = RUNS / args.out
+    plain, packed = out_dir / "cells.jsonl", out_dir / "cells.jsonl.gz"
+    if plain.exists():
+        path, opener = plain, lambda p: p.open(encoding="utf-8")
+    elif packed.exists():
+        path, opener = packed, lambda p: gzip.open(p, "rt", encoding="utf-8")
+    else:
+        raise SystemExit(f"no cells.jsonl or cells.jsonl.gz in {out_dir}")
+
+    by_id = {p.id: p for p in PROBES}
+    changed = 0
+    total = 0
+    out_lines = []
+    with opener(path) as fh:
+        for line in fh:
+            rec = json.loads(line)
+            probe = by_id.get(rec.get("probe"))
+            if probe is not None and "answer" in rec and "grade" in rec:
+                new_grade = probe.predicate(rec["answer"])
+                for k in rec["grade"]:
+                    total += 1
+                    if rec["grade"].get(k) != new_grade.get(k):
+                        changed += 1
+                rec["grade"] = new_grade
+            out_lines.append(json.dumps(rec, ensure_ascii=False))
+    if args.dry_run:
+        print(f"{changed}/{total} check results would change — dry run, nothing written")
+        return 0
+    if path.suffix == ".gz":
+        with gzip.open(path, "wt", encoding="utf-8") as fh:
+            fh.write("\n".join(out_lines) + "\n")
+    else:
+        path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+    print(f"{changed}/{total} check results changed, rewrote {path.relative_to(REPO)}")
+    return 0
+
+
 def select_probes(suite: str | None, probe_id: str | None) -> list[Probe]:
     if probe_id:
         return [p for p in PROBES if p.id in probe_id.split(",")]
@@ -335,8 +379,11 @@ def main() -> int:
                         help="stop the sweep once this much has been spent in this invocation")
         sp.add_argument("--out", default=f"{time.strftime('%Y-%m-%d')}-claims")
         sp.add_argument("--dry-run", action="store_true")
+    rg = sub.add_parser("regrade")
+    rg.add_argument("--out", required=True, help="run directory under evals/runs/ to re-grade in place")
+    rg.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
-    return {"plan": cmd_plan, "run": cmd_run}[args.cmd](args)
+    return {"plan": cmd_plan, "run": cmd_run, "regrade": cmd_regrade}[args.cmd](args)
 
 
 if __name__ == "__main__":

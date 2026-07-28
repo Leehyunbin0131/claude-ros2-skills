@@ -240,8 +240,35 @@ total (plus $2.71 on an exploratory naked/full probe run, discarded once the
 per-claim sweep made it redundant). Two more lines cut (45 → 43): the TF-exception-catching rule and the TF
 `ExtrapolationException` symptom row, both `naked=full=ablate=1.00` on sonnet
 with no redundancy partner once tested. Confirmation: `tf_exception` and
-`tf_latest_time` both 8/8 before and after, pooled across all 19 checks 91.7% →
-86.7%, not significant (p=0.20).
+`tf_latest_time` both 8/8 before and after, pooled across all 19 checks
+95.4% → 94.9%, not significant (p=0.36).
+
+Those pooled numbers are after a second bug fix, found by asking a plain
+question a raw comparison invites: haiku's original `full` was 0.94, this
+run's first pass came back 0.89 — worse, on a body that had just been *cut*
+for redundancy on a stronger model. Every one of the eight `full`-condition
+failures behind that number turned out to be the same artifact: sonnet reaches
+for a tool this tools-off harness has turned off ("I'll check the current
+directory structure first... **Tool: bash**") and, finding nothing, stops
+before answering — a non-answer, not a wrong one. Two checks
+(`param_callback`, `param_declare`) additionally bypassed the `code()`/`prose()`
+extraction helpers and regexed the raw answer directly, so a stub that merely
+*mentioned* `add_on_set_parameters_callback` while trying to look it up had
+been scored a pass. Fixed in both extraction helpers behind a length-gated
+marker detector, verified against every sampled stub format (30/33 caught
+directly; the remaining 3 already graded correctly some other way) with zero
+new false passes or fails introduced — every changed grade moved to
+*ungradable*, never invented one. A `runner.py regrade` subcommand now
+re-applies current check functions to a run's stored answers without
+re-spending anything; both `ros2-core` sonnet runs were regraded in place.
+Corrected, `full` moved from 0.89 to 0.95 — at or above haiku's 0.94, which is
+the more defensible reading anyway: absolute `full` score is not a portable
+cross-model quality metric (checks written against one model's typical output
+style don't necessarily fit another's), the real signal is the naked-to-full
+gap, and that gap still shrank — +0.40 on haiku (0.54 → 0.94, the 2026-07-26
+sweep) against +0.21 on the comparable sonnet sweep (0.748 → 0.954), or +0.27
+measured on the shipped 43-line body (0.679 → 0.949) — exactly as the
+grading-model switch predicted.
 
 A third candidate — the TF2 symbols bullet — read identically (ceiling
 everywhere) but **was not cut**. That single bullet bundles the now-redundant

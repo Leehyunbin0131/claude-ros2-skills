@@ -188,14 +188,6 @@ The last one is not hypothetical: it is what the `pointcloud_to_laserscan` row
 did in `ros2-perception`, and a merge or a regroup is the response that
 deletion alone cannot express.
 
-**Joint ablation is not optional.** Single ablation cannot distinguish "this line
-does nothing" from "this line is one of two that each suffice": drop either member
-of a redundant pair and Δ=0 for both. Declare such groups in the probe's `joint`
-field, which adds an `ablate:a+b` condition. In the first run all three of
-`ros2-core`'s groups measured Δ=0 member-by-member and Δ≈+1.00 as a group — cutting
-them on the single-ablation reading would have deleted a rule with a runtime-proven
-effect.
-
 **Claim IDs go stale silently when a file is cut, and a `naked`/`full`-only
 confirmation run will not catch it.** Every skill's `SKILL.md` is cut with
 sections renumbered, and `probes.py`'s claim ID constants are string literals
@@ -253,6 +245,29 @@ Three design choices worth knowing before reading the code:
   of the first sweep were graded that way before this was caught. Cells with
   `is_error` or no cost are now recorded as errors, never graded, and retried on
   the next run.
+- **A cell where the model tried to use a tool and gave up is also not a cell.**
+  Same principle, new shape, found on the 2026-07-28 switch to sonnet: tools are
+  off here by design, but sonnet reaches for one far more readily than haiku did
+  and sometimes stops after the attempt rather than answering — leaving
+  `"I'll check the current directory structure first... **Tool: bash**"` and
+  nothing else. That is a non-answer, not a wrong answer, and every
+  `full`-condition failure in one `ros2-core` confirmation run was one of these.
+  Worse, two checks regexed the raw answer instead of going through
+  `code()`/`prose()`, so a stub that *mentioned* `add_on_set_parameters_callback`
+  while trying to look it up scored a **pass**. `_is_tool_stub()` now gates both
+  extraction helpers, so a stub grades ungradable in either direction. It is
+  length-gated (<700 chars) because a long answer that mentions a tool in passing
+  while still delivering real content must not be swept up — verify any change to
+  it against real stored answers, in both directions, before trusting it.
+
+**Re-grading costs nothing; re-running costs money.** When a *check function* was
+wrong — not the skill body — `runner.py regrade --out <run-dir>` re-applies the
+current predicates to a run's stored answers in place, gzip or not, and reports
+how many results changed. `--dry-run` first. This is only valid when the model's
+input was unchanged: if `SKILL.md` moved, the model never saw the new text and a
+real re-run is the only honest option. A good regrade of a grading-bug fix moves
+results *to* ungradable and never flips a pass to a fail or back; check that it
+does before keeping the result.
 
 ## Grading
 
