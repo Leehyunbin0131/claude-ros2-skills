@@ -259,6 +259,16 @@ Three design choices worth knowing before reading the code:
   length-gated (<700 chars) because a long answer that mentions a tool in passing
   while still delivering real content must not be swept up — verify any change to
   it against real stored answers, in both directions, before trusting it.
+  The rendering keeps varying, and an anchored pattern keeps losing to the next
+  one: `**Tool: bash**`, `**tool_call**: Bash`, an icon glyph in front of the
+  word, `**Tool Call:**` with a space instead of an underscore, and a bare
+  function-call shape (`Search(pattern: "x")`) were each a separate miss found
+  re-checking `ros2-core` and `ros2-security` on 2026-07-28, each scoring a hard
+  `False` before being caught. The pattern that survived stopped trying to
+  anchor the surrounding punctuation and just matched the word `Tool` followed
+  by a colon within 20 characters, case-sensitive so lowercase "the tool: X" in
+  ordinary prose is never swept up — loose beats precise here, because precise
+  kept being precisely wrong about the next format.
 
 **Re-grading costs nothing; re-running costs money.** When a *check function* was
 wrong — not the skill body — `runner.py regrade --out <run-dir>` re-applies the

@@ -84,7 +84,7 @@ unaided. A row can be worth keeping for one clause out of three.
 
 - **The reduced body is unconfirmed.** The cuts are individually evidenced, but
   the 44-line body has not been re-measured as a whole. Until it is, the
-  efficiency axis is not closed and `ros2-core` stays 🔄.
+  efficiency axis is not closed and `ros2-core` stays IN PROGRESS.
 - **Symptom rows were graded on code-writing probes.** The symptom table exists
   for diagnosis; only `cross-host-discovery` is a diagnosis probe. Cutting a
   symptom row on code-probe evidence measures the wrong thing, so `4:03`/`4:04`/

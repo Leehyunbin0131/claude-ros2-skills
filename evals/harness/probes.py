@@ -41,14 +41,28 @@ FENCE = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.S)
 # *pass* because the tool-call payload happened to mention the target function
 # name while trying to look it up, never having written it.
 _TOOL_STUB_RE = re.compile(
-    r"\*\*\s*(?:the\s+)?tool(?:_call)?\s*:\s*\S"
+    # Loose on purpose: "Tool" followed by a colon within a short window,
+    # case-sensitive so lowercase "the tool: X" in ordinary prose is never
+    # swept up. Went through three narrower drafts before this one --
+    # "**Tool:", "**tool_call**:", an icon glyph in front of the word, and
+    # "Tool Call:" (a space instead of an underscore) were each a distinct
+    # miss found re-checking ros2-security on 2026-07-28, and each scored a
+    # hard False rather than ungradable before being caught. Anchoring to
+    # "right after **" or to an exact separator character kept losing to the
+    # next rendering; matching the word and the colon loosely does not.
+    r"\bTool\b.{0,20}:"
     r"|<\s*tool_call\b"
     r"|^\s*tool_use\s*$"
     r"|\bINPUT:\s*[`{]"
     r"|^\s*\*{0,2}\s*\{\s*\"(?:command|description)\"\s*:"
     r"|\*\[Tool\s+execution\s+failed\]\*"
-    r"|\[Errno\s+2\]\s+No\s+such\s+file\s+or\s+directory:\s*'[a-zA-Z_]+'",
-    re.I | re.M,
+    r"|\[Errno\s+2\]\s+No\s+such\s+file\s+or\s+directory:\s*'[a-zA-Z_]+'"
+    # Function-call-shaped tool invocation rendering, e.g.
+    # `Search(pattern: "ros2-*", path: "...")` -- found 2026-07-28 re-checking
+    # ros2-security, where "let me check for a relevant skill... Search(...)"
+    # scored a hard False on real content questions instead of ungradable.
+    r"|\b[A-Z][A-Za-z]*\([a-z_]+\s*:\s*[\"']",
+    re.M,
 )
 
 
@@ -590,12 +604,20 @@ P_DOMAIN = Probe(
 
 # --- ros2-security suite ------------------------------------------------------
 
-C_SEC_ARCH = "ros2-security:1architecture:01"
-C_SEC_NAV_CONCEPTS = "ros2-security:2documentation-entry-points:01"
-C_SEC_NAV_TUTORIAL = "ros2-security:2documentation-entry-points:02"
-C_SEC_NAV_VERIFY = "ros2-security:2documentation-entry-points:03"
-C_SEC_CLI = "ros2-security:a-sros2-cli-commands:01"
-C_SEC_POLICY = "ros2-security:b-high-level-access-control-policy-polic:01"
+# Re-read against claims.jsonl 2026-07-28. Architecture, CLI commands, and the
+# policy.xml block were all cut the same day: naked=full=ablate=1.00 on
+# sonnet across all 14 owned checks at n=8, no exceptions, no UNDERPOWERED
+# reads -- manually spot-checked past the regex too (full naked policy XML
+# reproduced the skill's example byte-for-byte including nesting the checks
+# don't verify; naked architecture answers named the untested AES-GCM-GMAC
+# cipher suite unaided in 8/8 samples). Section numbering was also dropped
+# from the file (one section left), so nav ids lost their leading digit.
+C_SEC_ARCH = None
+C_SEC_NAV_CONCEPTS = "ros2-security:documentation-entry-points:01"
+C_SEC_NAV_TUTORIAL = "ros2-security:documentation-entry-points:02"
+C_SEC_NAV_VERIFY = "ros2-security:documentation-entry-points:03"
+C_SEC_CLI = None
+C_SEC_POLICY = None
 
 
 def _sec_create_keystore(answer: str) -> bool | None:
@@ -651,19 +673,21 @@ P_SEC_KEYSTORE = Probe(
         "creating the keystore through launching the node with security turned on."
     ),
     checks={
-        "create_keystore": Check(_sec_create_keystore, [C_SEC_CLI],
-                                 "creates the root keystore via ros2 security create_keystore"),
-        "create_enclave": Check(_sec_create_enclave, [C_SEC_CLI],
+        "create_keystore": Check(_sec_create_keystore, [],
+                                 "creates the root keystore via ros2 security create_keystore — "
+                                 "its own code block was cut, naked was already 8/8"),
+        "create_enclave": Check(_sec_create_enclave, [],
                                 "creates the enclave via ros2 security create_enclave"),
-        "enclave_flag": Check(_sec_enclave_flag, [C_SEC_CLI],
+        "enclave_flag": Check(_sec_enclave_flag, [],
                               "launches the node with --enclave"),
-        "env_enable": Check(_sec_env_enable, [C_SEC_CLI], "sets ROS_SECURITY_ENABLE"),
-        "env_strategy": Check(_sec_env_strategy, [C_SEC_CLI], "sets ROS_SECURITY_STRATEGY"),
-        "env_keystore": Check(_sec_env_keystore, [C_SEC_CLI], "sets ROS_SECURITY_KEYSTORE"),
+        "env_enable": Check(_sec_env_enable, [], "sets ROS_SECURITY_ENABLE"),
+        "env_strategy": Check(_sec_env_strategy, [], "sets ROS_SECURITY_STRATEGY"),
+        "env_keystore": Check(_sec_env_keystore, [], "sets ROS_SECURITY_KEYSTORE"),
     },
-    note="Covers the whole CLI code block; carries the doc-pointer and architecture "
-         "claims as extras so the interference sweep touches all 6 claims.",
-    extra_claims=[C_SEC_NAV_CONCEPTS, C_SEC_NAV_TUTORIAL, C_SEC_NAV_VERIFY, C_SEC_ARCH],
+    note="Was the CLI code block's ablation instrument; that block was cut "
+         "(8/8 naked = 8/8 full = 8/8 ablated on every check, n=8). Kept with "
+         "no claims as a ground-truth guard on the confirmation run.",
+    extra_claims=[C_SEC_NAV_CONCEPTS, C_SEC_NAV_TUTORIAL, C_SEC_NAV_VERIFY],
 )
 
 
@@ -685,7 +709,11 @@ def _sec_policy_profile_node(answer: str) -> bool | None:
     src = code(answer)
     if src is None:
         return None
-    return _has(src, r"<profile\s+node\s*=")
+    # Was `<profile\s+node\s*=`, order-sensitive: valid XML can write
+    # `<profile ns="/" node="talker">` just as correctly, and sonnet does.
+    # Found 2026-07-28 -- a naked answer with exactly that attribute order
+    # was scored False despite being fully correct.
+    return bool(re.search(r"<profile\b[^>]*\bnode\s*=", src))
 
 
 def _sec_policy_topics_allow(answer: str) -> bool | None:
@@ -712,11 +740,12 @@ P_SEC_POLICY = Probe(
         "node `talker` in namespace `/` publish on topic `chatter`, and nothing else."
     ),
     checks={
-        "policy_root": Check(_sec_policy_root, [C_SEC_POLICY], "root <policy version=...> element"),
-        "enclave_path": Check(_sec_policy_enclave_path, [C_SEC_POLICY], "<enclave path=...> element"),
-        "profile_node": Check(_sec_policy_profile_node, [C_SEC_POLICY], "<profile node=...> element"),
-        "topics_allow": Check(_sec_policy_topics_allow, [C_SEC_POLICY], "publish=\"ALLOW\" attribute"),
-        "topic_name": Check(_sec_policy_topic_name, [C_SEC_POLICY], "<topic>chatter</topic> element"),
+        "policy_root": Check(_sec_policy_root, [], "root <policy version=...> element — its own "
+                             "code block was cut, naked was already 8/8 on every check"),
+        "enclave_path": Check(_sec_policy_enclave_path, [], "<enclave path=...> element"),
+        "profile_node": Check(_sec_policy_profile_node, [], "<profile node=...> element"),
+        "topics_allow": Check(_sec_policy_topics_allow, [], "publish=\"ALLOW\" attribute"),
+        "topic_name": Check(_sec_policy_topic_name, [], "<topic>chatter</topic> element"),
     },
 )
 
@@ -752,9 +781,10 @@ P_SEC_ARCH = Probe(
         "under the hood — not the CLI commands, the underlying mechanism?"
     ),
     checks={
-        "dds_security": Check(_sec_arch_dds_security, [C_SEC_ARCH], "names DDS-Security"),
-        "pki": Check(_sec_arch_pki, [C_SEC_ARCH], "names X.509/PKI authentication"),
-        "rmw_backend": Check(_sec_arch_rmw_backend, [C_SEC_ARCH], "names a DDS-Security-capable RMW"),
+        "dds_security": Check(_sec_arch_dds_security, [], "names DDS-Security — its own "
+                              "sentence was cut, naked was already 8/8 on every check"),
+        "pki": Check(_sec_arch_pki, [], "names X.509/PKI authentication"),
+        "rmw_backend": Check(_sec_arch_rmw_backend, [], "names a DDS-Security-capable RMW"),
     },
     note="Deliberately a fact the model may already know cold — cut candidate if naked is high.",
 )

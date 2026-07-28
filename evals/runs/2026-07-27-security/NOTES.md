@@ -80,5 +80,5 @@ overriding or degrading this body either.
   with `enclave_flag`, which already cleared significance, so the code block as a
   whole is decided regardless of the noisier sibling checks.
 
-`ros2-security` moves to ✅ in [`RESULTS.md`](../../RESULTS.md) — both axes
+`ros2-security` moves to VERIFIED in [`RESULTS.md`](../../RESULTS.md) — both axes
 closed on the first run: effect (this run) and efficiency (nothing to cut).

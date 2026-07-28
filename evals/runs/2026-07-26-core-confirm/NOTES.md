@@ -66,5 +66,5 @@ p = 1.00 vs naked, p = 0.002 vs the broken 44-line version. Fixed.
   decision this close to the detection floor should get the same top-up before
   shipping, not after.
 
-`ros2-core` moves to ✅ in [`RESULTS.md`](../../RESULTS.md) — both axes now closed:
+`ros2-core` moves to VERIFIED in [`RESULTS.md`](../../RESULTS.md) — both axes now closed:
 effect (first run) and efficiency, including the correction this run made.

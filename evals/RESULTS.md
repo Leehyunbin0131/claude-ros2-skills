@@ -24,25 +24,25 @@ right number against a live publisher — not by review.
 
 | Skill | Status | Evidence |
 | :--- | :--- | :--- |
-| `ros2-core` | ✅ Verified (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
-| `ros2-security` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) |
-| `ros2-testing` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
-| `ros2-package` | ✅ Verified | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
-| `ros2-perception` | ✅ Verified | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
-| `ros2-dev` | 🔄 In progress | — |
-| `ros2-troubleshooting` | 🔄 In progress | — |
-| `gazebo-sim` | 🔄 In progress | — |
-| `ros2-control` | 🔄 In progress | — |
-| `ros2-moveit` | 🔄 In progress | — |
-| `ros2-microros` | 🔄 In progress | — |
+| `ros2-core` | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
+| `ros2-security` | VERIFIED (sonnet re-check) | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
+| `ros2-testing` | VERIFIED | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
+| `ros2-package` | VERIFIED | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
+| `ros2-perception` | VERIFIED | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
+| `ros2-dev` | IN PROGRESS | — |
+| `ros2-troubleshooting` | IN PROGRESS | — |
+| `gazebo-sim` | IN PROGRESS | — |
+| `ros2-control` | IN PROGRESS | — |
+| `ros2-moveit` | IN PROGRESS | — |
+| `ros2-microros` | IN PROGRESS | — |
 
-Status vocabulary — a skill is only ✅ when **both** axes have passed:
+Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 
 | | Meaning |
 | :--- | :--- |
-| 🔄 In progress | not yet measured, or measured on one axis only |
-| ✅ Verified | effect **and** efficiency, at n≥5, with the run linked |
-| ❌ Did not clear | measured and failed — recorded, not hidden |
+| IN PROGRESS | not yet measured, or measured on one axis only |
+| VERIFIED | effect **and** efficiency, at n≥5, with the run linked |
+| DID NOT CLEAR | measured and failed — recorded, not hidden |
 
 **No skill has completed verification.** Results are published here per skill as
 each one clears both axes — not before, and including the ones that fail.
@@ -297,6 +297,45 @@ different claims (the TF-catch rule and the TF2 symbols bullet) both drove its
 `tf_exception` check with no `joint=` declaration between them — exactly the
 redundancy-pair blind spot the project's own methodology (see below) exists to
 catch, just never applied to this one probe. Added before either claim was cut.
+
+**`ros2-security`**, the smallest skill (6 claims), reversed hardest. The
+original haiku pass found *zero* cuttable lines — every claim load-bearing,
+including a targeted top-up to n=16 to confirm the architecture sentence
+survived. On sonnet, three of the six claims (architecture, the SROS2 CLI code
+block, the `policy.xml` block) hit `naked=full=ablate=1.00` on **every one of
+their 14 owned checks**, at n=8, no exceptions and no UNDERPOWERED reads — the
+cleanest signal measured anywhere in this project. Verified past the regex
+before cutting anything this size on a security skill: naked policy-XML
+answers were pulled and read whole, reproducing the skill's own example
+byte-for-byte including nesting the checks don't verify, and all 8 naked
+architecture answers named the untested AES-GCM-GMAC cipher suite unaided.
+52 lines cut to 13 (architecture, CLI commands, and the policy block all
+removed; only the documentation-pointer section survives), confirmed against
+the real shipped body: naked 59/60 vs full 68/69, p=1.000 — indistinguishable.
+Detail: [ablation](./runs/2026-07-28-security-sonnet/),
+[confirmation](./runs/2026-07-28-security-sonnet-confirm/).
+
+This is not evidence the haiku-era verdict was performed carelessly — it
+passed every check this project had at the time. It is the starkest
+demonstration yet of the caveat two sections up: a "load-bearing, zero cuts"
+result is a fact about the grading model, not about the skill, and the two
+can point in opposite directions on the same file.
+
+Closing this run also fixed two bugs the confirmation step itself surfaced.
+`_sec_policy_profile_node` required `<profile node=...>` with `node` as the
+first attribute; sonnet correctly writes `<profile ns="/" node="...">` just as
+often, and the order-sensitive regex scored valid XML `False`. And the
+tool-call stub detector (see the sonnet-switch caveat above) kept meeting new
+renderings it didn't cover — an icon glyph in front of "Tool:", then
+`**Tool Call:**` with a space instead of an underscore — each one scoring a
+hard `False` on a real question instead of ungradable until caught. Both
+narrow, anchored patterns were replaced with one loose match (the word `Tool`
+followed by a colon within 20 characters, case-sensitive so lowercase mentions
+in ordinary prose are never swept up), checked against the full corpus of
+already-graded `True` answers across every stored run before trusting it:
+one flagged "false positive" turned out to be the same class of bug again — a
+negative-form check (`no_python_qos_in_cpp`, true whenever the wrong syntax is
+*absent*) trivially passing a stub that never answered at all.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

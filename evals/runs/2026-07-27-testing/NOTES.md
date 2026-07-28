@@ -195,6 +195,6 @@ implies about it.
 - **One model, one temperature, tools off, n≤16.** Same caveats as every run so
   far.
 
-`ros2-testing` moves to ✅ in [`RESULTS.md`](../../RESULTS.md) — effect (this
+`ros2-testing` moves to VERIFIED in [`RESULTS.md`](../../RESULTS.md) — effect (this
 run), efficiency (this run + confirmation), and a first, clean answer on
 whether section order in `SKILL.md` matters at all (it didn't, here).
