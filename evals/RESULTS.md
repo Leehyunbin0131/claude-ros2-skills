@@ -22,19 +22,25 @@ right number against a live publisher — not by review.
 
 ## Status
 
-| Skill | Status | Evidence |
-| :--- | :--- | :--- |
-| `ros2-core` | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
-| `ros2-security` | VERIFIED (sonnet re-check) | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
-| `ros2-testing` | VERIFIED | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
-| `ros2-package` | VERIFIED | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
-| `ros2-perception` | VERIFIED | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
-| `ros2-dev` | IN PROGRESS | — |
-| `ros2-troubleshooting` | IN PROGRESS | — |
-| `gazebo-sim` | IN PROGRESS | — |
-| `ros2-control` | IN PROGRESS | — |
-| `ros2-moveit` | IN PROGRESS | — |
-| `ros2-microros` | IN PROGRESS | — |
+The two axes are **ordered**, and axis 1 gates axis 2: if the shipped body does
+not beat `naked`, "which line is load-bearing" is not a question worth asking —
+the answer is to delete the file, not to trim it. The effect column below is
+that gate, measured on the *shipped* body in each skill's confirmation run, so
+it cannot drift away from what actually ships.
+
+| Skill | Effect (naked → full, shipped body) | Status | Evidence |
+| :--- | :--- | :--- | :--- |
+| `ros2-core` | 0.689 → 0.949 (sonnet) | VERIFIED (sonnet re-check) | [2026-07-26 ablation](./runs/2026-07-26-core/NOTES.md) + [confirmation](./runs/2026-07-26-core-confirm/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
+| `ros2-security` | 0.983 → 0.986 (sonnet) | EFFECT NOT SHOWN | [2026-07-27 ablation](./runs/2026-07-27-security/NOTES.md) + [2026-07-28 sonnet re-check](./runs/2026-07-28-security-sonnet/) + [confirmation](./runs/2026-07-28-security-sonnet-confirm/) |
+| `ros2-testing` | 0.485 → 1.000 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-testing/NOTES.md) + [confirmation](./runs/2026-07-27-testing-confirm/NOTES.md) |
+| `ros2-package` | 0.787 → 0.958 (haiku) | VERIFIED (haiku) | [2026-07-27 ablation](./runs/2026-07-27-package/) + [final confirmation](./runs/2026-07-28-package-final/) |
+| `ros2-perception` | 0.704 → 0.993 (haiku) | VERIFIED (haiku) | [2026-07-28 ablation](./runs/2026-07-28-perception/) + [confirmation](./runs/2026-07-28-perception-confirm/) + [final](./runs/2026-07-28-perception-final/) |
+| `ros2-dev` | — | IN PROGRESS | — |
+| `ros2-troubleshooting` | — | IN PROGRESS | — |
+| `gazebo-sim` | — | IN PROGRESS | — |
+| `ros2-control` | — | IN PROGRESS | — |
+| `ros2-moveit` | — | IN PROGRESS | — |
+| `ros2-microros` | — | IN PROGRESS | — |
 
 Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 
@@ -42,7 +48,13 @@ Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 | :--- | :--- |
 | IN PROGRESS | not yet measured, or measured on one axis only |
 | VERIFIED | effect **and** efficiency, at n≥5, with the run linked |
+| EFFECT NOT SHOWN | axis 2 measured, but the shipped body does not beat `naked` on this harness — the body is retained on a stated argument, not on a measurement |
 | DID NOT CLEAR | measured and failed — recorded, not hidden |
+
+`VERIFIED (haiku)` marks a skill whose axis-2 pass predates the switch to
+sonnet grading. The cut direction transfers (see the model-dependence section
+below); a `KEEP` does not, so these rows are re-checked on sonnet before they
+are considered closed.
 
 **No skill has completed verification.** Results are published here per skill as
 each one clears both axes — not before, and including the ones that fail.
@@ -314,6 +326,20 @@ removed; only the documentation-pointer section survives), confirmed against
 the real shipped body: naked 59/60 vs full 68/69, p=1.000 — indistinguishable.
 Detail: [ablation](./runs/2026-07-28-security-sonnet/),
 [confirmation](./runs/2026-07-28-security-sonnet-confirm/).
+
+**Read that last number as axis 1, not as a successful confirmation.** It says
+the cut did no damage, but it says so because `naked` is already at 0.983 — the
+shipped 13 lines do not beat an empty context on this harness. By the ordering
+stated at the top of this file, the rule-following outcome is to delete the
+file, and the file was kept anyway. The argument for keeping it: all 13 lines
+are documentation pointers, and every cell in this harness runs single-turn
+with `--tools ""`, which is precisely the condition under which a pointer
+cannot pay off — there is no second turn in which to follow it and no tool with
+which to fetch it. The instrument cannot see this claim type, so its silence is
+not evidence of absence. That is an argument, not a measurement, and the status
+table labels it as one. `ros2-security` is the first skill to re-measure if a
+tools-enabled, multi-turn harness is ever built; it is the only skill whose
+retention currently rests on reasoning rather than on a number.
 
 This is not evidence the haiku-era verdict was performed carelessly — it
 passed every check this project had at the time. It is the starkest
