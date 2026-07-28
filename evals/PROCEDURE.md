@@ -244,23 +244,61 @@ adopted if it is shorter.
 
 **Compare variants against each other, not only against the current body.**
 Three rewrites of one skill were each measured against `full` alone, each lost
-a different check, and the repetition read as a pattern — "another line that
-measured CUT was actually load-bearing". Laid side by side, two of the three
-numbers said the opposite: one check scored perfectly in the variant that
-*omitted its topic entirely* and broke only in the next variant, which had
-added a short summary of a different topic. The contradiction was in data
-already collected and cost nothing to find, only the question.
+a different check, and the repetition read as a pattern. Laid side by side, two
+of the three numbers said the opposite: one check scored perfectly in the
+variant that *omitted its topic entirely* and broke only in the next variant,
+which had added a short summary of a different topic. The contradiction was in
+data already collected and cost nothing to find, only the question.
 
-**A terse summary can be worse than the full text and worse than nothing.**
-That is what those two checks were showing. Omit a topic and the model answers
+### How to write a compression that survives
+
+Five skills have now been compressed and the failures cluster. In order of how
+often they bite:
+
+**1. Keep the reason, not just the instruction.** This is the one that has cost
+the most. A body that says *"a single-threaded executor cannot process service
+responses while executing a blocking callback, so use `MultiThreadedExecutor`
+with a `ReentrantCallbackGroup`"* compresses very naturally to *"use
+`MultiThreadedExecutor` with a `ReentrantCallbackGroup`"* — and that rewrite
+measurably lost, because the model then reproduces the fix without the
+diagnosis. The action is the cheap half; the causal sentence is what the reader
+could not have derived. **Cut the example, keep the "because".**
+
+**2. A terse summary can be worse than saying nothing at all.** Not just worse
+than the full text — worse than omission. Omit a topic and the model answers
 from its own knowledge, completely. Summarise it badly and the summary becomes
-the frame the answer is built on — whatever the summary dropped is dropped from
-the answer too. In that run the shipped body explained a *cause* ("a
-single-threaded executor cannot process service responses while executing a
-blocking callback") and the rewrite compressed it to the *fix* alone
-("use `MultiThreadedExecutor` with a `ReentrantCallbackGroup`"). The model
-reproduced the fix without the cause, and the check that looked for the cause
-failed. When compressing, keep the reason, not just the instruction.
+the frame the answer is built on, so whatever the summary dropped is dropped
+from the answer too. A check on one topic scored **8/8 in the variant that
+omitted that topic entirely and 7/16 once a short summary of a *different*
+topic was added nearby.** If you cannot compress a section without losing its
+reasoning, deleting it outright is a real option and sometimes the better one.
+
+**3. Prose usually beats a worked example, but only if it names the specifics.**
+Replacing a 23-line `launch_testing` example with one descriptive sentence tied
+on every check and the answers gained four correct API details the example never
+showed — a worked example appears to act as a ceiling the model reproduces and
+stops at. The same substitution worked on a CMake reference block. But the
+sentences that worked named the exact things that matter (`lib/${PROJECT_NAME}`,
+"`launch/` is not installed by default", "`ament_package()` last"). A sentence
+that gestures at the topic without the specifics is case 1 again.
+
+**4. Do not compress what the model cannot know.** Filenames, paths, project
+conventions, and the behaviour of tools that ship with the skill are where the
+measured effect actually lives. In one skill the baseline was **0.05 on that
+section and 0.80 on everything else**. Compression effort spent on the
+model-can't-know part is effort spent on the only part that is earning.
+
+**5. Compress one section per attempt.** All three rejected rewrites of one
+skill changed several sections at once, which made every rejection ambiguous —
+the check that broke and the section that broke it were not the same section in
+two of the three cases. One change per variant costs another run and buys an
+attributable answer.
+
+**6. A rejected rewrite is a result, not a failure.** Record what was tried and
+which check rejected it. What is established by three rejections is "these three
+rewrites failed", not "this file cannot be compressed" — those are different
+claims, and writing the stronger one is a mistake this project has already made
+once.
 
 Every redundancy group from step 2 is a candidate. So is any worked example
 that the model might not need — see the ceiling note near the top of this file.
