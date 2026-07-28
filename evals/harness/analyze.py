@@ -84,6 +84,35 @@ class Tally:
         return self.passed / self.graded if self.graded else None
 
 
+def _current_skill_snapshot(skills: set[str]) -> dict[str, str]:
+    import hashlib
+    out = {}
+    for s in sorted(skills):
+        path = REPO / "skills" / s / "SKILL.md"
+        text = path.read_text(encoding="utf-8")
+        if text.startswith("---"):
+            _, _, rest = text.partition("---")
+            _, _, text = rest.partition("---")
+        out[s] = hashlib.sha256(text.strip().encode()).hexdigest()[:16]
+    return out
+
+
+def check_skill_drift(run_dir: Path, probes: dict) -> list[str]:
+    """Compare a run's skill_snapshot.json (written at collection time) against
+    the SKILL.md on disk now. A mismatch means the claim IDs this run's
+    `ablate:<id>` conditions refer to may no longer mean what they meant when
+    the answers were collected -- a later cut can renumber a section, and the
+    same numeric suffix then silently labels different content. Returns the
+    list of drifted skill names; empty means safe to trust the labels below.
+    """
+    snap_path = run_dir / "skill_snapshot.json"
+    if not snap_path.exists():
+        return []  # older run, predates snapshotting; nothing to compare
+    recorded = json.loads(snap_path.read_text())
+    current = _current_skill_snapshot(set(recorded))
+    return [s for s, h in recorded.items() if current.get(s) != h]
+
+
 def load(run_dir: Path):
     """-> {(probe, condition, check): Tally}, plus cost and error counts."""
     tallies: dict[tuple[str, str, str], Tally] = defaultdict(Tally)
@@ -113,13 +142,48 @@ def load(run_dir: Path):
     return tallies, cost, errors, cells
 
 
-def verdict(p_naked, p_full, p_abl, sig_effect: bool, sig_harm: bool) -> str:
+# A raw p<alpha across many claims in one sweep is not the same claim as a
+# corrected one: the ros2-core sonnet sweep alone ran 166 Fisher tests, and at
+# alpha=0.05 uncorrected that is ~8 "significant" results expected from noise
+# alone. `bh_qvalues` turns the raw p-values from one run into
+# Benjamini-Hochberg q-values so KEEP/HARMFUL is gated on the corrected
+# threshold, not the raw one.
+def bh_qvalues(pvals: list[float]) -> list[float]:
+    m = len(pvals)
+    if m == 0:
+        return []
+    order = sorted(range(m), key=lambda i: pvals[i])
+    q = [0.0] * m
+    prev = 1.0
+    for rank, i in enumerate(reversed(order), start=1):
+        k = m - rank + 1
+        prev = min(prev, pvals[i] * m / k)
+        q[i] = prev
+    return q
+
+
+# Effect size at which "not significant" stops meaning "nothing here" and
+# starts meaning "this sweep didn't have the power to tell" -- see the n=4/n=8
+# detectable-effect table in the module docstring's companion analysis. A
+# Δ this large sitting at p>=alpha is far more likely underpowered than flat.
+UNDERPOWERED_DELTA = 0.25
+
+
+def verdict(p_naked, p_full, p_abl, sig_effect: bool, sig_harm: bool,
+            delta: float | None = None) -> str:
     if p_full is None or p_abl is None:
         return "no-data"
     if sig_harm:
         return "HARMFUL"
     if sig_effect and p_full > p_abl:
         return "KEEP"
+    # A large gap that still misses significance is a power problem, not a
+    # verdict -- folding it into CUT/INERT/unclear the same as a genuinely
+    # flat Δ≈0 result hides exactly the claims most likely to flip with a
+    # bigger n, which is how "ablate < naked" regressions were missed twice
+    # before this check existed.
+    if delta is not None and abs(delta) >= UNDERPOWERED_DELTA:
+        return "UNDERPOWERED"
     if p_naked is not None and p_naked >= 0.8:
         return "CUT"
     if p_naked is not None and p_naked <= 0.5:
@@ -142,6 +206,16 @@ def main() -> int:
     print(f"# Per-claim analysis — `{run_dir.name}`\n")
     print(f"{cells} cells, {errors} errored, ${cost:.2f} spent\n")
 
+    drifted = check_skill_drift(run_dir, probes)
+    if drifted:
+        print(f"**WARNING — claim IDs have drifted since this run was collected: "
+              f"{', '.join(drifted)}.** `SKILL.md` was cut again after these answers "
+              f"were graded, and section renumbering means `ablate:<id>` conditions "
+              f"below may be labeled with the wrong claim's text. Do not read the "
+              f"Claim verdicts table for {', '.join(drifted)} below as current — "
+              f"re-run against the live file, or check out the commit this run was "
+              f"collected under.\n")
+
     # --- baseline table ------------------------------------------------------
     print("## Baselines per check\n")
     print("| Probe | Check | P(naked) | P(protocol) | P(full) | P(shipped) |")
@@ -160,12 +234,18 @@ def main() -> int:
 
     # --- per-claim verdicts --------------------------------------------------
     print("\n## Claim verdicts\n")
-    print("Δ is P(full) − P(ablate) on the check the claim is supposed to drive. "
-          "`p` is Fisher exact, two-sided, full vs ablate.\n")
-    print("| Claim | Check | P(naked) | P(full) | P(ablate) | Δ | p | Verdict |")
-    print("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | :--- |")
+    print("Δ is P(full) − P(ablate) on the check the claim is supposed to drive. `p` is "
+          "Fisher exact, two-sided, full vs ablate; `q` is that p Benjamini-Hochberg "
+          "corrected across every effect test in this run (harm tests, full vs naked, are "
+          "corrected as their own family) — KEEP/HARMFUL are gated on `q`, not raw `p`, "
+          "because one sweep runs enough tests that the uncorrected count of \"significant\" "
+          "results includes noise (see README). UNDERPOWERED means |Δ| is large enough that "
+          "a real effect is plausible but this sweep's n could not confirm it either way — "
+          "top up before treating it as CUT or unclear.\n")
+    print("| Claim | Check | P(naked) | P(full) | P(ablate) | Δ | p | q | Verdict |")
+    print("| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | :--- |")
 
-    rows = []
+    pending = []  # (cid, check_name, p_naked, p_full, p_abl, delta, p_val, p_harm_or_None)
     for pid, probe in probes.items():
         for check_name, check in probe.checks.items():
             for cid in check.claims:
@@ -180,24 +260,39 @@ def main() -> int:
                 p_val = fisher_exact_two_sided(
                     t_full.passed, t_full.graded - t_full.passed,
                     t_abl.passed, t_abl.graded - t_abl.passed)
-                sig_effect = p_val < args.alpha
 
-                sig_harm = False
+                p_harm = None
                 if t_naked and t_naked.graded and p_naked is not None and p_full < p_naked:
                     p_harm = fisher_exact_two_sided(
                         t_full.passed, t_full.graded - t_full.passed,
                         t_naked.passed, t_naked.graded - t_naked.passed)
-                    sig_harm = p_harm < args.alpha
 
-                v = verdict(p_naked, p_full, p_abl, sig_effect, sig_harm)
-                rows.append((v, cid, check_name, p_naked, p_full, p_abl, p_val))
+                pending.append((cid, check_name, p_naked, p_full, p_abl,
+                                p_full - p_abl, p_val, p_harm))
 
-    order = {"HARMFUL": 0, "KEEP": 1, "INERT": 2, "CUT": 3, "unclear": 4, "no-data": 5}
-    for v, cid, check_name, p_naked, p_full, p_abl, p_val in sorted(
+    # BH-correct each test family across every row in this run before any
+    # verdict is derived, not per-probe -- the whole point is that the
+    # correction has to see every test that was actually run.
+    q_effect = dict(zip(range(len(pending)),
+                         bh_qvalues([r[6] for r in pending])))
+    harm_idx = [i for i, r in enumerate(pending) if r[7] is not None]
+    q_harm_vals = bh_qvalues([pending[i][7] for i in harm_idx])
+    q_harm = dict(zip(harm_idx, q_harm_vals))
+
+    rows = []
+    for i, (cid, check_name, p_naked, p_full, p_abl, delta, p_val, p_harm) in enumerate(pending):
+        sig_effect = q_effect[i] < args.alpha
+        sig_harm = q_harm.get(i, 1.0) < args.alpha
+        v = verdict(p_naked, p_full, p_abl, sig_effect, sig_harm, delta)
+        rows.append((v, cid, check_name, p_naked, p_full, p_abl, p_val, q_effect[i]))
+
+    order = {"HARMFUL": 0, "KEEP": 1, "UNDERPOWERED": 2, "INERT": 3, "CUT": 4,
+             "unclear": 5, "no-data": 6}
+    for v, cid, check_name, p_naked, p_full, p_abl, p_val, q_val in sorted(
             rows, key=lambda r: (order.get(r[0], 9), r[1])):
         n = "—" if p_naked is None else f"{p_naked:.2f}"
         print(f"| `{cid.split(':',1)[1]}` | {check_name} | {n} | {p_full:.2f} | "
-              f"{p_abl:.2f} | {p_full - p_abl:+.2f} | {p_val:.3f} | **{v}** |")
+              f"{p_abl:.2f} | {p_full - p_abl:+.2f} | {p_val:.3f} | {q_val:.3f} | **{v}** |")
 
     # --- redundancy groups ---------------------------------------------------
     # The single-ablation table cannot tell "this line does nothing" from "this

@@ -276,3 +276,38 @@ install, does the command succeed when the grader re-runs it, does the generated
 node print the right number against a live publisher. A check returns pass, fail,
 or **ungradable** — and ungradable is never counted as a failure. A grader that
 scores unparseable output as "fail" invents effects.
+
+## Statistical honesty in `analyze.py`
+
+Found auditing the `ros2-core` sonnet re-check (2026-07-28), all three fixed the
+same day:
+
+- **Uncorrected p-values across one sweep overstate significance.** The
+  `ros2-core` sonnet sweep alone ran 166 Fisher tests; at `alpha=0.05`
+  uncorrected, ~8 "significant" results are expected from noise alone before a
+  single real effect exists. `bh_qvalues()` Benjamini-Hochberg corrects every
+  effect test in a run as one family (harm tests, full vs naked, as their own
+  family), and `KEEP`/`HARMFUL` are gated on the corrected `q` column, not the
+  raw `p` column the table still prints for reference.
+- **A large Δ that misses significance is a power problem, not a verdict.**
+  Folding it into `CUT`/`INERT`/`unclear` the same as a genuinely flat Δ≈0
+  result is how a real regression hides — it is the same shape that produced
+  two of this project's worst misses (`ros2-core` 4:05, the `ros2-perception`
+  `pointcloud_to_laserscan` row). `UNDERPOWERED` (|Δ| ≥ 0.25 but not
+  significant) is now its own bucket: top it up before treating it as settled,
+  don't read it as either KEEP or CUT.
+- **Claim IDs are only valid against the file state they were collected
+  against.** `runner.py` now writes `skill_snapshot.json` (a hash of each
+  probed skill's `SKILL.md`) into a run directory the first time it's used.
+  `analyze.py` compares that snapshot to the file on disk and prints a loud
+  warning — not a quiet skip — when they differ, because a later cut can
+  renumber a section and leave the *same numeric claim-ID suffix* pointing at
+  different content than it did when the run's answers were collected. This
+  bit during the improvement pass itself: re-running `analyze.py` against the
+  pre-cut `ros2-core` sonnet sweep with post-cut `probes.py` silently relabeled
+  the bounds-redundancy group's data as the shutdown group's. The shipped
+  decision was unaffected (it was read correctly at the time), but the
+  re-analysis after the fact was not, which is exactly the failure this
+  warning exists to catch going forward. `runner.py regrade` is unaffected by
+  this — a `Check`'s function only ever reads the answer text, never a claim
+  ID, so re-grading cannot mislabel anything the way the per-claim table can.

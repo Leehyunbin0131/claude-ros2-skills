@@ -298,6 +298,35 @@ different claims (the TF-catch rule and the TF2 symbols bullet) both drove its
 redundancy-pair blind spot the project's own methodology (see below) exists to
 catch, just never applied to this one probe. Added before either claim was cut.
 
+## The efficiency axis rests on an assumption that had never been measured
+
+Every cut in this project has been justified as "the model already does this
+unaided" — a real, tested claim. But the *reason to bother cutting at all* is
+a second, separate claim that was never itself tested: that leaving inert
+content in also costs something on the effect axis, not just in tokens. On
+2026-07-28 that assumption was checked directly: `evals/variants/ros2-perception/bloated.md`
+takes the verified `ros2-perception` body and adds five paragraphs of
+plausible, on-topic, but genuinely untested filler (general node hygiene,
+a generic debugging workflow, general performance notes) — +85% by length
+(43 → 80 lines), with every already-tested line left character-for-character
+identical. Run through all 19 checks across all 6 probes at n=8 on sonnet
+([run](./runs/2026-07-28-perception-bloat-test/)): **19/19 checks scored
+identically, 8/8 = 8/8 on every one.** Average per-cell API cost was not
+measurably different either ($0.0169 vs $0.0152 — noise, not a real gap).
+
+Scoped claim, not a general one: one skill, one model, one style of filler
+(readable, plausible, on-topic, generic-advice-shaped), at +85% on a 43-line
+base. It does not show bloat is free at every scale — `ros2-troubleshooting`
+at 119 lines or `ros2-dev` at 191 could plausibly behave differently, and
+genuinely irrelevant or contradictory padding was not tested. What it does
+show: the strong version of "cut it, it's hurting correctness" is not
+supported by this evidence, at this scale, on this model. The remaining
+grounds for cutting inert content are real but different ones — token cost at
+scale, and every stale-reference bug this session found living in content
+nobody was reading closely because it wasn't earning its place — not "it
+measurably degrades the answer," which was the framing every prior cut in
+this project implicitly leaned on without checking.
+
 Interim measurements are deliberately not published. An earlier round of this work
 produced a plausible conclusion from a single run that a controlled re-run then
 disconfirmed; publishing partial results invites exactly that error to spread

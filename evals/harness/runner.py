@@ -240,12 +240,32 @@ def load_done(results_path: Path) -> set[str]:
     return done
 
 
+def _skill_snapshot(probes: list[Probe]) -> dict[str, str]:
+    """sha256 of each probed skill's SKILL.md, so a run directory records the
+    exact claim-numbering the answers in it were collected against."""
+    import hashlib
+    skills = sorted({p.skill for p in probes})
+    return {s: hashlib.sha256(_skill_body(s).encode()).hexdigest()[:16] for s in skills}
+
+
 def cmd_run(args) -> int:
     index = load_index()
     probes = select_probes(args.suite, args.probe)
     out_dir = RUNS / args.out
     out_dir.mkdir(parents=True, exist_ok=True)
     results_path = out_dir / "cells.jsonl"
+
+    # Written once, on first use of this run dir; never overwritten on resume,
+    # since a resume is supposed to be against the same file state as the
+    # first cell. analyze.py / regrade compare against this to catch the case
+    # this session hit: re-reading an old run's answers with today's
+    # probes.py, after a later cut renumbered the claim IDs those answers'
+    # `ablate:<id>` conditions refer to. Same numeric suffix, different
+    # content -- a silent mislabel, not a crash, so nothing else catches it.
+    snapshot_path = out_dir / "skill_snapshot.json"
+    if not results_path.exists() and not snapshot_path.exists():
+        snapshot_path.write_text(
+            json.dumps(_skill_snapshot(probes), indent=2, sort_keys=True) + "\n")
 
     cells = plan_cells(probes, args.repeats, args.models.split(","),
                        args.conditions.split(",") if args.conditions else None)
@@ -306,6 +326,11 @@ def cmd_regrade(args) -> int:
     without spending anything. For when a check function itself was buggy
     (e.g. the 2026-07-28 tool-stub fix), not when the skill body changed --
     a changed body needs a real re-run, since the model never saw the new text.
+
+    Safe even against a run whose claim IDs have since drifted (see
+    analyze.py's check_skill_drift): a Check's `fn` only reads the answer
+    text, never a claim ID, so re-grading cannot mislabel anything the way
+    analyze.py's per-claim table can.
     """
     out_dir = RUNS / args.out
     plain, packed = out_dir / "cells.jsonl", out_dir / "cells.jsonl.gz"
