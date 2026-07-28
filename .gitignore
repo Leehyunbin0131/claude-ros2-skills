@@ -8,3 +8,6 @@ evals/claims/
 
 # Runner scratch dir; cells.jsonl is committed gzipped alongside its analysis.
 evals/runs/*/cwd/
+
+# colcon build/test logs
+log/

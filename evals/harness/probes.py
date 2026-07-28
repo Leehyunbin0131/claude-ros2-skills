@@ -879,22 +879,37 @@ P_T_DIAGNOSE = Probe(
 # tallies. Recomputed with the same 3-key scheme analyze.py uses, there were
 # no significant regressions. Both lines are cut again here; C_PKG_SYM_IFACE
 # and C_PKG_RULE_ONE_CONCERN no longer have a claim id to point to.
+# Re-mapped 2026-07-28 after variant:compressed shipped (115 -> 69 lines). The
+# rewrite dropped four whole claims and merged the wiring section, so every
+# section number below the doc pointers shifted. Constant NAMES are stable and
+# deliberately no longer track the digits in their ids -- C_PKG_CMAKE_WIRING is
+# now :01 of section 2, not "ament-cmake:01". That mismatch looks like a bug and
+# is not; do not "fix" it by renaming to match.
+#
+# What went, and why (n=4 sweep + targeted top-ups, sonnet):
+#   scaffolding block, the ament_cmake code block, the ament_python data_files/
+#   entry_points block, the colcon build/source block and the launch-install
+#   symptom row all measured naked = full = ablate = 1.00. The two code blocks
+#   became two prose sentences; the compressed body then tied `full` on all 27
+#   checks at n=8, including the real-build ground-truth probe.
+# What stayed: the setup.cfg block and all four interface claims came back
+#   UNDERPOWERED with large positive deltas, which is not a cut.
 C_PKG_INTRO = "ros2-package:ros-2-package-creation-build-wiring-ubun:01"
 C_PKG_NAV1 = "ros2-package:1documentation-entry-points:01"
 C_PKG_NAV2 = "ros2-package:1documentation-entry-points:02"
 C_PKG_NAV3 = "ros2-package:1documentation-entry-points:03"
-C_PKG_CREATE_CMD = "ros2-package:2scaffolding:01"
-C_PKG_CMAKE_WIRING = "ros2-package:ament-cmake:01"
-C_PKG_PYSETUP = "ros2-package:ament-python:01"
-C_PKG_EXPORT_TAG = "ros2-package:ament-python:02"
-C_PKG_SETUP_CFG = "ros2-package:ament-python:03"
-C_PKG_IFACE_LOC = "ros2-package:4custom-interfaces-msg-srv:01"
-C_PKG_IFACE_CMAKE = "ros2-package:4custom-interfaces-msg-srv:02"
-C_PKG_IFACE_XML = "ros2-package:4custom-interfaces-msg-srv:03"
-C_PKG_IFACE_VERIFY = "ros2-package:4custom-interfaces-msg-srv:04"
-C_PKG_BUILD_CMD = "ros2-package:5build-source-loop:01"
-C_PKG_SYM_LAUNCH = "ros2-package:6symptom-root-cause-action:01"
-C_PKG_RULE_RESOURCE = "ros2-package:7strict-rules:01"
+C_PKG_CREATE_CMD = None  # scaffolding block cut (naked 4/4 = full 4/4)
+C_PKG_CMAKE_WIRING = "ros2-package:2the-wiring-that-makes-a-node-runnable:01"
+C_PKG_PYSETUP = None  # data_files/entry_points block cut, folded into the below
+C_PKG_EXPORT_TAG = "ros2-package:2the-wiring-that-makes-a-node-runnable:02"
+C_PKG_SETUP_CFG = "ros2-package:2the-wiring-that-makes-a-node-runnable:03"
+C_PKG_IFACE_LOC = "ros2-package:3custom-interfaces-msg-srv:01"
+C_PKG_IFACE_CMAKE = "ros2-package:3custom-interfaces-msg-srv:02"
+C_PKG_IFACE_XML = "ros2-package:3custom-interfaces-msg-srv:03"
+C_PKG_IFACE_VERIFY = "ros2-package:3custom-interfaces-msg-srv:04"
+C_PKG_BUILD_CMD = None  # colcon build/source block cut (naked 4/4 = full 4/4)
+C_PKG_SYM_LAUNCH = None  # launch-install symptom row cut (naked 4/4 = full 4/4)
+C_PKG_RULE_RESOURCE = "ros2-package:4strict-rules:01"
 
 
 def _pkg_create_cmd(answer: str) -> bool | None:

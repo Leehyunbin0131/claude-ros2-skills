@@ -36,7 +36,7 @@ it cannot drift away from what actually ships.
 | :--- | :--- | :--- | :--- |
 | `ros2-core` | 0.689 → 0.949 | VERIFIED | [ablation](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
 | `ros2-testing` | 0.762 → 1.000 | VERIFIED | [ablation](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
-| `ros2-package` | — | IN PROGRESS | — |
+| `ros2-package` | 0.844 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
 | `ros2-perception` | — | IN PROGRESS | [partial sonnet cross-check](./runs/2026-07-28-perception-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
 | `ros2-troubleshooting` | — | IN PROGRESS | — |
@@ -88,7 +88,8 @@ The one direction that does transfer is CUT: if a smaller model does not need
 a line, a larger one will not either.
 
 `ros2-package` and `ros2-perception` had no evidence left once the haiku runs
-were removed, so they are back to IN PROGRESS pending a sonnet sweep.
+were removed. `ros2-package` has since been re-swept on sonnet;
+`ros2-perception` is still pending.
 
 ## Skills verified on sonnet
 
@@ -214,6 +215,48 @@ it and stops. Naming the concept and leaving the code to the model got more
 correct API surface, not less. That is a hypothesis from one probe, not a law,
 but it is the first concrete reason found in this project to prefer prose over
 an example, and it is directly testable on the remaining skills.
+
+**`ros2-package`** is the largest skill measured (115 lines, 16 claims) and the
+only one with a grader that runs a real build. It ended at **115 lines to 69**,
+again by rewriting rather than deleting, and it produced two results the other
+skills could not.
+
+First, the real-build probe was at ceiling in *every* condition — `naked` 4/4 on
+both "does `colcon build` succeed" and "does `ros2 pkg executables` list the
+node". Sonnet writes a working `ament_python` package unaided, including the
+`data_files` resource-index entry, the `<export><build_type>` tag and the
+`setup.cfg` install paths. The last two were content *added* to this skill in an
+earlier pass precisely because they were missing from the model's output; they
+are no longer missing. Content can expire, and only re-measurement finds out.
+
+Second, the run is the clearest case yet of a probe rather than a skill setting
+the measurement floor. 113 of 1000 check results were ungradable (11%, the
+highest here), all tool-call stubs, all correctly scored ungradable rather than
+wrong. The first hypothesis was that a line in the body sends the model looking
+at the install; that was checked and **rejected** — the rate tracks the probe,
+not the content. Every condition of `pkg-interfaces` runs 0.27–0.30 while seven
+other probes sit near zero, and `protocol` (`CLAUDE.md` alone, which says to
+verify against the local install) runs 0.28. The consequence is concrete: four
+interface claims stayed UNDERPOWERED with deltas as large as +0.80 because
+`full` could only be graded 3 times in 10, and they were kept rather than cut,
+which is what UNDERPOWERED is for.
+
+One claim is worth naming for its shape. `setup.cfg`'s install path measured
+`naked` 0.75, `full` 1.00, `ablate` **0.67** — removing the line scores *below*
+having no file at all, because the surrounding text then points at an install
+path nothing explains. Cutting on the naked baseline would have been wrong here;
+the comparison that decides a cut is full-with-line against full-without-line.
+Detail: [ablation](./runs/2026-07-28-package-sonnet/NOTES.md),
+[rewrite comparison](./runs/2026-07-28-package-variant/),
+[confirmation](./runs/2026-07-28-package-confirm-sonnet/).
+
+The rewrite tested the `ros2-testing` hypothesis on a second skill and it held:
+the `ament_cmake` reference block (six checks, all at ceiling) and the
+`ament_python` `data_files`/`entry_points` block were replaced by two prose
+sentences naming only the facts that matter, and the compressed body tied `full`
+on all 27 checks at n=8 — including both real-build checks. Two skills is not
+proof, but "try prose before assuming the code block is doing the work" now has
+evidence from more than one place.
 
 ## The efficiency axis rests on an assumption that had never been measured
 
