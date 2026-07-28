@@ -81,7 +81,7 @@ This repository optimizes for a single outcome: minimizing the risk of generatin
 **A skill counts as verified here only when two questions are answered:** does it
 change what the agent produces on a task exercising its own content, and is this
 body the *smallest* one that produces that change? Correct is the floor, not the
-bar — fewer tokens and less text may buy the same result, and until that is
+bar — fewer tokens and less text may achieve the same result, and until that is
 tested, "the agent used it" is half an answer.
 
 **No skill has completed verification yet.** Per-skill status is in
