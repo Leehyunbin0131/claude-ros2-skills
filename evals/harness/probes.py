@@ -1959,6 +1959,391 @@ P_TS_TF_ADVISORY = Probe(
 )
 
 
+# --- ros2-troubleshooting, remaining 42 claims -------------------------------
+# The first pass covered only section 1a (the shipped scripts) because a
+# pre-measurement said the rest was at ceiling. "At ceiling" was an inference,
+# not a measurement, and the skill cannot be called finished on 8 of 50 claims.
+# These six probes cover the other 42 so the CUT verdicts are earned rather than
+# assumed. Prompts stay plain-user-question shaped -- no hint that a skill exists.
+
+C_TS_GT_RULE = "ros2-troubleshooting:1core-principles-anti-hallucination-prot:01"
+C_TS_REP103_HDR = "ros2-troubleshooting:1core-principles-anti-hallucination-prot:02"
+C_TS_AXIS_X = "ros2-troubleshooting:1core-principles-anti-hallucination-prot:03"
+C_TS_AXIS_Y = "ros2-troubleshooting:1core-principles-anti-hallucination-prot:04"
+C_TS_AXIS_Z = "ros2-troubleshooting:1core-principles-anti-hallucination-prot:05"
+C_TS_AXIS_YAW = "ros2-troubleshooting:1core-principles-anti-hallucination-prot:06"
+
+C_TS_SYM1 = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:01"
+C_TS_SYM1_A = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:02"
+C_TS_SYM1_B = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:03"
+C_TS_SYM1_C = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:04"
+C_TS_SYM1_ACT = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:05"
+C_TS_SYM2 = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:06"
+C_TS_SYM2_RC = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:07"
+C_TS_SYM2_ACT = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:08"
+C_TS_SYM3 = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:09"
+C_TS_SYM3_A = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:10"
+C_TS_SYM3_B = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:11"
+C_TS_SYM3_ACT = "ros2-troubleshooting:a-inverted-sensor-motion-symptom-checkli:12"
+
+C_TS_SIM_SYM = "ros2-troubleshooting:a-simulation-clock-synchronization-use-s:01"
+C_TS_SIM_RC = "ros2-troubleshooting:a-simulation-clock-synchronization-use-s:02"
+C_TS_SIM_FIX = "ros2-troubleshooting:a-simulation-clock-synchronization-use-s:03"
+C_TS_SIM_CODE = "ros2-troubleshooting:a-simulation-clock-synchronization-use-s:04"
+
+C_TS_LC_SYM = "ros2-troubleshooting:b-nav2-lifecycle-node-state-transitions:01"
+C_TS_LC_RC = "ros2-troubleshooting:b-nav2-lifecycle-node-state-transitions:02"
+C_TS_LC_FIX = "ros2-troubleshooting:b-nav2-lifecycle-node-state-transitions:03"
+
+C_TS_EX_SYM = "ros2-troubleshooting:c-executor-deadlocks-async-callback-free:01"
+C_TS_EX_RC = "ros2-troubleshooting:c-executor-deadlocks-async-callback-free:02"
+C_TS_EX_FIX = "ros2-troubleshooting:c-executor-deadlocks-async-callback-free:03"
+
+C_TS_MI_SYM = "ros2-troubleshooting:d-urdf-self-collision-moveit-2-freeze:01"
+C_TS_MI_RC = "ros2-troubleshooting:d-urdf-self-collision-moveit-2-freeze:02"
+C_TS_MI_FIX = "ros2-troubleshooting:d-urdf-self-collision-moveit-2-freeze:03"
+
+C_TS_DDS_SYM = "ros2-troubleshooting:e-dds-multicast-domain-id-interference-r:01"
+C_TS_DDS_RC = "ros2-troubleshooting:e-dds-multicast-domain-id-interference-r:02"
+C_TS_DDS_FIX = "ros2-troubleshooting:e-dds-multicast-domain-id-interference-r:03"
+
+C_TS_TREE = "ros2-troubleshooting:4step-by-step-diagnostic-decision-tree:01"
+C_TS_AP_SIGN = "ros2-troubleshooting:5common-anti-patterns-prevention-rules:01"
+C_TS_AP_FRAME = "ros2-troubleshooting:5common-anti-patterns-prevention-rules:02"
+C_TS_AP_QOS = "ros2-troubleshooting:5common-anti-patterns-prevention-rules:03"
+C_TS_AP_SPIN = "ros2-troubleshooting:5common-anti-patterns-prevention-rules:04"
+
+C_TS_REF_103 = "ros2-troubleshooting:6official-references:01"
+C_TS_REF_105 = "ros2-troubleshooting:6official-references:02"
+C_TS_REF_TF2 = "ros2-troubleshooting:6official-references:03"
+
+
+def _ts_x_forward(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"\+?\s*x\b[^.\n]{0,40}forward|forward[^.\n]{0,20}\+?\s*x\b", text, re.I))
+
+
+def _ts_y_left(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"\+?\s*y\b[^.\n]{0,40}left|left[^.\n]{0,20}\+?\s*y\b", text, re.I))
+
+
+def _ts_yaw_ccw(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(counter[- ]?clockwise|ccw)", text, re.I))
+
+
+def _ts_rep_named(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"REP[\s-]?10[35]", text, re.I))
+
+
+def _ts_fix_not_in_app_code(answer: str) -> bool | None:
+    """The anti-pattern: flipping the sign in application logic instead of
+    fixing the controller/hardware config."""
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(
+        r"(ros2_control|hardware interface|hardware_interface|controller config"
+        r"|driver|firmware|urdf|encoder polarity|wheel.{0,15}multiplier)", text, re.I))
+
+
+def _ts_names_motor_or_encoder(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(motor|wiring|pwm|encoder)", text, re.I))
+
+
+def _ts_names_tf_180(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(180|3\.14|pi\b)", text, re.I)) and bool(
+        re.search(r"(tf|frame|base_link|yaw|roll)", text, re.I))
+
+
+def _ts_tf2_echo(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"tf2_echo", text, re.I))
+
+
+def _ts_imu_gravity_z(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"9\.8", text)) and bool(re.search(r"\bz\b", text, re.I))
+
+
+def _ts_imu_yaw_sign(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"angular_velocity", text, re.I)) or bool(
+        re.search(r"yaw rate[^.\n]{0,40}sign|sign[^.\n]{0,40}yaw", text, re.I))
+
+
+def _ts_use_sim_time(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"use_sim_time", text))
+
+
+def _ts_sim_time_all_nodes(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"use_sim_time", text):
+        return False
+    return bool(re.search(r"(every|all)\s+node", text, re.I))
+
+
+def _ts_clock_topic(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"/clock|--clock", text))
+
+
+def _ts_lifecycle_get(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ros2\s+lifecycle\s+get", text))
+
+
+def _ts_lifecycle_state(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(unconfigured|inactive|lifecycle_manager|lifecycle manager)", text, re.I))
+
+
+def _ts_multithreaded_executor(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"MultiThreadedExecutor", text))
+
+
+def _ts_reentrant_group(answer: str) -> bool | None:
+    text = code(answer) or prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ReentrantCallbackGroup", text))
+
+
+def _ts_single_thread_cause(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"single[- ]?threaded", text, re.I))
+
+
+def _ts_srdf_acm(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(srdf|allowed collision|\bacm\b)", text, re.I))
+
+
+def _ts_setup_assistant(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"setup assistant", text, re.I))
+
+
+def _ts_collision_overlap(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"collision", text, re.I))
+
+
+def _ts_domain_id_fix(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ROS_DOMAIN_ID", text))
+
+
+def _ts_domain_id_default_zero(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ROS_DOMAIN_ID", text)) and bool(
+        re.search(r"default[^.\n]{0,30}\b0\b|\b0\b[^.\n]{0,30}default", text, re.I))
+
+
+P_TS_REP103 = Probe(
+    id="ts-rep103",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "I am writing the odometry publisher for a ground robot on ROS 2 Jazzy "
+        "and I want to get the sign conventions right the first time. For the "
+        "robot body frame, which direction is positive on each axis, which way "
+        "is a positive yaw, and what is the standard that says so? Also: our "
+        "robot currently drives backward for a positive command and a colleague "
+        "wants to negate the value in our application node. Is that the right "
+        "place to fix it?"
+    ),
+    checks={
+        "x_forward": Check(_ts_x_forward, [C_TS_AXIS_X], "+X is forward"),
+        "y_left": Check(_ts_y_left, [C_TS_AXIS_Y], "+Y is left"),
+        "yaw_ccw": Check(_ts_yaw_ccw, [C_TS_AXIS_YAW], "positive yaw is counter-clockwise"),
+        "names_rep": Check(_ts_rep_named, [C_TS_REF_103, C_TS_REF_105], "names REP 103/105"),
+        "fix_at_source": Check(_ts_fix_not_in_app_code, [C_TS_AP_SIGN],
+                               "fixes the sign in the controller/hardware layer, not app code"),
+    },
+    extra_claims=[C_TS_GT_RULE, C_TS_REP103_HDR, C_TS_AXIS_Z, C_TS_REF_TF2],
+    probe_only=True,
+)
+
+
+P_TS_INVERTED_DRIVE = Probe(
+    id="ts-inverted-drive",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "Ground robot on ROS 2 Jazzy. A positive `cmd_vel.linear.x` makes it "
+        "physically drive backward, and separately my Nav2 local costmap shows "
+        "obstacles behind the robot when they are actually in front. Nothing "
+        "errors. List the candidate root causes for each, and the concrete "
+        "command I would run to confirm the frame side of it."
+    ),
+    checks={
+        "motor_or_encoder": Check(_ts_names_motor_or_encoder, [C_TS_SYM1_A, C_TS_SYM1_B],
+                                  "names motor wiring / PWM sign / encoder direction"),
+        "tf_180": Check(_ts_names_tf_180, [C_TS_SYM1_C, C_TS_SYM2_RC],
+                        "names a 180 degree / pi frame rotation"),
+        "tf2_echo": Check(_ts_tf2_echo, [C_TS_SYM2_ACT],
+                          "runs tf2_echo base_link laser_frame to check the mount"),
+    },
+    extra_claims=[C_TS_SYM1, C_TS_SYM2, C_TS_SYM1_ACT],
+    joint=[[C_TS_SYM1_A, C_TS_SYM1_B]],
+    probe_only=True,
+)
+
+
+P_TS_EKF_IMU = Probe(
+    id="ts-ekf-imu",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "`robot_localization`'s EKF output on my ROS 2 Jazzy robot diverges and "
+        "sometimes spins on the spot, while wheel odometry alone looks fine. "
+        "What are the two things about the IMU I should check first, and what "
+        "exact values should I expect to see when the robot is sitting still?"
+    ),
+    checks={
+        "gravity_z": Check(_ts_imu_gravity_z, [C_TS_SYM3_B, C_TS_SYM3_ACT],
+                           "expects ~9.81 on Z when stationary"),
+        "yaw_sign": Check(_ts_imu_yaw_sign, [C_TS_SYM3_A],
+                          "names angular_velocity.z sign against wheel odometry"),
+    },
+    extra_claims=[C_TS_SYM3],
+    probe_only=True,
+)
+
+
+P_TS_SIM_CLOCK = Probe(
+    id="ts-sim-clock",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "Running my ROS 2 Jazzy stack against a Gazebo simulation, TF lookups "
+        "keep failing with `Lookup would require extrapolation into the past` "
+        "and Nav2 goals hang. It all works fine on the real robot. What is "
+        "wrong and how do I fix it across the whole system?"
+    ),
+    checks={
+        "use_sim_time": Check(_ts_use_sim_time, [C_TS_SIM_RC, C_TS_SIM_FIX],
+                              "names use_sim_time"),
+        "all_nodes": Check(_ts_sim_time_all_nodes, [C_TS_SIM_FIX, C_TS_SIM_CODE],
+                           "says every node must set it, not just some"),
+        "clock_topic": Check(_ts_clock_topic, [C_TS_SIM_RC],
+                             "names the /clock topic or --clock"),
+    },
+    extra_claims=[C_TS_SIM_SYM, C_TS_TREE],
+    probe_only=True,
+)
+
+
+P_TS_NAV2_LIFECYCLE = Probe(
+    id="ts-nav2-lifecycle",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "My Nav2 stack on ROS 2 Jazzy is up: `ros2 node list` shows every "
+        "server and I can echo their topics. But sending a NavigateToPose goal "
+        "returns rejected or times out every time. Where do I look, and what "
+        "command tells me the answer?"
+    ),
+    checks={
+        "lifecycle_get": Check(_ts_lifecycle_get, [C_TS_LC_FIX],
+                               "runs ros2 lifecycle get on a server"),
+        "lifecycle_state": Check(_ts_lifecycle_state, [C_TS_LC_RC],
+                                 "names unconfigured/inactive or the lifecycle manager"),
+    },
+    extra_claims=[C_TS_LC_SYM],
+    probe_only=True,
+)
+
+
+P_TS_EXEC_MOVEIT_DDS = Probe(
+    id="ts-exec-moveit-dds",
+    suite="troubleshooting",
+    skill="ros2-troubleshooting",
+    prompt=(
+        "Three unrelated ROS 2 Jazzy problems, briefly each:\n"
+        "1. My node calls a service from inside a subscription callback using "
+        "`spin_until_future_complete` and the whole node freezes.\n"
+        "2. MoveIt 2 fails instantly with `No valid path found` / "
+        "`State in collision` before it plans anything.\n"
+        "3. Two robots and three laptops share our office Wi-Fi and everyone "
+        "sees everyone else's topics.\n"
+        "Give the root cause and the fix for each."
+    ),
+    checks={
+        "multithreaded": Check(_ts_multithreaded_executor, [C_TS_EX_FIX, C_TS_AP_SPIN],
+                               "names MultiThreadedExecutor"),
+        "reentrant": Check(_ts_reentrant_group, [C_TS_EX_FIX],
+                           "names ReentrantCallbackGroup"),
+        "single_thread": Check(_ts_single_thread_cause, [C_TS_EX_RC],
+                               "explains the single-threaded executor blocking"),
+        "collision_overlap": Check(_ts_collision_overlap, [C_TS_MI_RC],
+                                   "names overlapping collision geometry"),
+        "srdf_acm": Check(_ts_srdf_acm, [C_TS_MI_FIX],
+                          "names the SRDF allowed collision matrix"),
+        "setup_assistant": Check(_ts_setup_assistant, [C_TS_MI_FIX],
+                                 "names MoveIt Setup Assistant to regenerate it"),
+        "domain_id": Check(_ts_domain_id_fix, [C_TS_DDS_FIX],
+                           "sets a unique ROS_DOMAIN_ID"),
+        "domain_default": Check(_ts_domain_id_default_zero, [C_TS_DDS_RC],
+                                "names the shared default of 0 as the cause"),
+    },
+    note="Three unrelated sections in one probe on purpose: each is a small "
+         "3-claim block and the pre-measurement said all three are at ceiling. "
+         "Bundling keeps the cell count for a likely-null result proportionate.",
+    extra_claims=[C_TS_EX_SYM, C_TS_MI_SYM, C_TS_DDS_SYM, C_TS_AP_QOS, C_TS_AP_FRAME],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
@@ -1967,4 +2352,6 @@ PROBES: list[Probe] = [
     P_PERC_CVBRIDGE, P_PERC_PCL, P_PERC_QOS, P_PERC_DEPTH,
     P_PERC_DIAGNOSE, P_PERC_DOCS,
     P_TS_SILENT_TOPIC, P_TS_IMU_MOUNT, P_TS_DRIVE_BACKWARD, P_TS_TF_ADVISORY,
+    P_TS_REP103, P_TS_INVERTED_DRIVE, P_TS_EKF_IMU, P_TS_SIM_CLOCK,
+    P_TS_NAV2_LIFECYCLE, P_TS_EXEC_MOVEIT_DDS,
 ]

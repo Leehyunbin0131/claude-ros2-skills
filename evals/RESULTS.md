@@ -39,7 +39,7 @@ it cannot drift away from what actually ships.
 | `ros2-package` | 0.844 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
 | `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
-| `ros2-troubleshooting` | 0.031 → 0.943 *(section 1a only)* | IN PROGRESS | [section 1a measured](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) — 8 of 50 claims |
+| `ros2-troubleshooting` | 0.440 → 0.990 | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
 | `gazebo-sim` | — | IN PROGRESS | — |
 | `ros2-control` | — | IN PROGRESS | — |
 | `ros2-moveit` | — | IN PROGRESS | — |
@@ -302,50 +302,55 @@ matching the pattern. Detail:
 [rewrite comparison](./runs/2026-07-28-perception-variant2/),
 [confirmation](./runs/2026-07-28-perception-confirm-sonnet/).
 
-**`ros2-troubleshooting`** is the first skill with no pre-existing probes and
-the largest in the repo (119 lines, 50 claims). Eight claims were measured. The
-other 42 were not, and the reason is the useful part.
+**`ros2-troubleshooting`** is the largest skill (119 lines, 50 claims) and the
+first with no pre-existing probes. All 50 claims were measured. **Nothing was
+cut** — three rewrites were authored and all three were rejected on
+measurement, which is the finding.
 
-Probe design started from a measurement rather than from the file. Asked with
-nothing in context, sonnet diagnoses the silent-QoS case correctly and reaches
-for `ros2 topic info -v` unprompted, works the inverted-drive bug layer by
-layer, and gives the `ROS_DOMAIN_ID` range as **0-232 with the 0-101
-ephemeral-port caveat and the `7400 + 250*id` arithmetic behind it** — a
-superset of what the skill says. Probes built around REP 103 axes, executor
-deadlocks, lifecycle states or domain IDs would have returned a table of CUT
-verdicts that was really a table about the probes.
+Probe design started from a measurement rather than from the file. Asked cold,
+sonnet diagnoses the silent-QoS case and reaches for `ros2 topic info -v`
+unprompted, works the inverted-drive bug layer by layer, and gives the
+`ROS_DOMAIN_ID` range as **0-232 with the 0-101 ephemeral-port caveat and the
+`7400 + 250*id` arithmetic** — a superset of what the skill says. Its unaided
+answers are sometimes better than the file, adding `twist_mux` re-signing as a
+candidate cause and a way to confirm frame orientation from a known
+front-mounted sensor's `x` sign.
 
-So all four probes target the one part of this skill that is local to this
-repository: four scripts that ship next to the `SKILL.md`, their filenames, the
-rule that they are plain files run with `python3 <path>` rather than a ROS 2
-package, and one counter-intuitive behaviour of `check_tf_tree.py`. Pooled over
-12 checks: **`naked` 3/96 = 0.031, `full` 133/141 = 0.943** — and four KEEP
-verdicts clearing q<0.05, against two in the entire project before this run.
-`naked` is structurally 0.00 on the filename checks, because those filenames
-exist nowhere but this repository.
+Five claims cleared q<0.05, all in the shipped-scripts section, where `naked` is
+structurally 0.00 because those filenames exist nowhere else. The sharpest is
+`advisory_not_verdict`: it scores **1.00 unaided and 0.00 ablated**. Asked cold
+the model reasons correctly that a `VERIFY PHYSICALLY` advisory on a
+deliberately inverted mount is not a verdict; given the rest of the skill with
+that one line removed, it stops. The surrounding text creates a wrong
+expectation that only that line corrects.
 
-The `python3`-not-`ros2 run` rule and its worked example each ablate to Δ≈0 and
-read INERT. The joint ablation settles them: **12/12 present, 0/4 with both
-removed, p=0.001 — load-bearing as a group.** Declared before the run, not
-discovered from the collision afterwards.
+The other 45 claims measured CUT or unclear at `naked` 0.75–1.00 — and cutting
+them failed three times, each on a different check that single ablation had
+scored `naked = full = ablate = 1.00`:
 
-**The axis-1 number is biased upward and the status row says so.** 0.031 is the
-lowest baseline measured here, but only because every probe targets the section
-the model structurally cannot know. It measures what section 1a is worth, not
-what the 119-line file is worth. The pre-measurement suggests the remaining 42
-claims are cuttable; "probably cuttable" and "measured" are different claims and
-this run only supports the second, so the skill stays IN PROGRESS with the
-partial result recorded rather than being called finished on a favourable
-subset. Detail:
+| Rewrite | Lines | Rejected on | full vs variant | p |
+| :--- | ---: | :--- | :--- | ---: |
+| `compressed` | 44 | `tf2_echo` | 8/8 vs 2/6 | 0.015 |
+| `compressed2` | 58 | `domain_default` | 15/16 vs 7/16 | 0.006 |
+| `compressed3` | 62 | `single_thread` | 16/16 vs 9/16 | 0.007 |
+
+Each rejection was repaired in the next attempt and a different CUT-verdict line
+broke instead. **For this file a per-claim CUT verdict does not predict what
+happens when the section around it goes.** With the whole table present any one
+row is redundant; with most of the table gone the survivors stop being enough.
+The project's rule that the state which matters is the one that will ship held
+three times consecutively, at $14.56. Cutting was abandoned after the third
+rejection rather than iterating — the pattern was established and further runs
+would have been paying to reconfirm it. Detail:
 [run notes](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md).
 
-One design mistake is worth carrying forward. The first version of all four
-prompts said *"I have this repo's Claude skills installed"*, meaning to make it
+One probe-design lesson cost a full run. The first version of all four original
+prompts said *"I have this repo's Claude skills installed"*, meant to make it
 fair to expect the agent to find the script. It did the opposite: it told the
 model context existed to be hunted for, and with tools off the hunt stalls —
 nine of sixteen `naked` cells stubbed and the baseline landed at n=1. **A probe
 prompt must read like a user's question, not like a hint that context exists to
-be found.** $4.74 discarded relearning that.
+be found.**
 
 ## The efficiency axis rests on an assumption that had never been measured
 

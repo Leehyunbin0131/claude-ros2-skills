@@ -341,7 +341,16 @@ deleting it, check what the model does with no file at all. If that is bad, the
 content is load-bearing and only its wording is redundant.
 
 *Here:* six claims looked jointly removable. One of them scored **0/8** unaided
-— the strongest single line in the skill.
+— the strongest single line in the skill. On another, larger skill three
+successive rewrites were rejected, each on a *different* check whose claim had
+measured `naked = full = ablate = 1.00`. When a file's content reinforces
+itself, per-claim CUT verdicts stop predicting what happens to the body they
+are cut from; the confirmation or variant run is the only thing that knows.
+
+*Know when to stop.* If two or three rewrites are each rejected on a different
+CUT-verdict line, the answer is "this file does not compress that way", not
+"try a fourth". Record it and move on -- each further round buys one line back
+and finds another.
 
 ### A grader tests a pattern, not knowledge
 
