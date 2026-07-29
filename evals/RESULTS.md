@@ -38,12 +38,12 @@ it cannot drift away from what actually ships.
 | `ros2-testing` | 0.786 → 1.000 | VERIFIED | [ablation](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
 | `ros2-package` | 0.863 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
 | `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
-| `ros2-dev` | — | IN PROGRESS | — |
+| `ros2-dev` | 0.600 → 0.882 | IN PROGRESS | [ablation](./runs/2026-07-29-dev-sonnet/NOTES.md) — 26/26 body claims, 54 reference claims sampled, no claim cleared q<0.05 |
 | `ros2-troubleshooting` | 0.795 → 1.000 *(install-verified checks: 0.051 → 0.982)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
 | `gazebo-sim` | 0.708 → 0.976 *(parser/install-anchored checks: 0.742 → 0.972)* | IN PROGRESS | [ablation](./runs/2026-07-29-gazebo-sonnet/NOTES.md) — 18/18 claims, no claim cleared q<0.05 |
 | `ros2-control` | 0.696 → 1.000 *(install-verified checks: 0.444 → 1.000)* | VERIFIED | [ablation](./runs/2026-07-29-control-sonnet/NOTES.md) + [rewrite](./runs/2026-07-29-control-variant/) + [confirmation](./runs/2026-07-29-control-confirm/) |
 | `ros2-moveit` | 0.470 → 1.000 *(install-verified checks: 0.083 → 1.000)* | VERIFIED | [ablation](./runs/2026-07-29-moveit-sonnet/NOTES.md) |
-| `ros2-microros` | — | IN PROGRESS | — |
+| `ros2-microros` | — | OUT OF SCOPE | no `micro_ros_agent` or `micro_ros_setup` in apt; needs a source build. Excluded by instruction |
 
 Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 
@@ -51,6 +51,7 @@ Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
 | :--- | :--- |
 | IN PROGRESS | not yet measured, measured on one axis only, or measured over only part of the body — the evidence column says which |
 | VERIFIED | effect **and** efficiency, at n≥5, with the run linked |
+| OUT OF SCOPE | cannot be measured on this machine without work disproportionate to the question; the reason is stated in the evidence column |
 | DID NOT CLEAR | measured and failed axis 1 — the body does not beat an empty context, so there is no effect for axis 2 to apportion. Recorded, not hidden |
 
 Every row is measured on **`sonnet`**, the model these skills actually ship
@@ -548,6 +549,56 @@ scores **0.00 with the diff-drive block ablated** against 0.83 with it — remov
 the worked SDF example is what makes the model's own SDF stop parsing. That is
 underpowered, and it points directly at the block a compression would delete.
 Detail: [run notes](./runs/2026-07-29-gazebo-sonnet/NOTES.md).
+
+**`ros2-dev`** has the largest claim count (80, of which 26 are the body and 54
+live in `references/`) and is the only skill whose strongest signal is
+**behavioural** rather than factual. `naked` 0.600 vs `full` 0.882 — the second
+suite in a row where `full` lands well short of 1.000, for the same reason:
+these checks cannot be satisfied by repeating a phrase.
+
+The planned blocker turned out not to exist. `rtabmap_ros` was never installed
+because RTAB-Map appears once in the whole file, as one of three options in "who
+publishes `map -> odom`". The measurable substance is Nav2 and SLAM Toolbox,
+both already present.
+
+The anchor is a real index: every plugin-description XML under
+`/opt/ros/jazzy/share`, **233 registered class names**. A plugin string is in
+that set or it does not exist here. Verified discriminating —
+`nav2_mppi_controller::MPPIController` is present, the skill's own
+counter-example `mppi_controller::MPPIController` is not. **And it found nothing
+wrong**: 9/9 naked, 8/8 full. Section 3 opens with "the single most common
+startup-killing error is dropping the package prefix", and on this model that
+error does not occur. The section targets a failure mode the target model no
+longer has.
+
+What does move is what the agent does *before* writing:
+
+| Check | naked | full |
+| :--- | ---: | ---: |
+| asks for footprint / inscribed radius | 1/7 | 5/7 |
+| asks which drive type | 1/7 | 5/7 |
+| asks who will publish `map -> odom` | 0/7 | 5/7 |
+| sanity-checks odometry before tuning AMCL | 1/7 | 7/7 |
+| cites the shipped `nav2_params.yaml` | 0/9 | 5/10 |
+
+Asked cold to "set up Nav2 and tune it", sonnet writes a full parameter file
+immediately. With the skill it asks first, five times in seven. That is the §1
+gate working, and it is the clearest measurement of a **disposition** rather
+than a fact anywhere in this project — as well as the reason `full` is 0.882:
+with the file in context the agent still fails to ask about a third of the time.
+
+No claim cleared q<0.05; the closest was the lifecycle row at q=0.198, and it
+was not chased. No rewrite was attempted: this file's remaining value is
+concentrated in prose whose whole job is to make the agent stop and ask, which
+is precisely the content the `ros2-troubleshooting` rewrites destroyed by
+keeping instructions and dropping reasons. Detail:
+[run notes](./runs/2026-07-29-dev-sonnet/NOTES.md).
+
+**`ros2-microros` is out of scope.** Neither `micro_ros_agent` nor
+`micro_ros_setup` exists in apt for Jazzy — only peripheral packages
+(`micro-ros-msgs`, `micro-ros-diagnostic-bridge`) — so measuring it would need a
+multi-repository source build. Excluded by instruction rather than left as
+pending work.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

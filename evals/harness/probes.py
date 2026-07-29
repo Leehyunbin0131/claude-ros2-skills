@@ -3194,6 +3194,292 @@ P_G_VERIFY = Probe(
 )
 
 
+# --- ros2-dev suite ----------------------------------------------------------
+# Largest claim count in the repo: 80, of which 26 are SKILL.md and 54 live in
+# references/symbols.md (37) and references/tuning.md (17). The references are
+# explicitly "load only when you need it", a different mode from the always-on
+# body, and probing all 80 at ablation depth would cost more than the question
+# is worth. These probes cover the body and sample the references through the
+# symbols/tuning content they actually name; coverage is reported honestly in
+# the run notes rather than implied.
+#
+# Anchor (PROCEDURE.md rule): the strongest one available here is a real index
+# of what pluginlib actually registers. _nav2_registered_plugins() scans every
+# plugin-description XML under /opt/ros/jazzy/share and collects 233 class
+# names; a plugin string either is in that set or it is invented. Verified
+# discriminating before use: nav2_mppi_controller::MPPIController is present and
+# the skill's own counter-example mppi_controller::MPPIController is not.
+# Second anchor is the shipped nav2_params.yaml the skill points at, which is
+# where the correct strings can be read off.
+
+C_D_EST_INTRO = "ros2-dev:1establish-first-nav2-specific-the-gener:01"
+C_D_EST_FOOTPRINT = "ros2-dev:1establish-first-nav2-specific-the-gener:02"
+C_D_EST_DRIVE = "ros2-dev:1establish-first-nav2-specific-the-gener:03"
+C_D_EST_MAPODOM = "ros2-dev:1establish-first-nav2-specific-the-gener:04"
+C_D_EST_EXISTING = "ros2-dev:1establish-first-nav2-specific-the-gener:05"
+C_D_LOOP_DEFAULTS = "ros2-dev:2the-loop:01"
+C_D_LOOP_VERIFY = "ros2-dev:2the-loop:02"
+C_D_LOOP_ONE = "ros2-dev:2the-loop:03"
+C_D_LOOP_PROVE = "ros2-dev:2the-loop:04"
+C_D_NS_INTRO = "ros2-dev:3plugin-strings-are-fully-namespaced:01"
+C_D_NS_EXAMPLE = "ros2-dev:3plugin-strings-are-fully-namespaced:02"
+C_D_NS_CONFIRM = "ros2-dev:3plugin-strings-are-fully-namespaced:03"
+C_D_SYM_LIFECYCLE = "ros2-dev:4symptom-root-cause-action:01"
+C_D_SYM_TF = "ros2-dev:4symptom-root-cause-action:02"
+C_D_SYM_COSTMAP_QOS = "ros2-dev:4symptom-root-cause-action:03"
+C_D_SYM_CLEARING = "ros2-dev:4symptom-root-cause-action:04"
+C_D_SYM_NOTRAJ = "ros2-dev:4symptom-root-cause-action:05"
+C_D_SYM_AMCL = "ros2-dev:4symptom-root-cause-action:06"
+C_D_SYM_MPPI = "ros2-dev:4symptom-root-cause-action:07"
+C_D_SYM_WALLS = "ros2-dev:4symptom-root-cause-action:08"
+C_D_SYM_PLUGIN = "ros2-dev:4symptom-root-cause-action:09"
+C_D_REF_SYMBOLS = "ros2-dev:5reference-load-only-when-you-need-it:01"
+C_D_REF_TUNING = "ros2-dev:5reference-load-only-when-you-need-it:02"
+C_D_RULE_ROS1 = "ros2-dev:6strict-rules:01"
+C_D_RULE_MAPODOM = "ros2-dev:6strict-rules:02"
+C_D_RULE_SIM = "ros2-dev:6strict-rules:03"
+
+_NAV2_PLUGIN_CACHE: set[str] | None = None
+
+
+def _nav2_registered_plugins() -> set[str]:
+    """REAL INDEX. Every class pluginlib registers under /opt/ros/jazzy/share.
+    A plugin string is either in here or it does not exist on this machine."""
+    global _NAV2_PLUGIN_CACHE
+    if _NAV2_PLUGIN_CACHE is None:
+        import glob
+        names: set[str] = set()
+        for f in glob.glob("/opt/ros/jazzy/share/**/*.xml", recursive=True):
+            try:
+                txt = open(f, errors="ignore").read()
+            except Exception:
+                continue
+            if "library path" not in txt and "<class" not in txt:
+                continue
+            names |= set(re.findall(r'type="([A-Za-z_0-9]+::[A-Za-z_0-9]+)"', txt))
+        _NAV2_PLUGIN_CACHE = names
+    return _NAV2_PLUGIN_CACHE
+
+
+def _d_plugins_all_real(answer: str) -> bool | None:
+    """Every `plugin:`-style namespaced string in the answer must be a class
+    pluginlib actually registers. Ungradable when the answer names none."""
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    found = set(re.findall(r'["\']([a-z_0-9]+::[A-Za-z_0-9]+)["\']', src))
+    found |= set(re.findall(r'plugin:\s*([a-z_0-9]+::[A-Za-z_0-9]+)', src))
+    if not found:
+        return None
+    return found <= _nav2_registered_plugins()
+
+
+def _d_namespaced_plugin(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"nav2_[a-z_0-9]+::[A-Za-z_0-9]+", src))
+
+
+def _d_reads_shipped_defaults(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"nav2_bringup/params/nav2_params\.yaml|nav2_params\.yaml", text))
+
+
+def _d_transient_local(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"transient_local", text))
+
+
+def _d_raytrace_gt_obstacle(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"raytrace_max_range", text)) and bool(
+        re.search(r"obstacle_max_range", text))
+
+
+def _d_lifecycle_check(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"ros2 lifecycle get|lifecycle_manager", text))
+
+
+def _d_one_map_odom(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"map\s*(->|→|to)\s*odom", text, re.I)) and bool(
+        re.search(r"(exactly one|only one|one node|single|both.{0,30}publish|conflict)", text, re.I))
+
+
+def _d_asks_footprint(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"footprint|inscribed radius|robot_radius", text, re.I))
+
+
+def _d_asks_map_odom_source(answer: str) -> bool | None:
+    """For the establish-first probe the correct behaviour is to ASK which node
+    will publish map->odom, not to lecture that exactly one may. The diagnosis
+    check (_d_one_map_odom) demands the "exactly one" phrasing and was wrongly
+    reused here, scoring answers that asked the question properly as failures."""
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"map\s*(->|→|to)\s*odom", text, re.I)) or bool(
+        re.search(r"(localization source|who.{0,20}publish|amcl.{0,30}slam"
+                  r"|slam.{0,30}amcl)", text, re.I))
+
+
+def _d_asks_drive_type(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(differential|ackermann|omni|holonomic|drive type)", text, re.I))
+
+
+def _d_prefer_forward_critic(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"PreferForward", text))
+
+
+def _d_no_move_base(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"nav2|costmap|planner", text, re.I):
+        return None
+    return not re.search(r"move_base", text)
+
+
+P_D_PLUGIN_STRINGS = Probe(
+    id="dev-plugin-strings",
+    suite="dev",
+    skill="ros2-dev",
+    prompt=(
+        "ROS 2 Jazzy, Nav2. Write the `controller_server` and `planner_server` "
+        "sections of `nav2_params.yaml` for a differential-drive robot using "
+        "the MPPI controller and a Smac hybrid planner, with a progress checker "
+        "and a goal checker. Give the exact plugin strings."
+    ),
+    checks={
+        "plugins_real": Check(_d_plugins_all_real, [C_D_NS_EXAMPLE, C_D_SYM_PLUGIN],
+                              "every namespaced plugin string is one pluginlib registers"),
+        "namespaced": Check(_d_namespaced_plugin, [C_D_NS_INTRO, C_D_NS_EXAMPLE],
+                            "keeps the package prefix on plugin strings"),
+        "cites_defaults": Check(_d_reads_shipped_defaults, [C_D_LOOP_DEFAULTS, C_D_NS_CONFIRM],
+                                "points at the shipped nav2_params.yaml as the source of truth"),
+    },
+    note="plugins_real is a real-index grader: 233 classes scraped from the "
+         "pluginlib description XMLs actually installed. The skill's own "
+         "counter-example, mppi_controller::MPPIController, is not among them.",
+    extra_claims=[C_D_REF_SYMBOLS],
+    joint=[[C_D_NS_INTRO, C_D_NS_EXAMPLE]],
+    probe_only=True,
+)
+
+
+P_D_COSTMAP = Probe(
+    id="dev-costmap-diagnose",
+    suite="dev",
+    skill="ros2-dev",
+    prompt=(
+        "ROS 2 Jazzy Nav2, two costmap problems. My global costmap stays empty "
+        "although `/map` is definitely being published, and separately "
+        "obstacles appear in the local costmap but never clear once the robot "
+        "has driven past them. Cause and exact fix for each."
+    ),
+    checks={
+        "transient_local": Check(_d_transient_local, [C_D_SYM_COSTMAP_QOS],
+                                 "names transient_local durability on the map subscription"),
+        "raytrace_range": Check(_d_raytrace_gt_obstacle, [C_D_SYM_CLEARING],
+                                "compares raytrace_max_range against obstacle_max_range"),
+    },
+    extra_claims=[C_D_SYM_WALLS, C_D_REF_TUNING],
+    probe_only=True,
+)
+
+
+P_D_BRINGUP = Probe(
+    id="dev-bringup-diagnose",
+    suite="dev",
+    skill="ros2-dev",
+    prompt=(
+        "ROS 2 Jazzy Nav2. Goals come back `Goal rejected` or just hang, and "
+        "the logs are full of `Timed out waiting for transform`. Every node is "
+        "running and every topic looks alive. Where do I look, and what "
+        "commands settle it?"
+    ),
+    checks={
+        "lifecycle": Check(_d_lifecycle_check, [C_D_SYM_LIFECYCLE, C_D_LOOP_PROVE],
+                           "checks lifecycle state / the lifecycle manager"),
+        "one_map_odom": Check(_d_one_map_odom, [C_D_SYM_TF, C_D_RULE_MAPODOM],
+                              "requires exactly one publisher of map->odom"),
+    },
+    joint=[[C_D_SYM_TF, C_D_RULE_MAPODOM]],
+    probe_only=True,
+)
+
+
+P_D_ESTABLISH = Probe(
+    id="dev-establish-first",
+    suite="dev",
+    skill="ros2-dev",
+    prompt=(
+        "I want you to set up Nav2 on my ROS 2 Jazzy robot and tune it so it "
+        "navigates well. Go ahead."
+    ),
+    checks={
+        "asks_footprint": Check(_d_asks_footprint, [C_D_EST_FOOTPRINT],
+                                "asks for footprint / inscribed radius before writing config"),
+        "asks_drive": Check(_d_asks_drive_type, [C_D_EST_DRIVE],
+                            "asks which drive type the robot is"),
+        "asks_map_odom": Check(_d_asks_map_odom_source, [C_D_EST_MAPODOM],
+                               "asks which node will publish map->odom"),
+    },
+    note="Deliberately underspecified, to see whether the agent asks before it "
+         "writes. This is the one probe here that tests a behaviour rather "
+         "than a fact.",
+    extra_claims=[C_D_EST_INTRO, C_D_EST_EXISTING, C_D_LOOP_ONE, C_D_LOOP_VERIFY],
+    probe_only=True,
+)
+
+
+P_D_TUNING = Probe(
+    id="dev-tuning",
+    suite="dev",
+    skill="ros2-dev",
+    prompt=(
+        "ROS 2 Jazzy Nav2 with the MPPI controller. The robot oscillates and "
+        "often prefers reversing toward a goal that is straight ahead, and "
+        "AMCL's pose drifts while it drives. What do I change, and what do I "
+        "check before changing anything?"
+    ),
+    checks={
+        "prefer_forward": Check(_d_prefer_forward_critic, [C_D_SYM_MPPI],
+                                "names the PreferForwardCritic weight"),
+        "verify_odom_first": Check(lambda a: (None if prose(a) is None else bool(
+            re.search(r"(odom(etry)?\s+(quality|first|before)|check_odom_direction"
+                      r"|verify.{0,25}odom)", prose(a), re.I))),
+            [C_D_SYM_AMCL, C_D_LOOP_VERIFY],
+            "sanity-checks odometry before tuning AMCL"),
+        "no_move_base": Check(_d_no_move_base, [C_D_RULE_ROS1],
+                              "does not reach for ROS 1 move_base names"),
+    },
+    extra_claims=[C_D_SYM_NOTRAJ, C_D_RULE_SIM],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
@@ -3207,4 +3493,5 @@ PROBES: list[Probe] = [
     P_C_CMDVEL, P_C_BRINGUP, P_C_URDF, P_C_DIAGNOSE, P_C_CALIBRATION, P_C_DOCS,
     P_M_SERVO, P_M_PLAN, P_M_DIAGNOSE, P_M_TUNING, P_M_DOCS,
     P_G_SDF_PLUGINS, P_G_BRIDGE, P_G_DIAGNOSE, P_G_VERIFY,
+    P_D_PLUGIN_STRINGS, P_D_COSTMAP, P_D_BRINGUP, P_D_ESTABLISH, P_D_TUNING,
 ]
