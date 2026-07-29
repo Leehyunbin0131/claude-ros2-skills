@@ -12,7 +12,7 @@ place it is already right.
 | Method | pre-measurement, one content addition, n=4 sweep with one targeted top-up, one rewrite, confirmation |
 | Probes | 6 new, 14 checks, covering 17/17 claims (16 after the rewrite merged two) |
 | Spend | $7.85 sweep and top-up, $1.68 variant, $2.26 confirmation — $11.79 |
-| Outcome | 70 -> 46 lines. `naked` 0.679 vs `full` 1.000 on the shipped body |
+| Outcome | 70 -> 46 lines. `naked` 0.696 vs `full` 1.000; install-verified checks alone, 0.444 vs 1.000 |
 
 ## The pre-measurement found a gap, not a ceiling
 
@@ -43,8 +43,15 @@ n=10. The line does the job it was added for.
 
 ## Axis 1
 
-Pooled over all 14 checks on the shipped 46-line body at n=8: **`naked` 55/81 =
-0.679, `full` 112/112 = 1.000.** `protocol` is 0.500, below `naked`, the usual
+Pooled over all 14 checks on the shipped 46-line body at n=8: **`naked` 55/79 =
+0.696, `full` 112/112 = 1.000**, after a later stub-detector fix and regrade.
+
+**`full` = 1.000 is capped by check design here.** These probes were written
+from the skill, so most checks look for what it says. Split by anchor: the
+install-verified checks (the `TwistStamped`-only subscription, the absent
+`use_stamped_vel`) read `naked` **0.444** against `full` 1.000, while the checks
+that echo the file's phrasing read `naked` 0.833 against the same `full` 1.000.
+The first pair is the informative one. `protocol` is 0.500, below `naked`, the usual
 artifact of a tools-off harness being told to go verify against the install.
 
 Beyond the added row, the measurable content is navigational: `docs_url` is

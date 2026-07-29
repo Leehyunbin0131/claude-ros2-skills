@@ -35,14 +35,14 @@ it cannot drift away from what actually ships.
 | Skill | Effect (naked → full, shipped body) | Status | Evidence |
 | :--- | :--- | :--- | :--- |
 | `ros2-core` | 0.689 → 0.949 | VERIFIED | [ablation](./runs/2026-07-28-core-sonnet/) + [confirmation](./runs/2026-07-28-core-sonnet-confirm/) |
-| `ros2-testing` | 0.762 → 1.000 | VERIFIED | [ablation](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
-| `ros2-package` | 0.844 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
+| `ros2-testing` | 0.786 → 1.000 | VERIFIED | [ablation](./runs/2026-07-28-testing-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-testing-variant/) + [confirmation](./runs/2026-07-28-testing-confirm-sonnet/) |
+| `ros2-package` | 0.863 → 0.953 | VERIFIED | [ablation](./runs/2026-07-28-package-sonnet/NOTES.md) + [rewrite comparison](./runs/2026-07-28-package-variant/) + [confirmation](./runs/2026-07-28-package-confirm-sonnet/) |
 | `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
-| `ros2-troubleshooting` | 0.795 → 1.000 *(0.050 → 0.982 on the scripts section)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
+| `ros2-troubleshooting` | 0.795 → 1.000 *(install-verified checks: 0.051 → 0.982)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
 | `gazebo-sim` | — | IN PROGRESS | — |
-| `ros2-control` | 0.679 → 1.000 | VERIFIED | [ablation](./runs/2026-07-29-control-sonnet/NOTES.md) + [rewrite](./runs/2026-07-29-control-variant/) + [confirmation](./runs/2026-07-29-control-confirm/) |
-| `ros2-moveit` | 0.433 → 1.000 | VERIFIED | [ablation](./runs/2026-07-29-moveit-sonnet/NOTES.md) |
+| `ros2-control` | 0.696 → 1.000 *(install-verified checks: 0.444 → 1.000)* | VERIFIED | [ablation](./runs/2026-07-29-control-sonnet/NOTES.md) + [rewrite](./runs/2026-07-29-control-variant/) + [confirmation](./runs/2026-07-29-control-confirm/) |
+| `ros2-moveit` | 0.470 → 1.000 *(install-verified checks: 0.083 → 1.000)* | VERIFIED | [ablation](./runs/2026-07-29-moveit-sonnet/NOTES.md) |
 | `ros2-microros` | — | IN PROGRESS | — |
 
 Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
@@ -455,6 +455,62 @@ wrongness as the `cv_bridge` header in `ros2-perception`. Detail:
 No rewrite was attempted. With five KEEPs and one CUT in 60 lines there is no
 ceiling mass to compress, and after the three rejected `ros2-troubleshooting`
 rewrites, spending to confirm that was not worth it.
+
+## A `full` score of 1.000 is a statement about the checks, not the skill
+
+Three skills in a row came back at `full` = **1.000** — `ros2-troubleshooting`,
+`ros2-control`, `ros2-moveit`. Those are exactly the three whose probes were
+written from scratch for this project, by reading the skill and then writing
+checks that look for what it says. The four skills with older probes sit at
+0.949-1.000 with real misses in them. That is not a coincidence and it is not
+the skills getting better.
+
+**A check derived from the file measures whether the model repeats the file.**
+The file says X, the model with the file in context says X, the check looks for
+X. `full` → 1.000 is close to an identity for that construction, and it says
+nothing about whether the answer is any good. It also fails correct answers
+worded differently — an answer choosing `BiTRRT` for a stated reason scores as a
+miss against a check that greps for `RRTConnect`.
+
+Splitting each of those three suites into checks anchored to something
+**outside** the file — a `.srv` that exists in the install, a header that ships
+at that path, a script present in this repository — and checks that only echo
+the file's own phrasing:
+
+| Skill | Check group | naked | full |
+| :--- | :--- | ---: | ---: |
+| `ros2-moveit` | install-verified | **0.083** | 1.000 |
+| `ros2-moveit` | file phrasing | 0.627 | 1.000 |
+| `ros2-control` | install-verified | **0.444** | 1.000 |
+| `ros2-control` | file phrasing | 0.833 | 1.000 |
+| `ros2-troubleshooting` | install/repo-verified | **0.051** | 0.982 |
+| `ros2-troubleshooting` | file phrasing | 0.795 | 1.000 |
+
+`full` is 1.000 in both groups; the groups differ entirely in `naked`. **The
+trustworthy half of the comparison is `naked`** — it is what the model does with
+no help, and no amount of check-wording bias can inflate it. The install-verified
+findings survive intact: the model really does prescribe a removed servo service
+4/4 unaided, really does invent `use_stamped_vel`, really does write the
+deprecated `cv_bridge`/MoveIt `.h` headers. What does not survive is reading
+`full` = 1.000 as "the skill makes the model perfect".
+
+`PROCEDURE.md` now ranks check anchors — a real build or run first, an
+install-verified fact second, the file's own phrasing last and flagged as such —
+and the status table above carries the install-verified split for the three
+affected skills.
+
+### A stub shape that was being scored as a wrong answer
+
+Found in the same audit. Answers rendered as a bare tool call with a shell
+argument — `Bash(grep -n -i "tolerance" skills/ros2-moveit/SKILL.md)`, sometimes
+followed by a *fabricated* result block citing a line number the file does not
+have — were not matched by the stub detector and were graded `False` instead of
+ungradable, deflating whichever baseline they landed in. The detector now covers
+the bare `Tool(arg)` form and every stored run was regraded: 97 check results
+changed across 16 runs, no re-run and no spend. Effect on the headline numbers
+was small and only ever moved `naked` up: `ros2-moveit` 0.433 → 0.470,
+`ros2-control` 0.679 → 0.696, `ros2-testing` 0.762 → 0.786. Not the explanation
+for the 1.000s, which is the check-design problem above.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

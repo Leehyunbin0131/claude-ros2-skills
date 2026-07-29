@@ -67,8 +67,30 @@ Anything listed is a bug to fix before running. A claim that was cut should be
 set to `None` in `probes.py`, and the checks that used to own it should carry
 an empty claim list.
 
-**Writing probes for a skill that has none yet?** Two rules, both learned the
+**Writing probes for a skill that has none yet?** Three rules, all learned the
 expensive way.
+
+*Anchor every check to something outside the file.* This is the one that
+quietly invalidates results. If you read the skill and then write checks that
+look for what the skill says, `full` is not a measurement — it is close to an
+identity. The file says X, the model with the file in context says X, the check
+looks for X. Every skill whose probes were written this way returned
+`full` = **1.000**; every skill with probes written before that habit set in
+returned 0.949-1.000 with real misses in it. Prefer, in order:
+
+1. **A real outcome** — does the code compile, does `colcon build` succeed, does
+   `ros2 pkg executables` list the node. Cannot be faked by wording.
+2. **A fact verified in the install** — `ros2 interface show`, a header that
+   exists at that path, a `.srv` that declares those constants. True whether or
+   not the skill mentions it.
+3. **The skill's own phrasing** — last resort. Note it as such, because a
+   correct answer worded differently fails it, and `full` will read 1.000
+   whatever the file's content is worth.
+
+Report those groups separately if a suite mixes them. On one skill the
+install-verified checks read `naked` 0.083 while the phrasing checks read 0.627
+on the same answers -- same file, same run, and only the first number says
+anything about what the file is buying.
 
 *Measure before you design.* Ask the model your candidate questions with nothing
 in context first — a handful of one-off calls, far cheaper than a sweep. Any
@@ -594,3 +616,9 @@ State these when reporting; do not pretend they are solved.
   file the model cannot know produces a very large effect and says nothing about
   the rest. Report the coverage — how many claims have a probe at all — next to
   the effect number, and do not call a skill finished on a favourable subset.
+- **`full` is capped by how the checks were written.** A check derived from the
+  file measures whether the model repeats the file, not whether the answer is
+  good. Treat `full` = 1.000 as a statement about check design until the checks
+  are anchored to a build, a run, or the install. The trustworthy half of the
+  comparison is `naked`: it is what the model does without help, and no amount
+  of check-wording bias can inflate it.

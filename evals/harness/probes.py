@@ -61,7 +61,13 @@ _TOOL_STUB_RE = re.compile(
     # `Search(pattern: "ros2-*", path: "...")` -- found 2026-07-28, where
     # "let me check for a relevant skill... Search(...)" scored a hard False
     # on real content questions instead of ungradable.
-    r"|\b[A-Z][A-Za-z]*\([a-z_]+\s*:\s*[\"']",
+    r"|\b[A-Z][A-Za-z]*\([a-z_]+\s*:\s*[\"']"
+    # Bare tool-call rendering with a shell/glob argument rather than kwargs,
+    # e.g. `Bash(grep -n foo bar.md)` or `Read(skills/x/SKILL.md)`, sometimes
+    # followed by a fabricated result block. Found 2026-07-29 auditing why
+    # `naked` scores looked low: these were being graded as wrong answers
+    # instead of ungradable, deflating every baseline they landed in.
+    r"|^\s*(?:Bash|Read|Grep|Glob|Search|Write|Edit)\([^)\n]{3,}\)\s*$",
     re.M,
 )
 

@@ -13,7 +13,7 @@ confidently wrong rather than already right.
 | Method | pre-measurement, one content correction, n=4 sweep with the baseline topped up to n=10 |
 | Probes | 5 new, 13 checks, covering 14/14 claims |
 | Spend | $5.31 |
-| Outcome | `naked` 39/90 = 0.433 vs `full` 130/130 = 1.000 on the shipped body |
+| Outcome | `naked` 39/83 = 0.470 vs `full` 130/130 = 1.000; install-verified checks alone, 0.083 vs 1.000 |
 
 ## The pre-measurement found the skill wrong, not just the model
 
@@ -41,7 +41,20 @@ Both of its checks came back **KEEP**: `no_start_servo` at `naked` 0.00 /
 
 ## Axis 1 and the KEEP set
 
-**`naked` 39/90 = 0.433, `full` 130/130 = 1.000** on the shipped body at n=10.
+**`naked` 39/83 = 0.470, `full` 130/130 = 1.000** on the shipped body at n=10,
+after a later stub-detector fix and repo-wide regrade.
+
+**Read that `full` with the caveat it deserves.** These probes were written by
+reading the skill, so most checks look for what the skill says and `full` = 1.000
+is closer to an identity than to a measurement. Splitting them by anchor:
+
+| Check group | naked | full |
+| :--- | ---: | ---: |
+| verified in the install (servo `.srv`, the `.hpp` header) | **0.083** | 1.000 |
+| echoing the file's own phrasing | 0.627 | 1.000 |
+
+`full` is 1.000 either way; the groups differ entirely in `naked`. The
+install-anchored group is the one that says something.
 
 | Claim | Check | naked | full | ablate | q |
 | :--- | :--- | ---: | ---: | ---: | ---: |
