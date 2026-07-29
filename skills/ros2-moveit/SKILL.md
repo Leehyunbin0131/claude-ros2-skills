@@ -51,7 +51,7 @@ if (success) {
 | `plan()` succeeds but `execute()` times out or is rejected | `moveit_controllers.yaml` action namespace doesn't match the running `FollowJointTrajectory` controller | Compare `ros2 action list` vs the controller names/action_ns in moveit_simple_controller_manager config |
 | Trajectory aborts mid-execution with path tolerance errors | Velocity/acceleration limits zero or missing in `joint_limits.yaml`, so time parameterization produces infeasible timing | Fill real limits for every joint; re-run time parameterization |
 | Planning hangs for seconds then fails on cluttered scenes | `allowed_planning_time`/attempts too low with heavy collision meshes | Raise planning time; replace visual meshes with primitive collision shapes |
-| MoveIt Servo receives twists but arm never moves | Servo not activated (start service not called) or stale command timeout | Call the servo start trigger service; publish twists faster than `incoming_command_timeout` |
+| MoveIt Servo receives twists but arm never moves | Servo starts in no command type and ignores everything until told which one to accept. Jazzy replaced the old `/servo_node/start_servo` (`std_srvs/srv/Trigger`) with a command-type switch — that Trigger service **no longer exists**, do not call it | Call `/servo_node/switch_command_type` (`moveit_msgs/srv/ServoCommandType`) with `command_type: 1` for `TWIST` (`0` = `JOINT_JOG`, `2` = `POSE`), then publish faster than `incoming_command_timeout` |
 
 ## 5. Tuning Baselines
 - **Kinematics**: `kinematics.yaml` `kinematics_solver_search_resolution: 0.005`, `kinematics_solver_timeout: 0.005` are sane starts; raise timeout to 0.05 if IK intermittently fails near workspace edges.

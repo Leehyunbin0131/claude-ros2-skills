@@ -42,7 +42,7 @@ it cannot drift away from what actually ships.
 | `ros2-troubleshooting` | 0.795 → 1.000 *(0.050 → 0.982 on the scripts section)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
 | `gazebo-sim` | — | IN PROGRESS | — |
 | `ros2-control` | 0.679 → 1.000 | VERIFIED | [ablation](./runs/2026-07-29-control-sonnet/NOTES.md) + [rewrite](./runs/2026-07-29-control-variant/) + [confirmation](./runs/2026-07-29-control-confirm/) |
-| `ros2-moveit` | — | IN PROGRESS | — |
+| `ros2-moveit` | 0.433 → 1.000 | VERIFIED | [ablation](./runs/2026-07-29-moveit-sonnet/NOTES.md) |
 | `ros2-microros` | — | IN PROGRESS | — |
 
 Status vocabulary — a skill is only VERIFIED when **both** axes have passed:
@@ -422,6 +422,39 @@ which is what the skill asks for. `full` read 0/4 while all four answers were
 correct. It now fails only when the parameter is prescribed, and was fixed with
 `runner.py regrade` against stored answers: 18 of 583 results changed, no re-run,
 no spend.
+
+**`ros2-moveit`** produced the highest ratio of load-bearing content measured
+here — **five KEEP verdicts at q<0.05 against one CUT** — and went one step
+past the `ros2-control` finding. There the skill was *silent* about a place the
+model is confidently wrong. Here the skill was **repeating the model's error**.
+
+Jazzy redesigned MoveIt Servo: `moveit_msgs` ships `ServoCommandType.srv`
+(`JOINT_JOG=0`, `TWIST=1`, `POSE=2`) and there is no Trigger-shaped servo
+service left in the installed `moveit_msgs/srv/`. Asked cold, sonnet prescribes
+the removed `/servo_node/start_servo` with `std_srvs/srv/Trigger` **4 times out
+of 4** — and this skill's own row said "call the servo start trigger service",
+the same dead Humble/Iron interface. The row was rewritten against the installed
+`.srv` before the sweep and both its checks came back KEEP: `no_start_servo` at
+`naked` 0.00 / `full` 1.00 / `ablate` 0.00, q=0.007.
+
+**A skill can be a liability rather than merely inert.** Ablation cannot see
+this: measuring a wrong line only shows whether the model repeats it, and it
+does, so the line scores as load-bearing either way. Only asking the model cold
+and checking the answer against the install separates "this line is working"
+from "this line and the model are wrong together".
+
+`naked` 0.433 vs `full` 1.000 at n=10. The other KEEPs are ordinary technical
+content rather than repo-local facts, which is new: missing `joint_limits.yaml`
+velocity/acceleration limits (q=0.007), TRAC-IK/PickIK over default KDL
+(q=0.033), and the `.hpp` header comment on the code block (q=0.033) — unaided
+the model writes the deprecated `.h` spelling three times in four, and since
+both headers ship in Jazzy nothing errors and nothing warns. Same silent-
+wrongness as the `cv_bridge` header in `ros2-perception`. Detail:
+[run notes](./runs/2026-07-29-moveit-sonnet/NOTES.md).
+
+No rewrite was attempted. With five KEEPs and one CUT in 60 lines there is no
+ceiling mass to compress, and after the three rejected `ros2-troubleshooting`
+rewrites, spending to confirm that was not worth it.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

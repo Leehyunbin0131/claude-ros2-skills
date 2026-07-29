@@ -2649,6 +2649,259 @@ P_C_DOCS = Probe(
 )
 
 
+# --- ros2-moveit suite -------------------------------------------------------
+# Pre-measured first, as for ros2-control. Most of this skill is at ceiling:
+# unaided sonnet writes the Jazzy `.hpp` include, sets
+# automatically_declare_parameters_from_overrides, and names TRAC-IK / PickIK,
+# kinematics.yaml and the moveit_controllers action_ns without help.
+#
+# The pre-measurement found one place where BOTH the model and this skill were
+# wrong. Jazzy redesigned MoveIt Servo: the old `/servo_node/start_servo`
+# (std_srvs/srv/Trigger) is gone and a command-type switch took its place.
+# moveit_msgs ships ServoCommandType.srv (JOINT_JOG=0, TWIST=1, POSE=2) and no
+# Trigger-shaped servo service at all. Asked cold, sonnet prescribes
+# start_servo + std_srvs/srv/Trigger 4 times out of 4, and the skill's own row
+# said "call the servo start trigger service" -- the Humble/Iron interface. The
+# row was rewritten against the installed .srv before this sweep; ablation can
+# only measure lines that exist, so a wrong line has to be corrected first and
+# then measured.
+
+C_M_ARCH = "ros2-moveit:1architecture:01"
+C_M_NAV_CONCEPTS = "ros2-moveit:2documentation-entry-points:01"
+C_M_NAV_CPP = "ros2-moveit:2documentation-entry-points:02"
+C_M_NAV_PY = "ros2-moveit:2documentation-entry-points:03"
+C_M_MGI = "ros2-moveit:a-movegroupinterface-pose-target-plannin:01"
+C_M_SYM_COLLISION = "ros2-moveit:4symptom-root-cause-action:01"
+C_M_SYM_IK = "ros2-moveit:4symptom-root-cause-action:02"
+C_M_SYM_EXEC = "ros2-moveit:4symptom-root-cause-action:03"
+C_M_SYM_TOLERANCE = "ros2-moveit:4symptom-root-cause-action:04"
+C_M_SYM_SLOW = "ros2-moveit:4symptom-root-cause-action:05"
+C_M_SYM_SERVO = "ros2-moveit:4symptom-root-cause-action:06"
+C_M_TUNE_KIN = "ros2-moveit:5tuning-baselines:01"
+C_M_TUNE_OMPL = "ros2-moveit:5tuning-baselines:02"
+C_M_TUNE_MESH = "ros2-moveit:5tuning-baselines:03"
+
+
+def _m_switch_command_type(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"switch_command_type|ServoCommandType", text))
+
+
+def _m_no_start_servo(answer: str) -> bool | None:
+    """Jazzy has no /servo_node/start_servo Trigger service. Fails only when the
+    answer *prescribes* it; naming it to warn the reader off is correct. Same
+    prescribe-vs-warn distinction as ros2-control's use_stamped_vel check, which
+    scored correct answers False on its first draft."""
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"servo", text, re.I):
+        return None
+    hits = list(re.finditer(r"start_servo", text))
+    if not hits:
+        return True
+    negation = re.compile(
+        r"(no longer|not exist|nonexistent|non-existent|removed|replaced|gone"
+        r"|deprecat|older|earlier|humble|iron|pre-jazzy|do not call|don't call"
+        r"|invent|instead of)", re.I)
+    for m in hits:
+        if not negation.search(text[max(0, m.start() - 180):m.end() + 80]):
+            return False
+    return True
+
+
+def _m_hpp_header(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"move_group_interface\.hpp", src))
+
+
+def _m_auto_declare_params(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"automatically_declare_parameters_from_overrides", src))
+
+
+def _m_pose_target(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"setPoseTarget", src))
+
+
+def _m_alt_ik_solver(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(trac[-_]?ik|pick[-_]?ik)", text, re.I))
+
+
+def _m_kinematics_yaml(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"kinematics\.yaml", text))
+
+
+def _m_action_ns(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"action_ns|moveit_controllers|ros2 action list", text))
+
+
+def _m_srdf_acm(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(srdf|allowed collision|\bacm\b)", text, re.I))
+
+
+def _m_joint_limits(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"joint_limits\.yaml|velocity.{0,20}limit|acceleration.{0,20}limit", text, re.I))
+
+
+def _m_rrtconnect(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"RRTConnect", text, re.I))
+
+
+def _m_collision_mesh_cost(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(collision (geometry|mesh)|primitive|simplif|decimat|triangle)", text, re.I))
+
+
+def _m_moveit_docs(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"moveit\.picknik\.ai", text))
+
+
+P_M_SERVO = Probe(
+    id="mi-servo-silent",
+    suite="moveit",
+    skill="ros2-moveit",
+    prompt=(
+        "ROS 2 Jazzy, MoveIt 2. `servo_node` is running and I am publishing "
+        "`TwistStamped` to it, but the arm never moves and nothing errors. What "
+        "do I have to call before it will accept commands? Give the exact "
+        "service name and type."
+    ),
+    checks={
+        "switch_command_type": Check(_m_switch_command_type, [C_M_SYM_SERVO],
+                                     "names switch_command_type / ServoCommandType"),
+        "no_start_servo": Check(_m_no_start_servo, [C_M_SYM_SERVO],
+                                "does not prescribe the removed start_servo Trigger"),
+    },
+    note="The gap probe. Unaided sonnet prescribes start_servo + "
+         "std_srvs/srv/Trigger 4/4, which Jazzy removed; the skill's own row "
+         "said the same thing until it was corrected against moveit_msgs' "
+         "installed ServoCommandType.srv.",
+    probe_only=True,
+)
+
+
+P_M_PLAN = Probe(
+    id="mi-plan-execute",
+    suite="moveit",
+    skill="ros2-moveit",
+    prompt=(
+        "ROS 2 Jazzy, MoveIt 2. Write the minimal C++ that plans to a pose "
+        "target for a planning group called \"arm\" and executes the result. "
+        "Include the include directives exactly as they should be for Jazzy."
+    ),
+    checks={
+        "hpp_header": Check(_m_hpp_header, [C_M_MGI],
+                            "uses the Jazzy .hpp header, not the deprecated .h"),
+        "auto_declare": Check(_m_auto_declare_params, [C_M_MGI],
+                              "sets automatically_declare_parameters_from_overrides"),
+        "pose_target": Check(_m_pose_target, [C_M_MGI], "calls setPoseTarget"),
+    },
+    extra_claims=[C_M_ARCH],
+    probe_only=True,
+)
+
+
+P_M_DIAGNOSE = Probe(
+    id="mi-diagnose",
+    suite="moveit",
+    skill="ros2-moveit",
+    prompt=(
+        "ROS 2 Jazzy MoveIt 2, three separate problems. Cause and concrete fix "
+        "for each:\n"
+        "1. Planning fails instantly with `State in collision` before it plans "
+        "anything.\n"
+        "2. IK keeps failing for poses my 6-DOF arm can obviously reach.\n"
+        "3. `plan()` succeeds but `execute()` is rejected or times out."
+    ),
+    checks={
+        "srdf_acm": Check(_m_srdf_acm, [C_M_SYM_COLLISION],
+                          "names the SRDF allowed collision matrix"),
+        "alt_ik": Check(_m_alt_ik_solver, [C_M_SYM_IK],
+                        "suggests TRAC-IK or PickIK over default KDL"),
+        "kinematics_yaml": Check(_m_kinematics_yaml, [C_M_SYM_IK],
+                                 "names kinematics.yaml as the place to change it"),
+        "action_ns": Check(_m_action_ns, [C_M_SYM_EXEC],
+                           "checks the controller action namespace"),
+    },
+    extra_claims=[C_M_TUNE_KIN],
+    joint=[[C_M_SYM_IK, C_M_TUNE_KIN]],
+    probe_only=True,
+)
+
+
+P_M_TUNING = Probe(
+    id="mi-tuning",
+    suite="moveit",
+    skill="ros2-moveit",
+    prompt=(
+        "ROS 2 Jazzy MoveIt 2 on a 6-DOF arm. Trajectories abort mid-execution "
+        "with path tolerance errors, and planning takes several seconds on a "
+        "cluttered scene before failing. Which planner should I start from, and "
+        "what else should I check?"
+    ),
+    checks={
+        "joint_limits": Check(_m_joint_limits, [C_M_SYM_TOLERANCE],
+                              "names missing/zero velocity-acceleration limits"),
+        "rrtconnect": Check(_m_rrtconnect, [C_M_TUNE_OMPL],
+                            "starts from RRTConnect"),
+        "mesh_cost": Check(_m_collision_mesh_cost, [C_M_SYM_SLOW, C_M_TUNE_MESH],
+                           "ties planning time to collision geometry complexity"),
+    },
+    probe_only=True,
+)
+
+
+P_M_DOCS = Probe(
+    id="mi-docs",
+    suite="moveit",
+    skill="ros2-moveit",
+    prompt=(
+        "I need the MoveIt 2 C++ API reference for ROS 2 Jazzy and I do not "
+        "want to guess at method signatures. Where do I look it up?"
+    ),
+    checks={
+        "docs_url": Check(_m_moveit_docs, [C_M_NAV_CONCEPTS, C_M_NAV_CPP],
+                          "points at moveit.picknik.ai"),
+    },
+    extra_claims=[C_M_NAV_PY],
+    joint=[[C_M_NAV_CONCEPTS, C_M_NAV_CPP]],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
@@ -2660,4 +2913,5 @@ PROBES: list[Probe] = [
     P_TS_REP103, P_TS_INVERTED_DRIVE, P_TS_EKF_IMU, P_TS_SIM_CLOCK,
     P_TS_NAV2_LIFECYCLE, P_TS_EXEC_MOVEIT_DDS,
     P_C_CMDVEL, P_C_BRINGUP, P_C_URDF, P_C_DIAGNOSE, P_C_CALIBRATION, P_C_DOCS,
+    P_M_SERVO, P_M_PLAN, P_M_DIAGNOSE, P_M_TUNING, P_M_DOCS,
 ]
