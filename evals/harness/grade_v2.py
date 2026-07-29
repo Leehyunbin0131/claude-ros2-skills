@@ -1,0 +1,430 @@
+#!/usr/bin/env python3
+"""Grade a v2 task cell from its stream-json transcript.
+
+Nothing here is graded by reading. Every rule is mechanical and anchored per
+TASKS.md: a real outcome, a fact in the install, or an ordered fact about the
+transcript. Rules that need a live system are marked and skipped (returning
+None = ungradable, never False) when that system is not up.
+
+Usage:
+    python3 grade_v2.py <task-id> <result.jsonl>       # -> JSON on stdout
+    python3 grade_v2.py --selftest                     # exercise every rule
+
+Ungradable vs failed is the distinction this project has had to relearn most
+often: a cell that never produced an answer is not a wrong answer, and scoring
+it False deflates whichever baseline it lands in.
+"""
+from __future__ import annotations
+
+import argparse
+import glob
+import json
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+JAZZY = Path("/opt/ros/jazzy")
+
+
+# --------------------------------------------------------------------------
+# transcript reduction
+# --------------------------------------------------------------------------
+class Cell:
+    """A cell's transcript, flattened into what the graders need.
+
+    `events` preserves order, which is the whole basis of the T3 rules: the
+    question is not *whether* the agent asked but whether it asked *before* it
+    wrote a config.
+    """
+
+    def __init__(self, path: str | Path):
+        self.path = Path(path)
+        self.events: list[tuple[str, str]] = []   # (kind, payload)
+        self.tools: list[tuple[str, dict]] = []   # (name, input)
+        self.assistant_text: list[str] = []
+        self.final = ""
+        self._load()
+
+    def _load(self) -> None:
+        for line in self.path.read_text(errors="ignore").splitlines():
+            try:
+                d = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if d.get("type") == "assistant":
+                for b in d.get("message", {}).get("content", []):
+                    if b.get("type") == "tool_use":
+                        self.tools.append((b.get("name", ""), b.get("input", {}) or {}))
+                        self.events.append(("tool", b.get("name", "")))
+                    elif b.get("type") == "text":
+                        self.assistant_text.append(b.get("text", ""))
+                        self.events.append(("text", b.get("text", "")))
+            elif d.get("type") == "result":
+                self.final = d.get("result", "") or ""
+
+    # -- helpers -----------------------------------------------------------
+    @property
+    def answer(self) -> str:
+        return self.final or "\n".join(self.assistant_text)
+
+    def gradable(self) -> bool:
+        """False when the cell never produced an answer at all."""
+        return bool(self.answer.strip())
+
+    def tool_names(self) -> set[str]:
+        return {n for n, _ in self.tools}
+
+    def tool_blob(self, *names: str) -> str:
+        want = set(names)
+        return "\n".join(
+            json.dumps(i) for n, i in self.tools if not want or n in want
+        )
+
+    def first_index(self, pred) -> int | None:
+        for i, ev in enumerate(self.events):
+            if pred(ev):
+                return i
+        return None
+
+    def files_written(self, suffix: str = "") -> list[str]:
+        out = []
+        for n, i in self.tools:
+            if n in ("Write", "Edit", "NotebookEdit"):
+                p = str(i.get("file_path", ""))
+                if p.endswith(suffix):
+                    out.append(p)
+        return out
+
+
+# --------------------------------------------------------------------------
+# install-anchored facts, read once
+# --------------------------------------------------------------------------
+_PLUGINS: set[str] | None = None
+
+
+def registered_plugins() -> set[str]:
+    """Every class pluginlib registers in this install."""
+    global _PLUGINS
+    if _PLUGINS is None:
+        names: set[str] = set()
+        for f in glob.glob(str(JAZZY / "share/**/*.xml"), recursive=True):
+            try:
+                txt = Path(f).read_text(errors="ignore")
+            except OSError:
+                continue
+            if "library path" not in txt and "<class" not in txt:
+                continue
+            names |= set(re.findall(r'type="([A-Za-z_0-9]+::[A-Za-z_0-9]+)"', txt))
+        _PLUGINS = names
+    return _PLUGINS
+
+
+def live_topic_type(topic: str) -> str | None:
+    """Ask the running system, not a document. None when nothing is up."""
+    try:
+        r = subprocess.run(
+            ["bash", "-lc",
+             f"source /opt/ros/jazzy/setup.bash 2>/dev/null; "
+             f"timeout 8 ros2 topic info {topic}"],
+            capture_output=True, text=True, timeout=25)
+    except Exception:
+        return None
+    m = re.search(r"Type:\s*(\S+)", r.stdout or "")
+    return m.group(1) if m else None
+
+
+# --------------------------------------------------------------------------
+# shared rule helpers
+# --------------------------------------------------------------------------
+NEGATION = re.compile(
+    r"(no longer|not exist|nonexistent|non-existent|removed|replaced|does not|"
+    r"doesn't|don't|do not|deprecat|older|earlier|humble|iron|pre-jazzy|"
+    r"instead of|invent|there is no)", re.I)
+
+
+def prescribes(text: str, token: str) -> bool:
+    """True when `token` is recommended rather than warned about.
+
+    The distinction matters: an answer that names a removed parameter in order
+    to tell the reader it does not exist is correct, and a check that greps for
+    the bare string scores it wrong. That bug has been shipped here twice.
+    """
+    hits = list(re.finditer(re.escape(token), text))
+    if not hits:
+        return False
+    for m in hits:
+        window = text[max(0, m.start() - 180):m.end() + 80]
+        if not NEGATION.search(window):
+            return True
+    return False
+
+
+def searched_or_read_install(c: Cell) -> bool:
+    if c.tool_names() & {"WebSearch", "WebFetch"}:
+        return True
+    blob = c.tool_blob("Read", "Grep", "Glob", "Bash")
+    return "/opt/ros/jazzy" in blob
+
+
+# --------------------------------------------------------------------------
+# T1 — version-specific breakage
+# --------------------------------------------------------------------------
+def t1(c: Cell, live: bool = False) -> dict:
+    if not c.gradable():
+        return {k: None for k in
+                ("t1_correct_type", "t1_no_invented_param",
+                 "t1_searched_or_read", "t1_command_runs")}
+    a = c.answer
+    g = {
+        "t1_correct_type": bool(re.search(r"TwistStamped", a)),
+        "t1_no_invented_param": not prescribes(a, "use_stamped_vel"),
+        "t1_searched_or_read": searched_or_read_install(c),
+        "t1_command_runs": None,
+    }
+    if live:
+        # Real outcome: does the type the agent told the user to publish match
+        # what the running controller actually subscribes to?
+        want = live_topic_type("/diff_drive_controller/cmd_vel")
+        if want:
+            short = want.rsplit("/", 1)[-1]
+            cmds = c.tool_blob("Bash") + "\n" + a
+            pub = re.findall(r"ros2 topic pub[^\n`]*", cmds)
+            g["t1_command_runs"] = any(short in p for p in pub) if pub else False
+    return g
+
+
+# --------------------------------------------------------------------------
+# T2 — content that exists nowhere else
+# --------------------------------------------------------------------------
+SCRIPT = "check_imu_gravity.py"
+
+
+def t2(c: Cell) -> dict:
+    if not c.gradable():
+        return {k: None for k in
+                ("t2_ran_script", "t2_exit_code_read",
+                 "t2_no_ros2_run", "t2_evidence_not_guess")}
+    bash = c.tool_blob("Bash")
+    a = c.answer
+    ran = bool(re.search(rf"python3?\s+\S*{re.escape(SCRIPT)}", bash))
+    return {
+        "t2_ran_script": ran,
+        # Reporting a verdict only counts if the script was actually run.
+        "t2_exit_code_read": (bool(re.search(r"\b(PASS|FAIL|NO DATA|no data)\b", a))
+                              if ran else False),
+        # Ungradable when the scripts were never mentioned: an answer that
+        # never reaches for them cannot pass a "did not misuse them" rule.
+        "t2_no_ros2_run": (None if SCRIPT not in (bash + a)
+                           else not re.search(rf"ros2 run \S+ \S*{re.escape(SCRIPT)}", bash + a)),
+        "t2_evidence_not_guess": bool(re.search(r"9\.8|\b[0-9]+\.[0-9]+\s*m/s", a))
+                                 and bool(re.search(r"\b[xyz]\b", a, re.I)),
+    }
+
+
+# --------------------------------------------------------------------------
+# T3 — known but not done
+# --------------------------------------------------------------------------
+CONFIG_SUFFIXES = (".yaml", ".yml")
+
+
+def t3(c: Cell) -> dict:
+    if not c.gradable():
+        return {k: None for k in
+                ("t3_asked_before_writing", "t3_asked_footprint",
+                 "t3_asked_drive_type", "t3_read_shipped_defaults",
+                 "t3_plugins_real")}
+
+    def is_config_write(ev):
+        kind, payload = ev
+        return kind == "tool" and payload in ("Write", "Edit")
+
+    # index of the first config write, matched back to its file path
+    write_i = None
+    seen = 0
+    for i, (kind, payload) in enumerate(c.events):
+        if kind == "tool" and payload in ("Write", "Edit"):
+            paths = [p for n, inp in c.tools if n in ("Write", "Edit")
+                     for p in [str(inp.get("file_path", ""))]]
+            if seen < len(paths) and paths[seen].endswith(CONFIG_SUFFIXES):
+                write_i = i
+                break
+            seen += 1
+
+    ask_i = c.first_index(lambda ev: ev[0] == "text" and "?" in ev[1])
+    all_text = "\n".join(c.assistant_text) + "\n" + c.answer
+
+    blob = c.tool_blob("Read", "Grep", "Bash", "Glob")
+    read_i = c.first_index(
+        lambda ev: ev[0] == "tool" and ev[1] in ("Read", "Grep", "Bash", "Glob"))
+
+    written = "\n".join(
+        str(i.get("content", "")) for n, i in c.tools
+        if n in ("Write", "Edit") and str(i.get("file_path", "")).endswith(CONFIG_SUFFIXES))
+    strings = set(re.findall(r'["\']?([a-z_0-9]+::[A-Za-z_0-9]+)["\']?', written))
+
+    return {
+        # asked first, or never wrote a config at all
+        "t3_asked_before_writing": (write_i is None
+                                    or (ask_i is not None and ask_i < write_i)),
+        "t3_asked_footprint": bool(re.search(
+            r"footprint|inscribed radius|robot_radius|robot radius", all_text, re.I)),
+        "t3_asked_drive_type": bool(re.search(
+            r"differential|ackermann|omni|holonomic|drive type", all_text, re.I)),
+        "t3_read_shipped_defaults": ("nav2_params.yaml" in blob
+                                     and (write_i is None or (read_i is not None and read_i < write_i))),
+        "t3_plugins_real": (None if not strings
+                            else strings <= registered_plugins()),
+    }
+
+
+# --------------------------------------------------------------------------
+# T4 — null control
+# --------------------------------------------------------------------------
+def t4(c: Cell, workdir: str | None = None) -> dict:
+    # Unlike the other tasks, T4's deliverable is a file, not prose. A cell that
+    # wrote a node and said nothing is gradable; only a cell that produced
+    # neither is not.
+    src = "\n".join(
+        str(i.get("content", "")) for n, i in c.tools
+        if n in ("Write", "Edit") and str(i.get("file_path", "")).endswith(".py"))
+    if not src and workdir:
+        for p in Path(workdir).glob("*.py"):
+            src += p.read_text(errors="ignore")
+    if not src:
+        return {"t4_node_runs": None, "t4_guards_range": None}
+    return {
+        # Real outcome is run by the scenario script, which writes a sentinel;
+        # here we only report whether the emitted code is runnable Python that
+        # subscribes to LaserScan. Execution is graded by the caller.
+        "t4_node_runs": bool(re.search(r"LaserScan", src))
+                        and bool(re.search(r"create_subscription", src)),
+        "t4_guards_range": bool(re.search(r"isfinite|isinf|isnan|math\.inf", src))
+                           or bool(re.search(r"range_min", src) and re.search(r"range_max", src)),
+    }
+
+
+TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4}
+
+
+# --------------------------------------------------------------------------
+def selftest() -> int:
+    """Exercise every rule against hand-written transcripts.
+
+    A grader that has only ever seen good answers is not validated -- each rule
+    is checked in both directions.
+    """
+    def mk(events):
+        lines = []
+        for kind, payload in events:
+            if kind == "text":
+                lines.append(json.dumps({"type": "assistant", "message": {
+                    "content": [{"type": "text", "text": payload}]}}))
+            else:
+                name, inp = payload
+                lines.append(json.dumps({"type": "assistant", "message": {
+                    "content": [{"type": "tool_use", "name": name, "input": inp}]}}))
+        import tempfile
+        fh = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False)
+        fh.write("\n".join(lines))
+        fh.close()
+        return Cell(fh.name)
+
+    fails = []
+
+    def expect(label, got, want):
+        if got != want:
+            fails.append(f"{label}: got {got}, expected {want}")
+
+    # T1
+    good = mk([("tool", ("WebSearch", {"query": "diff_drive_controller jazzy"})),
+               ("text", "It subscribes with TwistStamped only; there is no use_stamped_vel parameter in Jazzy.")])
+    bad = mk([("text", "Set use_stamped_vel: false in your controller YAML.")])
+    expect("t1 good/type", t1(good)["t1_correct_type"], True)
+    expect("t1 good/param", t1(good)["t1_no_invented_param"], True)
+    expect("t1 good/searched", t1(good)["t1_searched_or_read"], True)
+    expect("t1 bad/param", t1(bad)["t1_no_invented_param"], False)
+    expect("t1 bad/searched", t1(bad)["t1_searched_or_read"], False)
+    expect("t1 empty", t1(mk([]))["t1_correct_type"], None)
+
+    # T2
+    ran = mk([("tool", ("Bash", {"command": "python3 .claude/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data"})),
+              ("text", "[FAIL] mean accel = (+9.81, -0.01, 0.00) m/s^2 — gravity is on X, not Z.")])
+    invented = mk([("tool", ("Bash", {"command": "ros2 run ros2_troubleshooting_helpers check_imu_gravity.py"})),
+                   ("text", "It reports FAIL.")])
+    silent = mk([("text", "Your IMU is probably mounted wrong; check the datasheet.")])
+    expect("t2 ran", t2(ran)["t2_ran_script"], True)
+    expect("t2 verdict", t2(ran)["t2_exit_code_read"], True)
+    expect("t2 evidence", t2(ran)["t2_evidence_not_guess"], True)
+    expect("t2 misuse", t2(invented)["t2_no_ros2_run"], False)
+    expect("t2 silent/ran", t2(silent)["t2_ran_script"], False)
+    expect("t2 silent/ungradable", t2(silent)["t2_no_ros2_run"], None)
+
+    # T3
+    asked = mk([("text", "Before I write anything: what is the robot's footprint, and is it differential or ackermann?"),
+                ("tool", ("Read", {"file_path": "/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml"})),
+                ("tool", ("Write", {"file_path": "/tmp/nav2_params.yaml",
+                                    "content": 'plugin: "nav2_mppi_controller::MPPIController"'}))])
+    wrote = mk([("tool", ("Write", {"file_path": "/tmp/nav2_params.yaml",
+                                    "content": 'plugin: "mppi_controller::MPPIController"'})),
+                ("text", "Done. Anything else?")])
+    expect("t3 asked/order", t3(asked)["t3_asked_before_writing"], True)
+    expect("t3 asked/footprint", t3(asked)["t3_asked_footprint"], True)
+    expect("t3 asked/drive", t3(asked)["t3_asked_drive_type"], True)
+    expect("t3 asked/defaults", t3(asked)["t3_read_shipped_defaults"], True)
+    expect("t3 asked/plugins", t3(asked)["t3_plugins_real"], True)
+    expect("t3 wrote/order", t3(wrote)["t3_asked_before_writing"], False)
+    expect("t3 wrote/plugins", t3(wrote)["t3_plugins_real"], False)
+
+    # T4
+    ok = mk([("tool", ("Write", {"file_path": "/tmp/n.py",
+                                 "content": "from sensor_msgs.msg import LaserScan\n"
+                                            "self.create_subscription(LaserScan, '/scan', cb, 10)\n"
+                                            "if math.isfinite(r):\n"}))])
+    naive = mk([("tool", ("Write", {"file_path": "/tmp/n.py",
+                                    "content": "from sensor_msgs.msg import LaserScan\n"
+                                               "self.create_subscription(LaserScan, '/scan', cb, 10)\n"
+                                               "m = min(msg.ranges)\n"}))])
+    expect("t4 ok/runs", t4(ok)["t4_node_runs"], True)
+    expect("t4 ok/guard", t4(ok)["t4_guards_range"], True)
+    expect("t4 naive/guard", t4(naive)["t4_guards_range"], False)
+
+    if fails:
+        print("SELFTEST FAILED")
+        for f in fails:
+            print("  -", f)
+        return 1
+    print(f"selftest passed — {len(registered_plugins())} plugins indexed")
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("task", nargs="?", choices=sorted(TASKS))
+    ap.add_argument("transcript", nargs="?")
+    ap.add_argument("--live", action="store_true",
+                    help="enable graders that query a running system")
+    ap.add_argument("--workdir", help="cell working directory, for files on disk")
+    ap.add_argument("--selftest", action="store_true")
+    a = ap.parse_args()
+
+    if a.selftest:
+        return selftest()
+    if not (a.task and a.transcript):
+        ap.error("task and transcript are required unless --selftest")
+
+    cell = Cell(a.transcript)
+    fn = TASKS[a.task]
+    if a.task == "t1":
+        grade = fn(cell, live=a.live)
+    elif a.task == "t4":
+        grade = fn(cell, workdir=a.workdir)
+    else:
+        grade = fn(cell)
+    print(json.dumps({"transcript": a.transcript, "task": a.task,
+                      "tools": sorted(cell.tool_names()), "grade": grade}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

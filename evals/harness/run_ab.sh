@@ -2,6 +2,7 @@
 # Run one eval task as a baseline / with-skills A/B pair.
 #
 #   ./run_ab.sh <task-number> [out-dir]
+#   CELLS="baseline scripts-only skills" ./run_ab.sh 2 out/
 #
 # Both cells get an identical prompt, model, tool allowlist and a fresh working
 # directory. The only difference is that the with-skills cell has CLAUDE.md and
@@ -69,11 +70,28 @@ run_cell() {
   local cell="$1" dir
   dir="$(mktemp -d "/tmp/eval-t${TASK}-${cell}-XXXX")"
 
-  if [ "$cell" = "skills" ]; then
-    mkdir -p "$dir/.claude/skills"
-    cp -r "$REPO"/skills/* "$dir/.claude/skills/"
-    cp "$REPO/CLAUDE.md" "$dir/"
-  fi
+  # Three conditions. `scripts-only` ships the bundled scripts WITHOUT any
+  # SKILL.md or CLAUDE.md, so a task about those scripts measures what the
+  # skill *text* buys rather than what shipping the files buys -- without it
+  # that comparison is a tautology, since an agent that globs finds the scripts
+  # either way. See evals/TASKS.md, Task 2.
+  case "$cell" in
+    skills)
+      mkdir -p "$dir/.claude/skills"
+      cp -r "$REPO"/skills/* "$dir/.claude/skills/"
+      cp "$REPO/CLAUDE.md" "$dir/"
+      ;;
+    scripts-only)
+      local s
+      for s in "$REPO"/skills/*/scripts; do
+        [ -d "$s" ] || continue
+        mkdir -p "$dir/scripts"
+        cp -r "$s"/* "$dir/scripts/"
+      done
+      ;;
+    baseline) ;;
+    *) echo "unknown cell: $cell" >&2; return 2 ;;
+  esac
 
   echo "--- task $TASK / $cell  (model=$MODEL, cwd=$dir)"
   ( cd "$dir" && claude -p "$PROMPT" \
@@ -94,8 +112,9 @@ run_cell() {
 }
 
 start_scenario
-run_cell baseline
-run_cell skills
+for cell in ${CELLS:-baseline skills}; do
+  run_cell "$cell"
+done
 stop_scenario
 
 echo

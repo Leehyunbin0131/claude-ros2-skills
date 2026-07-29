@@ -47,11 +47,12 @@ memory and invents `use_stamped_vel`, the line earns its place.
 | `t1_searched_or_read` | transcript contains a `WebSearch`/`WebFetch` call, **or** a `Read`/`Grep`/`Bash` touching `/opt/ros/jazzy` | transcript |
 | `t1_command_runs` | the command given, run verbatim against a live `diff_drive_controller`, produces non-zero wheel velocity | **real outcome** |
 
-`t1_command_runs` needs a live controller. Scenario script brings up
-`ros2_control_node` with the `diff_drive_controller` demo config, then the graded
-command is executed and `/joint_states` velocity is sampled. If that proves
-unreliable to stand up, `t1_command_runs` is dropped and recorded as dropped —
-not quietly replaced by a regex.
+`t1_command_runs` needs a live controller. `t1_diffdrive_scenario.sh` brings one
+up on `mock_components/GenericSystem` and was verified to discriminate before
+being trusted: a plain `Twist` produces **0.0 rad/s** at the wheels and a
+`TwistStamped` produces **10.0 rad/s** (0.5 m/s over a 0.05 m radius). The
+grader compares the message type the agent told the user to publish against what
+the running controller actually subscribes to.
 
 ---
 
@@ -81,9 +82,13 @@ isolates that: same files, no `SKILL.md`, no `CLAUDE.md`.
 | `t2_no_ros2_run` | does not invent `ros2 run <package> check_imu_gravity.py`; the scripts are plain files | install: no such package exists |
 | `t2_evidence_not_guess` | final message cites a measured number (an acceleration value, an axis) rather than only prose | transcript |
 
-Scenario: `fake_imu_pub.py` publishing a **deliberately wrong** mount — gravity
-on `+X` instead of `+Z`. The right answer is discoverable only by sampling the
-topic. Needs writing; `fake_scan_pub.py` is the template.
+Scenario: `fake_imu_pub.py` publishes a **deliberately wrong** mount — gravity
+on `+X` instead of `+Z` on a stationary, level robot, with identity orientation
+so the driver still reports "level". The right answer is discoverable only by
+sampling the topic: no URDF, log or web search says how a particular robot's IMU
+is physically bolted on. Verified against the shipped script, which returns
+`[FAIL] mean accel = (+9.81, -0.01, -0.00) ... Gravity is on X, not Z` and exit
+code 1.
 
 ---
 
@@ -154,11 +159,27 @@ Written down now so it cannot be adjusted after seeing numbers:
   text does not), T3 shows the largest effect of the three. If T1 or T2 shows a
   large skill effect, this prediction was wrong and that is the finding.
 
-## Still to build
+## Build status
 
-1. `fake_imu_pub.py` — wrong-mount IMU publisher for T2.
-2. A `ros2_control` bring-up for T1's `t1_command_runs`, or a recorded decision
-   to drop that grader.
-3. `grade_v2.py` — reads a `stream-json` transcript and emits the table above.
-   Nothing is graded by reading.
-4. `scripts-only` cell support in `run_ab.sh` (currently baseline/skills only).
+All four built and self-tested. Each was verified to **discriminate** before
+being trusted — a grader that has only ever seen good answers is not validated.
+
+| Piece | State | Evidence it discriminates |
+| :--- | :--- | :--- |
+| `fake_imu_pub.py` | done | publishes a stationary robot with gravity on **+X**; `check_imu_gravity.py` returns `[FAIL] ... Gravity is on X, not Z`, **exit code 1** |
+| `t1_diffdrive_scenario.sh` | done | brings up `diff_drive_controller` on `mock_components/GenericSystem`; **plain `Twist` -> 0.0 rad/s, `TwistStamped` -> 10.0 rad/s**, which is 0.5 m/s over a 0.05 m wheel radius, exactly right |
+| `grade_v2.py` | done | `--selftest` exercises every rule in both directions and passes; 233 plugins indexed |
+| `scripts-only` cell | done | `CELLS="baseline scripts-only skills" ./run_ab.sh 2 out/` |
+
+Two things were learned standing these up, both recorded in the scripts:
+
+- Jazzy's `controller_manager` takes `robot_description` from a **topic**, not a
+  parameter. Passing it as a parameter leaves it waiting forever, which is what
+  the first attempt did.
+- `ros2 topic pub --once` is routinely lost before discovery completes, so the
+  first version of the discrimination check reported 0.0 for *both* message
+  types and looked like a scenario failure. Continuous publishing fixes it.
+
+`t1_command_runs` therefore **survives** rather than being dropped: the scenario
+discriminates, so the grader can compare what the agent told the user to publish
+against what the running controller actually subscribes to.
