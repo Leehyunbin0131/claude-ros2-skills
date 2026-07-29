@@ -47,7 +47,16 @@ class Cell:
         self._load()
 
     def _load(self) -> None:
-        for line in self.path.read_text(errors="ignore").splitlines():
+        # Committed transcripts are gzipped. Reading them as text silently
+        # yields nothing, which once made a whole round report "0 cells graded"
+        # and an isolation check report "no leaks" -- a false all-clear is worse
+        # than an error, so handle both forms here rather than at call sites.
+        if self.path.suffix == ".gz":
+            import gzip
+            raw = gzip.open(self.path, "rt", errors="ignore").read()
+        else:
+            raw = self.path.read_text(errors="ignore")
+        for line in raw.splitlines():
             try:
                 d = json.loads(line)
             except json.JSONDecodeError:
@@ -158,6 +167,25 @@ def prescribes(text: str, token: str) -> bool:
         if not NEGATION.search(window):
             return True
     return False
+
+
+REPO_PATH = str(Path(__file__).resolve().parents[2])
+
+
+def leaked(c: Cell) -> list[str]:
+    """Tool inputs that reached this repository.
+
+    A cell that read evals/DESIGN.md or a scenario source has seen the answer
+    key. Round 2 had one such cell; isolate_cell.sh closes the hole, and this
+    stays as the check that it is actually closed. A round with any leak is
+    reported with the count, never silently averaged in.
+    """
+    hits = []
+    for name, inp in c.tools:
+        blob = json.dumps(inp)
+        if REPO_PATH in blob:
+            hits.append(f"{name}: {blob[:120]}")
+    return hits
 
 
 def searched_or_read_install(c: Cell) -> bool:
@@ -422,7 +450,8 @@ def main() -> int:
     else:
         grade = fn(cell)
     print(json.dumps({"transcript": a.transcript, "task": a.task,
-                      "tools": sorted(cell.tool_names()), "grade": grade}, indent=2))
+                      "tools": sorted(cell.tool_names()),
+                      "leaked": leaked(cell), "grade": grade}, indent=2))
     return 0
 
 

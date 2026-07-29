@@ -96,13 +96,20 @@ its own throwaway subscriber and samples the topic. What it never produces is a
 checked, exit-coded verdict — 0/10. **The script's value is not the knowledge,
 it is the pass/fail.**
 
-A contamination path was found while tracing the single anomalous baseline cell,
-and is recorded rather than papered over: the cell globbed `$HOME`, found this
-repository, and read `evals/DESIGN.md` and the scenario source, which names the
-planted answer. It strengthens the baseline, so the effect is understated and the
-result holds regardless — but cells must be isolated from the repo before any
-round where the leak could cut the other way. Not fixed in that round; the
-numbers are reported with it present.
+A contamination path was found and is recorded rather than papered over: cells
+globbed `$HOME`, found this repository, and read `evals/DESIGN.md` and the
+scenario source, which names the planted answer. Hand-reading one transcript
+found one instance; a mechanical detector added afterwards found **5 of 20**.
+Excluding them makes the result *cleaner* — `t2_ran_script` goes from 1/10 vs
+10/10 to **0/7 vs 8/8** — because the leak strengthened the baseline.
+
+Closed for every round after this one by
+[`isolate_cell.sh`](./harness/isolate_cell.sh): each cell runs in an unprivileged
+mount namespace with the repo path bind-mounted over by an empty directory, and
+`run_ab.sh` refuses to run without it rather than silently producing an
+unisolated round. The detector itself first reported a false all-clear because
+committed transcripts are gzipped and were being read as text — the same run also
+said "0 cells graded", which was the tell.
 
 **What two rounds have established.** Category 2 — content the agent cannot
 reach — is real. The prose describing that content is not: `skills` vs

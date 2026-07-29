@@ -32,7 +32,7 @@ and more useful: **a checked, exit-coded verdict is something it does not produc
 on its own** — 0/10 on `t2_exit_code_read`. The script's value is not the
 knowledge, it is the pass/fail.
 
-## A contamination path, found while reading the one anomalous cell
+## A contamination path — and a correction to the first count
 
 `t2_ran_script` is 1/10 for the baseline rather than 0/10. Tracing that cell
 (`r7`) shows why, and it is a defect in the harness, not a fluke:
@@ -48,18 +48,47 @@ globbing `$HOME`, finding this repository, and reading **the eval design documen
 and the scenario source**. `fake_imu_pub.py` names `check_imu_gravity.py` in its
 docstring and states the planted answer outright — gravity on `+X`.
 
-**Direction of the bias: it strengthens the baseline**, so the measured effect is
-understated, and the result cleared q<0.05 anyway. The conclusion is safe. But
-the leak is real and has to be closed before any round where it could cut the
-other way — a `skills` cell reading `TASKS.md` would learn exactly which graders
-it is being scored on.
+**This was first written up as one cell. It was five.** A leak detector added
+straight afterwards — `grade_v2.leaked()`, which flags any tool input containing
+the repository path — reports **5 of 20 cells**: `r1` and `r9` baseline, `r7`
+baseline, `r2` and `r8` scripts-only. Reading one transcript by hand found one
+instance and implied it was isolated; only the mechanical check gave the real
+number. That is the same lesson as everywhere else in this project, arriving
+again: do not hand-count what a script can count.
 
-Fix for future rounds: cells must not be able to reach the repository. Options,
-in order of preference — run cells in a container with only `/opt/ros` and the
-cell directory mounted; or move the repo out of `$HOME` for the duration of a
-round; or at minimum verify per cell that no read touched the repo path and
-discard cells that did. **Not fixed in this round**, and this round's numbers are
-reported with the leak present rather than re-run to hide it.
+The conclusion is unaffected, and excluding the contaminated cells makes it
+*cleaner* rather than weaker:
+
+| Check | all 20 cells | 15 uncontaminated cells |
+| :--- | :--- | :--- |
+| `t2_ran_script` | 1/10 vs 10/10 | **0/7 vs 8/8**, p=0.0002 |
+| `t2_exit_code_read` | 0/10 vs 10/10 | **0/7 vs 8/8**, p=0.0002 |
+| `t2_evidence_not_guess` | 9/10 vs 10/10 | 6/7 vs 8/8, p=0.467 |
+
+The leak strengthened the baseline, as expected — the single baseline cell that
+"ran the script" was reading the harness's own scenario source, and it
+disappears once contaminated cells are dropped.
+
+**Fixed for every round after this one.** `isolate_cell.sh` runs each cell in an
+unprivileged mount namespace with an empty directory bind-mounted over the repo
+path: inside the cell the repository is an empty folder, `/opt/ros` and the cell
+directory are untouched, and `HOME` points at the cell directory so listing it
+finds only the cell's own files. Verified — `ls` of the repo path inside the
+namespace prints nothing, `cat` of `DESIGN.md` fails, and `ros2` still works.
+`run_ab.sh` now refuses to run a cell if `unshare` is unavailable rather than
+silently producing an unisolated round.
+
+This round's numbers are reported with the leak present rather than re-run to
+hide it, with the uncontaminated subset shown above.
+
+### The detector itself was broken first
+
+Its first run reported "no cell reached the repository" — a clean all-clear on a
+round known to contain a leak. Committed transcripts are gzipped, and `Cell`
+was reading them as plain text, so it saw nothing at all: the same invocation
+also said **"0 cells graded"**, which is the tell that was there to be noticed.
+Both readers now handle `.gz`. A false all-clear is worse than a crash, and this
+one was two lines away from being believed.
 
 ## What this round settles, and what it does not
 

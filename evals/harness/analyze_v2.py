@@ -88,10 +88,15 @@ def main() -> int:
     # tally[(task, check, cell)] = [passed, gradable]
     tally: dict[tuple[str, str, str], list[int]] = collections.defaultdict(lambda: [0, 0])
     tools: dict[tuple[str, str], collections.Counter] = collections.defaultdict(collections.Counter)
+    leaks: list[tuple[str, str, int]] = []
     cells = 0
 
-    for f in sorted(root.rglob("*_result.jsonl")):
-        stem = f.name[: -len("_result.jsonl")]
+    files = sorted(root.rglob("*_result.jsonl")) + sorted(root.rglob("*_result.jsonl.gz"))
+    if not files:
+        print(f"no transcripts under {root}", file=sys.stderr)
+        return 2
+    for f in files:
+        stem = f.name.split("_result.jsonl")[0]
         task, _, cell = stem.partition("-")
         if task not in COMPARISONS or (only and task not in only):
             continue
@@ -100,6 +105,9 @@ def main() -> int:
         grade = fn(c) if task not in ("t1", "t4") else (
             fn(c, live=False) if task == "t1" else fn(c, workdir=str(f.parent)))
         cells += 1
+        lk = grade_v2.leaked(c)
+        if lk:
+            leaks.append((f.parent.name, f.name, len(lk)))
         for tn in c.tool_names():
             tools[(task, cell)][tn] += 1
         for check, v in grade.items():
@@ -180,6 +188,17 @@ def main() -> int:
         print("t4 shows no significant difference between cells — the harness is "
               "not tilted toward the skills condition, so the other tasks can be read.")
     print()
+
+    print("## Isolation\n")
+    if leaks:
+        print(f"**{len(leaks)} of {cells} cells reached the repository** — these "
+              f"have seen the eval design and/or a scenario source, which names "
+              f"the planted answer. Reported, not averaged away:\n")
+        for rep, name, n in leaks:
+            print(f"- `{rep}/{name}` — {n} tool call(s)")
+        print("\nRun through `isolate_cell.sh` to close this.\n")
+    else:
+        print("No cell reached the repository. Isolation held.\n")
 
     print("## Tool use per cell\n")
     print("| Task | Cell | Tools seen (cells using each) |")

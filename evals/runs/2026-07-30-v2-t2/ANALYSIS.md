@@ -27,6 +27,18 @@ Comparisons and alpha fixed in TASKS.md before the round. `q` is Benjamini-Hochb
 t4 was not run in this round. The gate was cleared in the round that established the harness; a narrow follow-up inherits that rather than re-paying for it.
 
 
+## Isolation
+
+**5 of 20 cells reached the repository** — these have seen the eval design and/or a scenario source, which names the planted answer. Reported, not averaged away:
+
+- `r1/t2-baseline_result.jsonl.gz` — 1 tool call(s)
+- `r2/t2-scripts-only_result.jsonl.gz` — 2 tool call(s)
+- `r7/t2-baseline_result.jsonl.gz` — 5 tool call(s)
+- `r8/t2-scripts-only_result.jsonl.gz` — 1 tool call(s)
+- `r9/t2-baseline_result.jsonl.gz` — 3 tool call(s)
+
+Run through `isolate_cell.sh` to close this.
+
 ## Tool use per cell
 
 | Task | Cell | Tools seen (cells using each) |

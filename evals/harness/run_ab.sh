@@ -101,12 +101,17 @@ run_cell() {
   esac
 
   echo "--- task $TASK / $cell  (model=$MODEL, cwd=$dir)"
-  ( cd "$dir" && claude -p "$PROMPT" \
+  # Every cell runs with this repository hidden. Round 2 caught a baseline cell
+  # reading evals/DESIGN.md and the scenario source, which names the planted
+  # answer; see evals/harness/isolate_cell.sh. Rounds before that fix are not
+  # comparable to rounds after it.
+  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" \
+    claude -p "$PROMPT" \
       --model "$MODEL" \
       --output-format stream-json --verbose \
       --permission-mode acceptEdits \
       --allowedTools WebFetch WebSearch Read Glob Grep Write Bash \
-    ) > "$OUT/${TASK}-${cell}_result.jsonl"
+    > "$OUT/${TASK}-${cell}_result.jsonl"
 
   # Final assistant message + the tool names actually invoked, for grading.
   python3 "$REPO/evals/harness/summarize_run.py" \
