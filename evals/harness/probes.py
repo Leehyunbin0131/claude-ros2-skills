@@ -2908,6 +2908,292 @@ P_M_DOCS = Probe(
 )
 
 
+# --- gazebo-sim suite --------------------------------------------------------
+# First suite written under the anchor rule added to PROCEDURE.md on 2026-07-29:
+# prefer a real outcome, then an install-verified fact, and treat "the file says
+# so" as a last resort. Here a real outcome is available -- `gz sdf --check`
+# from the installed gz_tools_vendor parses SDF against the shipped 1.11 spec.
+#
+# It always prints "Valid." even for unknown tags, so the exit code alone
+# discriminates nothing; it does emit a `Warning [...] not defined in SDF` line
+# per bogus element, and that is what _gz_sdf_valid() greads on. Verified
+# discriminating before use: a correct <box><size> model parses clean, the same
+# model with <box><sizes> emits the warning.
+#
+# Everything the plugin/sensor checks look for was confirmed present in the
+# install rather than taken from the skill: libgz-sim8-diff-drive-system.so,
+# -sensors-system, -imu-system all ship, `gpu_lidar` is a real sensor type in
+# `gz sdf --describe`, and <gz_frame_id> -- absent from the SDF spec, so easy to
+# assume invented -- is used inside <sensor> by the shipped
+# nav2_minimal_tb3_sim/urdf/gz_waffle.sdf.xacro.
+
+C_G_ARCH = "gazebo-sim:1architecture-rule:01"
+C_G_NAV_HARMONIC = "gazebo-sim:2documentation-entry-points:01"
+C_G_NAV_SDF = "gazebo-sim:2documentation-entry-points:02"
+C_G_NAV_ROSGZ = "gazebo-sim:2documentation-entry-points:03"
+C_G_NAV_NAV2 = "gazebo-sim:2documentation-entry-points:04"
+C_G_BRIDGE_SYNTAX = "gazebo-sim:2documentation-entry-points:05"
+C_G_DIFFDRIVE = "gazebo-sim:a-differential-drive-motion-plugin:01"
+C_G_LIDAR = "gazebo-sim:b-gpu-lidar-sensor-plugin:01"
+C_G_SYM_FALL = "gazebo-sim:4symptom-root-cause-action:01"
+C_G_SYM_CMDVEL = "gazebo-sim:4symptom-root-cause-action:02"
+C_G_SYM_SENSORS = "gazebo-sim:4symptom-root-cause-action:03"
+C_G_SYM_IMU = "gazebo-sim:4symptom-root-cause-action:04"
+C_G_SYM_CLOCK = "gazebo-sim:4symptom-root-cause-action:05"
+C_G_SYM_FRAME = "gazebo-sim:4symptom-root-cause-action:06"
+C_G_SYM_SIM2REAL = "gazebo-sim:4symptom-root-cause-action:07"
+C_G_VERIFY_INTRO = "gazebo-sim:5local-system-verification:01"
+C_G_VERIFY_PKG = "gazebo-sim:5local-system-verification:02"
+C_G_VERIFY_GZ = "gazebo-sim:5local-system-verification:03"
+
+_SDF_WARN = re.compile(r"^\s*(?:\x1b\[[\d;]*m)?Warning \[", re.M)
+
+
+def _gz_sdf_valid(answer: str) -> bool | None:
+    """REAL OUTCOME grader. Wraps the answer's SDF fragments in a minimal valid
+    model and runs the installed `gz sdf --check`. Passes only when sdformat
+    reports Valid *and* emits no `Warning [... not defined in SDF]` -- the check
+    prints "Valid." for unknown tags too, so the warning stream is the
+    discriminating signal.
+
+    Fragments are placed by their root element, because SDF position matters:
+    <plugin>, <link> and <joint> belong to <model>, while <sensor> belongs
+    inside a <link>. The first draft put everything inside <link> and scored
+    correct plugin blocks as invalid -- a grader bug, caught in the pre-flight
+    check rather than in the sweep."""
+    if code(answer, "xml") is None:
+        return None
+    blocks = [b.strip() for b in FENCE.findall(answer or "") if "<" in b]
+    if not blocks:
+        return None
+    # Elided illustrations ("<model ...>  ...  </model>") are not complete SDF
+    # and cannot be parsed. Ungradable, not wrong -- scoring them False is the
+    # non-answer-as-wrong-answer mistake this project keeps re-learning.
+    if any(re.search(r"^\s*\.\.\.\s*$|<!--\s*\.\.\.", b, re.M) for b in blocks):
+        return None
+    body = "\n".join(blocks)
+    if "<sdf" in body:
+        doc = body
+    elif any(re.match(r"\s*<\s*(model|world)\b", b) for b in blocks):
+        doc = '<?xml version="1.0"?>\n<sdf version="1.10">\n' + body + "\n</sdf>\n"
+    else:
+        model_level, link_level = [], []
+        for b in blocks:
+            root = re.match(r"\s*<\s*([a-zA-Z_][\w:-]*)", b)
+            name = root.group(1) if root else ""
+            (model_level if name in ("plugin", "link", "joint") else link_level).append(b)
+        doc = (
+            '<?xml version="1.0"?>\n<sdf version="1.10">\n  <model name="probe">\n'
+            '    <link name="base_link">\n'
+            '      <inertial><mass>1.0</mass>'
+            '<inertia><ixx>0.1</ixx><iyy>0.1</iyy><izz>0.1</izz></inertia></inertial>\n'
+            '      <collision name="c"><geometry><box><size>1 1 1</size></box>'
+            '</geometry></collision>\n'
+            + "\n".join(link_level) + "\n    </link>\n"
+            + "\n".join(model_level) + "\n  </model>\n</sdf>\n"
+        )
+    import subprocess, tempfile, os
+    with tempfile.NamedTemporaryFile("w", suffix=".sdf", delete=False) as fh:
+        fh.write(doc)
+        path = fh.name
+    try:
+        r = subprocess.run(
+            ["bash", "-lc", f"source /opt/ros/jazzy/setup.bash 2>/dev/null; gz sdf --check {path}"],
+            capture_output=True, text=True, timeout=60)
+    except Exception:
+        os.unlink(path)
+        return None
+    os.unlink(path)
+    out = (r.stdout or "") + (r.stderr or "")
+    if "Valid." not in out:
+        return False
+    return not _SDF_WARN.search(out)
+
+
+def _gz_diffdrive_plugin(answer: str) -> bool | None:
+    src = code(answer, "xml") or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"gz-sim-diff-drive-system", src))
+
+
+def _gz_sensors_system(answer: str) -> bool | None:
+    src = code(answer, "xml") or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"gz-sim-sensors-system", src))
+
+
+def _gz_imu_system(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"gz-sim-imu-system", text))
+
+
+def _gz_gpu_lidar_type(answer: str) -> bool | None:
+    src = code(answer, "xml") or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r'type\s*=\s*"gpu_lidar"', src))
+
+
+def _gz_no_classic(answer: str) -> bool | None:
+    """Gazebo Classic tags/plugins do not work with Jazzy + Harmonic. Ungradable
+    unless the answer is actually about Gazebo at all."""
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"gazebo|gz[ -]", text, re.I):
+        return None
+    return not re.search(r"gazebo_ros_pkgs|libgazebo_ros|gazebo_ros/|<gazebo>\s*<plugin", text)
+
+
+def _gz_bridge_ros_to_gz(answer: str) -> bool | None:
+    """ROS -> GZ is `]`. The direction char is the documented trap."""
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"/cmd_vel@[^\s`]*\]gz\.msgs", text))
+
+
+def _gz_bridge_gz_to_ros(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"/scan@[^\s`]*\[gz\.msgs", text))
+
+
+def _gz_clock_bridge(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"/clock@rosgraph_msgs", text)) and bool(
+        re.search(r"use_sim_time", text))
+
+
+def _gz_frame_id_tag(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"gz_frame_id", text))
+
+
+def _gz_inertial_collision(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"collision", text, re.I)) and bool(
+        re.search(r"inerti", text, re.I))
+
+
+P_G_SDF_PLUGINS = Probe(
+    id="gz-sdf-plugins",
+    suite="gazebo",
+    skill="gazebo-sim",
+    prompt=(
+        "Ubuntu 24.04 with ROS 2 Jazzy and Gazebo. Give me the SDF for a "
+        "differential drive plugin and a 360-sample GPU lidar sensor on my "
+        "robot model. I want SDF I can paste straight in, with the exact "
+        "plugin filenames and class names."
+    ),
+    checks={
+        "sdf_parses": Check(_gz_sdf_valid, [C_G_DIFFDRIVE, C_G_LIDAR],
+                            "gz sdf --check reports Valid with no undefined-element warnings"),
+        "diffdrive_plugin": Check(_gz_diffdrive_plugin, [C_G_DIFFDRIVE],
+                                  "uses the installed gz-sim-diff-drive-system filename"),
+        "gpu_lidar_type": Check(_gz_gpu_lidar_type, [C_G_LIDAR],
+                                'declares type="gpu_lidar"'),
+        "no_classic": Check(_gz_no_classic, [C_G_ARCH],
+                            "does not reach for Gazebo Classic plugins"),
+    },
+    note="sdf_parses is the project's second real-outcome grader after the "
+         "colcon build probe: the answer's XML is wrapped in a minimal valid "
+         "model and handed to the installed sdformat parser.",
+    extra_claims=[C_G_NAV_SDF, C_G_NAV_HARMONIC],
+    probe_only=True,
+)
+
+
+P_G_BRIDGE = Probe(
+    id="gz-bridge-direction",
+    suite="gazebo",
+    skill="gazebo-sim",
+    prompt=(
+        "ROS 2 Jazzy with Gazebo, using `ros_gz_bridge parameter_bridge`. I "
+        "need `/cmd_vel` to travel from ROS into Gazebo and `/scan` to come "
+        "from Gazebo into ROS. Write both bridge arguments exactly as I would "
+        "type them, and say what the punctuation between the two type names "
+        "means."
+    ),
+    checks={
+        "ros_to_gz": Check(_gz_bridge_ros_to_gz, [C_G_BRIDGE_SYNTAX, C_G_SYM_CMDVEL],
+                           "uses ] for the ROS->GZ direction on /cmd_vel"),
+        "gz_to_ros": Check(_gz_bridge_gz_to_ros, [C_G_BRIDGE_SYNTAX],
+                           "uses [ for the GZ->ROS direction on /scan"),
+    },
+    extra_claims=[C_G_NAV_ROSGZ],
+    probe_only=True,
+)
+
+
+P_G_DIAGNOSE = Probe(
+    id="gz-diagnose",
+    suite="gazebo",
+    skill="gazebo-sim",
+    prompt=(
+        "ROS 2 Jazzy + Gazebo, four things wrong at once. Cause and fix for "
+        "each:\n"
+        "1. The robot spawns and immediately falls through the ground plane.\n"
+        "2. The lidar and IMU topics appear in `gz topic -l` but never "
+        "publish.\n"
+        "3. Every node throws TF extrapolation errors the moment sim starts.\n"
+        "4. Sensor messages arrive with a frame_id my URDF does not contain."
+    ),
+    checks={
+        "inertial_collision": Check(_gz_inertial_collision, [C_G_SYM_FALL],
+                                    "names missing collision geometry and inertia"),
+        "sensors_system": Check(_gz_sensors_system, [C_G_SYM_SENSORS],
+                                "names the gz-sim-sensors-system world plugin"),
+        "imu_system": Check(_gz_imu_system, [C_G_SYM_IMU],
+                            "names the gz-sim-imu-system world plugin"),
+        "clock_bridge": Check(_gz_clock_bridge, [C_G_SYM_CLOCK],
+                              "bridges /clock and sets use_sim_time"),
+        "gz_frame_id": Check(_gz_frame_id_tag, [C_G_SYM_FRAME],
+                             "names <gz_frame_id> for the prefixed-frame problem"),
+    },
+    note="gz_frame_id is absent from the SDF spec and looks invented; it is "
+         "real and shipped -- nav2_minimal_tb3_sim's gz_waffle.sdf.xacro uses "
+         "it inside <sensor>. Confirmed before writing the check.",
+    joint=[[C_G_SYM_SENSORS, C_G_SYM_IMU]],
+    extra_claims=[C_G_SYM_SIM2REAL, C_G_NAV_NAV2],
+    probe_only=True,
+)
+
+
+P_G_VERIFY = Probe(
+    id="gz-verify-local",
+    suite="gazebo",
+    skill="gazebo-sim",
+    prompt=(
+        "Before I trust anything about my Gazebo setup on this machine, how do "
+        "I confirm which Gazebo version is actually installed and that the ROS "
+        "bridge packages are present? Give the commands."
+    ),
+    checks={
+        "gz_version": Check(lambda a: (None if prose(a) is None
+                                       else bool(re.search(r"gz sim --version|gz --version", prose(a)))),
+                            [C_G_VERIFY_GZ], "runs gz sim --version"),
+        "pkg_prefix": Check(lambda a: (None if prose(a) is None
+                                       else bool(re.search(r"ros2 pkg prefix\s+ros_gz", prose(a)))),
+                            [C_G_VERIFY_PKG], "runs ros2 pkg prefix ros_gz_bridge"),
+    },
+    extra_claims=[C_G_VERIFY_INTRO],
+    joint=[[C_G_VERIFY_PKG, C_G_VERIFY_GZ]],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
@@ -2920,4 +3206,5 @@ PROBES: list[Probe] = [
     P_TS_NAV2_LIFECYCLE, P_TS_EXEC_MOVEIT_DDS,
     P_C_CMDVEL, P_C_BRINGUP, P_C_URDF, P_C_DIAGNOSE, P_C_CALIBRATION, P_C_DOCS,
     P_M_SERVO, P_M_PLAN, P_M_DIAGNOSE, P_M_TUNING, P_M_DOCS,
+    P_G_SDF_PLUGINS, P_G_BRIDGE, P_G_DIAGNOSE, P_G_VERIFY,
 ]

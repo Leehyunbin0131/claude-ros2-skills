@@ -40,7 +40,7 @@ it cannot drift away from what actually ships.
 | `ros2-perception` | 0.849 → 0.987 | VERIFIED | [ablation](./runs/2026-07-28-perception-sonnet-full/NOTES.md) + [rewrite comparison](./runs/2026-07-28-perception-variant2/) + [confirmation](./runs/2026-07-28-perception-confirm-sonnet/) |
 | `ros2-dev` | — | IN PROGRESS | — |
 | `ros2-troubleshooting` | 0.795 → 1.000 *(install-verified checks: 0.051 → 0.982)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
-| `gazebo-sim` | — | IN PROGRESS | — |
+| `gazebo-sim` | 0.708 → 0.976 *(parser/install-anchored checks: 0.742 → 0.972)* | IN PROGRESS | [ablation](./runs/2026-07-29-gazebo-sonnet/NOTES.md) — 18/18 claims, no claim cleared q<0.05 |
 | `ros2-control` | 0.696 → 1.000 *(install-verified checks: 0.444 → 1.000)* | VERIFIED | [ablation](./runs/2026-07-29-control-sonnet/NOTES.md) + [rewrite](./runs/2026-07-29-control-variant/) + [confirmation](./runs/2026-07-29-control-confirm/) |
 | `ros2-moveit` | 0.470 → 1.000 *(install-verified checks: 0.083 → 1.000)* | VERIFIED | [ablation](./runs/2026-07-29-moveit-sonnet/NOTES.md) |
 | `ros2-microros` | — | IN PROGRESS | — |
@@ -511,6 +511,43 @@ changed across 16 runs, no re-run and no spend. Effect on the headline numbers
 was small and only ever moved `naked` up: `ros2-moveit` 0.433 → 0.470,
 `ros2-control` 0.679 → 0.696, `ros2-testing` 0.762 → 0.786. Not the explanation
 for the 1.000s, which is the check-design problem above.
+
+**`gazebo-sim`** is the first suite written under the check-anchoring rule, and
+the first to return **`full` below 1.000**. That is the point of it.
+
+`sdf_parses` hands the answer's XML to the installed `gz sdf --check`. The
+grader had to be shown to discriminate first: `gz sdf --check` prints `Valid.`
+even for unknown tags, so the exit code says nothing, but it emits
+`Warning [...] not defined in SDF` per bogus element — the skill's own blocks
+parse clean, the same blocks with `<samples>` misspelled do not. Everything else
+the suite looks for was confirmed in the install rather than in the file:
+`libgz-sim8-diff-drive-system.so` and friends ship, `gpu_lidar` is a real sensor
+type, and `<gz_frame_id>` — absent from the SDF spec, so easy to assume invented
+— is used inside `<sensor>` by the shipped `nav2_minimal_tb3_sim` waffle model.
+
+| Check group | naked | full |
+| :--- | ---: | ---: |
+| anchored to the parser or the install | 0.742 | **0.972** |
+| echoing the file's phrasing | 0.500 | 1.000 |
+
+The phrasing group still reads 1.000; the anchored group does not. Same run,
+same answers. A check that cannot be satisfied by wording fails about one answer
+in six even with the file in context, which is what the earlier three suites
+were unable to show.
+
+**No claim cleared q<0.05, and that was not chased.** Two sat at q=0.055 — the
+`gz-sim-imu-system` world plugin (`naked` 0.12) and `<gz_frame_id>` (`ablate`
+0.25) — and both would probably cross with another top-up. Sampling until a
+number crosses a threshold manufactures a result rather than measuring one, so
+they are recorded as UNDERPOWERED. Unconfirmed but worth naming: unaided, sonnet
+names the IMU world plugin 1 time in 8, bridges `/clock` with `use_sim_time` 2
+in 8, and reaches for `ros2 pkg prefix ros_gz_bridge` 1 in 10.
+
+No rewrite was attempted. There is compressible mass on paper, but `sdf_parses`
+scores **0.00 with the diff-drive block ablated** against 0.83 with it — removing
+the worked SDF example is what makes the model's own SDF stop parsing. That is
+underpowered, and it points directly at the block a compression would delete.
+Detail: [run notes](./runs/2026-07-29-gazebo-sonnet/NOTES.md).
 
 ## The efficiency axis rests on an assumption that had never been measured
 
