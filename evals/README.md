@@ -54,7 +54,11 @@ Tooling, including the per-line ablation harness:
 
 ## Artifacts
 
-Every run's transcripts, generated code and logs are committed under
-[`runs/`](./runs/), each with a `NOTES.md` describing what that run covered — so
-any result can be re-graded independently. PRs attaching graded transcripts are
-welcome.
+Each run commits its transcripts, generated code and logs under `runs/<date>-<name>/`
+with a `NOTES.md` describing what it covered, so any result can be re-graded
+independently. PRs attaching graded transcripts are welcome.
+
+`runs/` is currently empty: the first measurement round was deleted along with
+its verdicts when the criterion changed. See
+[`RESULTS.md`](./RESULTS.md) for what was kept and why, and
+[`DESIGN.md`](./DESIGN.md) for the criterion that replaced it.

@@ -84,7 +84,7 @@ Este repositorio se optimiza para un único resultado: minimizar el riesgo de ge
 
 **Ningún skill ha completado la verificación aún.** El estado por skill se encuentra en [`evals/RESULTS.md`](./evals/RESULTS.md); los resultados se publicarán allí a medida que cada skill supere ambos ejes, incluidos los que fallen. Las mediciones provisionales se retienen deliberadamente: una ronda anterior produjo una conclusión plausible a partir de una sola ejecución que una reejecución controlada desmintió posteriormente, y los resultados parciales propagan ese tipo de error más rápido de lo que se puede detectar.
 
-Qué se mide, cómo se califica y cómo reejecutar cualquier prueba: [`evals/README.md`](./evals/README.md). Las transcripciones y registros de cada ejecución realizada hasta la fecha están guardados en [`evals/runs/`](./evals/runs/).
+Qué se mide, cómo se califica y cómo reejecutar cualquier prueba: [`evals/README.md`](./evals/README.md). El criterio actual — una skill aporta lo que el agente **no puede alcanzar por sí mismo** (con el conocimiento del modelo, la búsqueda web y una instalación real disponibles) — está en [`evals/DESIGN.md`](./evals/DESIGN.md), y el estado de cada skill en [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ## Inicio rápido
 

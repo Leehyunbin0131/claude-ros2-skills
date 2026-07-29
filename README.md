@@ -92,8 +92,11 @@ single run that a controlled re-run then disconfirmed, and partial results sprea
 that kind of error faster than it can be caught.
 
 What is being measured, how it is graded, and how to re-run any of it:
-[`evals/README.md`](./evals/README.md). Transcripts and logs from every run to
-date are committed under [`evals/runs/`](./evals/runs/).
+[`evals/README.md`](./evals/README.md). The current criterion — a skill supplies
+what the agent **cannot reach on its own**, given the model's knowledge, web
+search and a live install — is in
+[`evals/DESIGN.md`](./evals/DESIGN.md), and the status of every skill against it
+is in [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ## Quickstart
 

@@ -84,7 +84,7 @@ Ce dépôt est optimisé pour un objectif unique : minimiser le risque de géné
 
 **Aucun skill n'a encore terminé sa vérification.** Le statut par skill se trouve dans [`evals/RESULTS.md`](./evals/RESULTS.md) ; les résultats y sont publiés au fur et à mesure que chaque skill valide les deux axes, y compris ceux qui échouent. Les mesures intermédiaires sont délibérément retenues — une série précédente avait produit une conclusion plausible à partir d'une seule exécution qu'une réexécution contrôlée a ensuite infirmée, et des résultats partiels propagent ce genre d'erreur plus vite qu'elle ne peut être détectée.
 
-Ce qui est mesuré, la façon dont c'est noté et la manière de tout réexécuter : [`evals/README.md`](./evals/README.md). Les transcriptions et les journaux de chaque exécution effectuée à ce jour sont commités sous [`evals/runs/`](./evals/runs/).
+Ce qui est mesuré, la façon dont c'est noté et la manière de tout réexécuter : [`evals/README.md`](./evals/README.md). Le critère actuel — une skill fournit ce que l'agent **ne peut pas atteindre seul** (avec les connaissances du modèle, la recherche web et une installation réelle disponibles) — se trouve dans [`evals/DESIGN.md`](./evals/DESIGN.md), et l'état de chaque skill dans [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ## Démarrage rapide
 

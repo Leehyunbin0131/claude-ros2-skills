@@ -84,7 +84,7 @@ Dieses Repository ist auf ein einziges Ziel hin optimiert: das Risiko zu minimie
 
 **Noch kein Skill hat die Verifikation abgeschlossen.** Der Status pro Skill ist in [`evals/RESULTS.md`](./evals/RESULTS.md) dokumentiert; Ergebnisse werden dort veröffentlicht, sobald jeder Skill beide Achsen besteht, einschließlich derjenigen, die fehlschlagen. Zwischenmessungen werden bewusst zurückgehalten — eine frühere Runde ergab aus einem einzelnen Durchlauf eine plausible Schlussfolgerung, die ein kontrollierter erneuter Durchlauf dann widerlegte, und Teilergebnisse verbreiten diese Art von Fehler schneller, als er behoben werden kann.
 
-Was gemessen wird, wie bewertet wird und wie alles erneut ausgeführt werden kann: [`evals/README.md`](./evals/README.md). Transkripte und Protokolle jedes bisherigen Durchlaufs sind unter [`evals/runs/`](./evals/runs/) eingecheckt.
+Was gemessen wird, wie bewertet wird und wie alles erneut ausgeführt werden kann: [`evals/README.md`](./evals/README.md). Das aktuelle Kriterium — eine Skill liefert das, was der Agent **nicht selbst erreichen kann** (bei verfügbarem Modellwissen, Websuche und einer echten Installation) — steht in [`evals/DESIGN.md`](./evals/DESIGN.md), der Status jeder Skill in [`evals/RESULTS.md`](./evals/RESULTS.md).
 
 ## Schnellstart
 
