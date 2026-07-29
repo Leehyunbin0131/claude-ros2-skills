@@ -1,4 +1,4 @@
-[INFO] [1785362892.123014827] [fake_imu_pub]: publishing /imu/data — stationary robot, gravity on +X (a 90 deg rotated mount). Correct answer: the IMU is misaligned.
+[INFO] [1785364738.603064359] [fake_imu_pub]: publishing /imu/data — stationary robot, gravity on +X (a 90 deg rotated mount). Correct answer: the IMU is misaligned.
 Traceback (most recent call last):
   File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_imu_pub.py", line 99, in <module>
     main()

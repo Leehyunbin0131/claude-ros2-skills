@@ -75,6 +75,41 @@ so far, and even there the prose describing the files adds nothing measurable on
 top of shipping them. The two lines v1 added to the skills are now expected to
 fail as well.
 
+## v2 round 2 — the bundled scripts earn their place
+
+20 cells, `t2` only, `baseline` vs `scripts-only`, n=10. Pre-registered in
+[`TASKS.md`](./TASKS.md) before any cell existed.
+[Notes](./runs/2026-07-30-v2-t2/NOTES.md) · [machine output](./runs/2026-07-30-v2-t2/ANALYSIS.md)
+
+| Check | baseline | scripts-only | Δ | q |
+| :--- | ---: | ---: | ---: | ---: |
+| `t2_exit_code_read` | 0/10 | **10/10** | +1.00 | **0.000** |
+| `t2_ran_script` | 1/10 | **10/10** | +0.90 | **0.000** |
+| `t2_evidence_not_guess` | 9/10 | 10/10 | +0.10 | 1.000 |
+
+**First thing in this project to clear the bar under the real-environment
+criterion.** Both graders that turn on a real outcome — did the script run, was
+its verdict reported — are unambiguous.
+
+The baseline is not helpless: 9/10 on `t2_evidence_not_guess`, because it writes
+its own throwaway subscriber and samples the topic. What it never produces is a
+checked, exit-coded verdict — 0/10. **The script's value is not the knowledge,
+it is the pass/fail.**
+
+A contamination path was found while tracing the single anomalous baseline cell,
+and is recorded rather than papered over: the cell globbed `$HOME`, found this
+repository, and read `evals/DESIGN.md` and the scenario source, which names the
+planted answer. It strengthens the baseline, so the effect is understated and the
+result holds regardless — but cells must be isolated from the repo before any
+round where the leak could cut the other way. Not fixed in that round; the
+numbers are reported with it present.
+
+**What two rounds have established.** Category 2 — content the agent cannot
+reach — is real. The prose describing that content is not: `skills` vs
+`scripts-only` was +0.00 on every check. Nothing in either round has shown any
+*prose* in any skill earning its place, and the two lines v1 added are still
+expected to fail.
+
 ## Status
 
 | Skill | Status |
