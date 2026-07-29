@@ -183,3 +183,44 @@ Two things were learned standing these up, both recorded in the scripts:
 `t1_command_runs` therefore **survives** rather than being dropped: the scenario
 discriminates, so the grader can compare what the agent told the user to publish
 against what the running controller actually subscribes to.
+
+
+---
+
+## Round 2 — narrow, by design
+
+Round 1 tested 16 things at n=5. A clean 5/5 vs 0/5 is p=0.008, which becomes
+q=0.063 after correcting across 16 tests — so the one real-outcome effect in the
+round landed just outside the bar. The honest reading is that **round 1 was
+under-powered because it was wide, not because n was small.**
+
+Round 2 therefore narrows instead of growing:
+
+| | Round 1 | Round 2 |
+| :--- | :--- | :--- |
+| Tasks | t1, t2, t3, t4 | **t2 only** |
+| Cells | baseline, scripts-only, skills | **baseline, scripts-only** |
+| n | 5 | **10** |
+| Tests corrected across | 16 | **4** |
+
+**The question it answers:** is shipping the bundled scripts worth it? That is
+the only place in round 1 where a grader anchored to a real outcome moved
+(`t2_ran_script` and `t2_exit_code_read`, both +1.00).
+
+**Why this is not cherry-picking.** The comparison, the cell pair, n, and the
+correction were fixed before any round-2 cell existed, and round 1's own notes
+name this as the follow-up. Picking the winning test *out of* round 1 and
+re-reporting it without correction would be cherry-picking; running a
+pre-registered narrow round is how you resolve an underpowered result without
+paying for tests nobody needs.
+
+**The control gate is inherited, not re-paid.** `t4` was 5/5 vs 5/5 in round 1,
+which established that the harness is not tilted toward the skills condition.
+Round 2 does not include the `skills` cell at all, so there is nothing for that
+bias to act on.
+
+**Decided in advance:** if `t2_ran_script` clears q<0.05, the scripts ship and
+the finding is that category 2 content earns its place while the prose describing
+it does not. If it does not clear at n=10, the result is recorded as unresolved
+and the scripts stay on the same footing as everything else — not topped up
+again.

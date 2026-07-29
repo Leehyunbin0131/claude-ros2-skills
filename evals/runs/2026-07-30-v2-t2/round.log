@@ -1,0 +1,18 @@
+scenario for task t2 up (pids: 7345)
+--- task t2 / baseline  (model=sonnet, cwd=/tmp/eval-t2-baseline-y6pt)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t2/r1/t2-baseline_final.md
+--- task t2 / scripts-only  (model=sonnet, cwd=/tmp/eval-t2-scripts-only-qcZ0)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t2/r1/t2-scripts-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t2 <result.jsonl>
+=== rep 1 done
+scenario for task t2 up (pids: 9264)
+--- task t2 / baseline  (model=sonnet, cwd=/tmp/eval-t2-baseline-k37Y)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t2/r2/t2-baseline_final.md
+--- task t2 / scripts-only  (model=sonnet, cwd=/tmp/eval-t2-scripts-only-ILET)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t2/r2/t2-scripts-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t2 <result.jsonl>
+=== rep 2 done
+scenario for task t2 up (pids: 10161)
+--- task t2 / baseline  (model=sonnet, cwd=/tmp/eval-t2-baseline-EhsI)

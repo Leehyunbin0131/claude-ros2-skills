@@ -25,6 +25,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 import grade_v2  # noqa: E402
 
 ALPHA = 0.05
+# A round may restrict itself to a subset. Correction is applied across the
+# tests actually run, which is why a narrow round is not the same as cherry-
+# picking from a wide one: the comparisons are fixed before the cells exist.
 COMPARISONS = {
     "t1": [("skills", "baseline")],
     "t2": [("skills", "scripts-only"), ("scripts-only", "baseline")],
@@ -77,8 +80,10 @@ def bh_qvalues(pvals: list[float]) -> list[float]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("round_dir")
+    ap.add_argument("--only", help="comma-separated task ids to include")
     a = ap.parse_args()
     root = Path(a.round_dir)
+    only = set(a.only.split(",")) if a.only else None
 
     # tally[(task, check, cell)] = [passed, gradable]
     tally: dict[tuple[str, str, str], list[int]] = collections.defaultdict(lambda: [0, 0])
@@ -88,7 +93,7 @@ def main() -> int:
     for f in sorted(root.rglob("*_result.jsonl")):
         stem = f.name[: -len("_result.jsonl")]
         task, _, cell = stem.partition("-")
-        if task not in COMPARISONS:
+        if task not in COMPARISONS or (only and task not in only):
             continue
         c = grade_v2.Cell(f)
         fn = getattr(grade_v2, task)
@@ -109,7 +114,7 @@ def main() -> int:
 
     # --- per-check table ---------------------------------------------------
     print("## Pass rate per check\n")
-    order = ["t4", "t1", "t2", "t3"]
+    order = [x for x in ("t4", "t1", "t2", "t3") if not only or x in only]
     cellnames = ["baseline", "scripts-only", "skills"]
     print("| Task | Check | " + " | ".join(cellnames) + " |")
     print("| :--- | :--- | " + " | ".join("---:" for _ in cellnames) + " |")
@@ -162,7 +167,11 @@ def main() -> int:
     # --- control gate ------------------------------------------------------
     t4sig = [r for r in pending if r["task"] == "t4" and r["q"] < ALPHA]
     print("## Control gate\n")
-    if t4sig:
+    if only and "t4" not in only:
+        print("t4 was not run in this round. The gate was cleared in the round "
+              "that established the harness; a narrow follow-up inherits that "
+              "rather than re-paying for it.\n")
+    elif t4sig:
         print("**ROUND VOID.** The t4 null control moved:")
         for r in t4sig:
             print(f"- {r['check']}: {r['ph']}/{r['nh']} vs {r['pl']}/{r['nl']}, q={r['q']:.3f}")
