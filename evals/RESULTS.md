@@ -41,7 +41,7 @@ it cannot drift away from what actually ships.
 | `ros2-dev` | — | IN PROGRESS | — |
 | `ros2-troubleshooting` | 0.795 → 1.000 *(0.050 → 0.982 on the scripts section)* | VERIFIED | [ablation](./runs/2026-07-28-troubleshooting-sonnet/NOTES.md) + 3 rejected rewrites ([1](./runs/2026-07-28-troubleshooting-variant/), [2](./runs/2026-07-28-troubleshooting-variant2/), [3](./runs/2026-07-28-troubleshooting-variant3/)) |
 | `gazebo-sim` | — | IN PROGRESS | — |
-| `ros2-control` | — | IN PROGRESS | — |
+| `ros2-control` | 0.679 → 1.000 | VERIFIED | [ablation](./runs/2026-07-29-control-sonnet/NOTES.md) + [rewrite](./runs/2026-07-29-control-variant/) + [confirmation](./runs/2026-07-29-control-confirm/) |
 | `ros2-moveit` | — | IN PROGRESS | — |
 | `ros2-microros` | — | IN PROGRESS | — |
 
@@ -383,6 +383,45 @@ against `full`, never against the other variants, so three runs each produced
 "another CUT-verdict line broke" and the pattern looked like confirmation. Two
 of the three numbers contradict that reading and the contradiction was sitting
 in data already collected.
+
+**`ros2-control`** is the first skill where the pre-measurement found a place
+the model is **reliably wrong** rather than a place it is already right, and
+that changed what the run was for. 70 lines to 46, with one line *added*.
+`naked` 0.679 vs `full` 1.000 on the shipped body.
+
+Asked cold why an active `diff_drive_controller` ignores `/cmd_vel`, sonnet
+correctly diagnoses a `Twist`/`TwistStamped` mismatch and then, **4 times out of
+4**, prescribes `use_stamped_vel` — a parameter that does not exist. Verified
+against the install before acting: `diff_drive_controller_parameters.hpp`
+declares 23 parameters and none is that; `diff_drive_controller.hpp` has a
+single `Subscription<TwistStamped>` and no plain-`Twist` path; the string
+appears nowhere under `/opt/ros/jazzy/`. The skill said nothing about it. A
+symptom row naming the `TwistStamped`-only subscription and warning off the
+invented parameter was added **before** the sweep, since ablation can only
+measure lines that exist — and it measured **KEEP at q=0.050** (`naked` 0.00,
+`full` 1.00, `ablate` 0.30, n=10).
+
+This is the counterpart to the `ros2-package` finding that content expires.
+Content can also be *missing in a way ablation cannot see*: a per-claim sweep
+scores the lines that are there and is silent about the confident, repeatable
+error sitting where a line should be. The only thing that surfaces it is asking
+the model the question cold and checking its answer against the install.
+
+The rewrite followed the compression rules collected after the
+`ros2-troubleshooting` failures. Both code blocks were at ceiling and became two
+prose paragraphs, the `joint_state_broadcaster` row folded into one of them
+rather than being said twice, and section 5 *gained* two causal clauses the
+original left implicit — keep the reason, not just the instruction. Tied on all
+14 checks at n=8, three slightly better. Detail:
+[run notes](./runs/2026-07-29-control-sonnet/NOTES.md).
+
+One check bug worth recording because it is the same shape as before. The
+negative check for the invented parameter searched for the string and failed any
+answer containing it — including answers naming it *to warn the reader off*,
+which is what the skill asks for. `full` read 0/4 while all four answers were
+correct. It now fails only when the parameter is prescribed, and was fixed with
+`runner.py regrade` against stored answers: 18 of 583 results changed, no re-run,
+no spend.
 
 ## The efficiency axis rests on an assumption that had never been measured
 

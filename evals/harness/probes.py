@@ -2344,6 +2344,311 @@ P_TS_EXEC_MOVEIT_DDS = Probe(
 )
 
 
+# --- ros2-control suite ------------------------------------------------------
+# Pre-measured before design, per PROCEDURE.md. sonnet unaided already gives the
+# diff_drive calibration knobs (left/right_wheel_radius_multiplier,
+# wheel_separation_multiplier), the correct order to apply them, and the
+# arithmetic -- a superset of section 5. So section 5 is not where the value is.
+#
+# The pre-measurement did find a genuine content gap, and it is the reason the
+# cmd_vel probe below exists. Asked why an active diff_drive_controller ignores
+# /cmd_vel, sonnet correctly identifies a Twist/TwistStamped mismatch and then,
+# 4 times out of 4, tells the user to set `use_stamped_vel` -- a parameter that
+# does not exist anywhere in the Jazzy install. Checked against
+# diff_drive_controller_parameters.hpp (23 params, no such name) and
+# diff_drive_controller.hpp, which declares a single
+# `Subscription<TwistStamped>` and no plain-Twist path. A symptom row naming
+# that was added to the skill before this sweep; ablation can only measure lines
+# that exist, so a gap has to be closed first and then measured.
+
+C_C_ARCH = "ros2-control:1architecture:01"
+C_C_NAV_ROOT = "ros2-control:2documentation-entry-points:01"
+C_C_NAV_PARAMS = "ros2-control:2documentation-entry-points:02"
+# Re-mapped after variant:compressed shipped (70 -> 46 lines). The two code
+# blocks became two prose paragraphs in a new "3. Wiring" section, and the
+# joint-state-broadcaster symptom row folded into the second of them, so the
+# symptom table lost a row and renumbered. C_C_SYM_JSB now points at prose, not
+# at a table row -- the name is stable, the location is not.
+C_C_URDF = "ros2-control:3wiring:01"          # was the <ros2_control> XML block
+C_C_SPAWNER = "ros2-control:3wiring:02"       # was the launch-file Python block
+C_C_SYM_JSB = "ros2-control:3wiring:02"       # folded into the spawner prose
+C_C_SYM_TWIST = "ros2-control:4symptom-root-cause-action:01"
+C_C_SYM_SPAWN_TIMEOUT = "ros2-control:4symptom-root-cause-action:02"
+C_C_SYM_CONFLICT = "ros2-control:4symptom-root-cause-action:03"
+C_C_SYM_CONFIGURE = "ros2-control:4symptom-root-cause-action:04"
+C_C_SYM_IFACE = "ros2-control:4symptom-root-cause-action:05"
+C_C_SYM_ODOM = "ros2-control:4symptom-root-cause-action:06"
+C_C_SYM_BACKWARD = "ros2-control:4symptom-root-cause-action:07"
+C_C_CAL_INTRO = "ros2-control:5calibration-baselines-diff-drive-contro:01"
+C_C_CAL_RADIUS = "ros2-control:5calibration-baselines-diff-drive-contro:02"
+C_C_CAL_SEP = "ros2-control:5calibration-baselines-diff-drive-contro:03"
+C_C_CAL_REVERIFY = "ros2-control:5calibration-baselines-diff-drive-contro:04"
+
+
+def _c_twist_stamped(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"TwistStamped", text))
+
+
+def _c_no_use_stamped_vel(answer: str) -> bool | None:
+    """Jazzy's diff_drive_controller has no `use_stamped_vel` parameter --
+    unaided sonnet prescribes it every time. Fails only when the answer
+    *prescribes* it; an answer that names it in order to warn the reader off
+    ("there is no use_stamped_vel parameter in Jazzy") is correct and passes.
+
+    The first version of this check just searched for the string and scored
+    every correct warning as a failure -- 0/4 on `full` while the answers were
+    doing exactly what the skill asked. Pattern, not meaning; see PROCEDURE.md.
+
+    Ungradable unless the answer engages with message types at all, so a reply
+    that never discusses them cannot pass by silence."""
+    text = prose(answer)
+    if text is None:
+        return None
+    if not re.search(r"Twist", text):
+        return None
+    hits = list(re.finditer(r"use_stamped_vel", text))
+    if not hits:
+        return True
+    negation = re.compile(
+        r"(no|not|never|isn't|is not|doesn't|does not|don't|do not|nonexistent"
+        r"|non-existent|remov|deprecat|older|earlier|humble|iron|pre-jazzy"
+        r"|invent|hallucinat)", re.I)
+    for m in hits:
+        window = text[max(0, m.start() - 160):m.end() + 60]
+        if not negation.search(window):
+            return False
+    return True
+
+
+def _c_jsb_first(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"joint_state_broadcaster", text))
+
+
+def _c_list_hw_interfaces(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"list_hardware_interfaces", text))
+
+
+def _c_spawner_node(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"controller_manager", src)) and bool(
+        re.search(r"spawner", src))
+
+
+def _c_controller_manager_arg(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"--controller-manager", src))
+
+
+def _c_urdf_command_interface(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"<command_interface", src))
+
+
+def _c_urdf_state_interface(answer: str) -> bool | None:
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return bool(re.search(r"<state_interface", src))
+
+
+def _c_iface_names(answer: str) -> bool | None:
+    """The three interface names are exactly position/velocity/effort."""
+    src = code(answer) or prose(answer)
+    if src is None:
+        return None
+    return all(re.search(n, src) for n in (r"position", r"velocity"))
+
+
+def _c_radius_multiplier(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"wheel_radius_multiplier", text))
+
+
+def _c_separation_multiplier(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"wheel_separation_multiplier", text))
+
+
+def _c_measure_not_cad(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"(measure|tape|physical|actual)", text, re.I))
+
+
+def _c_fix_at_hardware(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(
+        r"(hardware interface|hardware_interface|joint axis|urdf|motor polarity"
+        r"|controller config)", text, re.I))
+
+
+def _c_control_docs_url(answer: str) -> bool | None:
+    text = prose(answer)
+    if text is None:
+        return None
+    return bool(re.search(r"control\.ros\.org", text))
+
+
+P_C_CMDVEL = Probe(
+    id="ctl-cmdvel-silent",
+    suite="control",
+    skill="ros2-control",
+    prompt=(
+        "ROS 2 Jazzy, ros2_control. `ros2 control list_controllers` shows my "
+        "`diff_drive_controller` active and my hardware interfaces are claimed, "
+        "but publishing to `/cmd_vel` moves nothing and nothing errors. What is "
+        "going on and exactly how do I fix it? If a parameter is involved, name "
+        "it precisely."
+    ),
+    checks={
+        "twist_stamped": Check(_c_twist_stamped, [C_C_SYM_TWIST],
+                               "identifies the TwistStamped subscription"),
+        "no_invented_param": Check(_c_no_use_stamped_vel, [C_C_SYM_TWIST],
+                                   "does not invent a use_stamped_vel parameter"),
+    },
+    note="The gap probe. Unaided sonnet gets the cause right and the fix wrong "
+         "4/4, prescribing `use_stamped_vel`, which does not exist in Jazzy. "
+         "no_invented_param is a negative-form check and returns ungradable "
+         "unless the answer engages with message types at all.",
+    extra_claims=[C_C_NAV_PARAMS],
+    probe_only=True,
+)
+
+
+P_C_BRINGUP = Probe(
+    id="ctl-bringup",
+    suite="control",
+    skill="ros2-control",
+    prompt=(
+        "ROS 2 Jazzy. Write the launch file section that brings up a "
+        "`diff_drive_controller` and makes the robot model show up properly in "
+        "RViz. Assume a correct URDF and controller YAML are already wired in "
+        "elsewhere -- write only the controller bring-up part, and explain the "
+        "order things have to happen in."
+    ),
+    checks={
+        "spawner_node": Check(_c_spawner_node, [C_C_SPAWNER],
+                              "uses the controller_manager spawner executable"),
+        "cm_arg": Check(_c_controller_manager_arg, [C_C_SPAWNER],
+                        "passes --controller-manager"),
+        "jsb": Check(_c_jsb_first, [C_C_SYM_JSB],
+                     "spawns joint_state_broadcaster -- it is not automatic"),
+    },
+    extra_claims=[C_C_ARCH],
+    probe_only=True,
+)
+
+
+P_C_URDF = Probe(
+    id="ctl-urdf-tag",
+    suite="control",
+    skill="ros2-control",
+    prompt=(
+        "ROS 2 Jazzy. Write the `<ros2_control>` block for a two-wheel robot "
+        "whose wheels are velocity-commanded and which reports wheel position "
+        "and speed back. Use the Gazebo simulation hardware plugin."
+    ),
+    checks={
+        "command_iface": Check(_c_urdf_command_interface, [C_C_URDF],
+                               "declares a <command_interface>"),
+        "state_iface": Check(_c_urdf_state_interface, [C_C_URDF],
+                             "declares <state_interface> entries"),
+        "iface_names": Check(_c_iface_names, [C_C_ARCH],
+                             "uses the exact interface names position/velocity"),
+    },
+    probe_only=True,
+)
+
+
+P_C_DIAGNOSE = Probe(
+    id="ctl-diagnose",
+    suite="control",
+    skill="ros2-control",
+    prompt=(
+        "ROS 2 Jazzy ros2_control, three separate problems. Give the likely "
+        "cause and the command I would run for each:\n"
+        "1. A controller refuses to activate, complaining about a resource or "
+        "interface conflict.\n"
+        "2. The hardware activates and the controller is active, but the joints "
+        "do not respond to commands.\n"
+        "3. My robot drives backward when commanded forward and every log looks "
+        "clean."
+    ),
+    checks={
+        "list_hw": Check(_c_list_hw_interfaces, [C_C_SYM_CONFLICT, C_C_SYM_IFACE],
+                         "runs ros2 control list_hardware_interfaces"),
+        "fix_at_hardware": Check(_c_fix_at_hardware, [C_C_SYM_BACKWARD],
+                                 "fixes the sign at the URDF/hardware layer, not in app code"),
+    },
+    extra_claims=[C_C_SYM_SPAWN_TIMEOUT, C_C_SYM_CONFIGURE],
+    joint=[[C_C_SYM_CONFLICT, C_C_SYM_IFACE]],
+    probe_only=True,
+)
+
+
+P_C_CALIBRATION = Probe(
+    id="ctl-calibration",
+    suite="control",
+    skill="ros2-control",
+    prompt=(
+        "My ROS 2 Jazzy diff drive robot's odometry does not match reality: a "
+        "tape-measured 2.0 m drive reports 2.18 m, and spinning in place "
+        "accumulates yaw error. The URDF geometry came from CAD. What do I "
+        "change, and how do I get the numbers to put in?"
+    ),
+    checks={
+        "radius_mult": Check(_c_radius_multiplier, [C_C_CAL_RADIUS],
+                             "names left/right_wheel_radius_multiplier"),
+        "separation_mult": Check(_c_separation_multiplier, [C_C_CAL_SEP],
+                                 "names wheel_separation_multiplier"),
+        "measure_physically": Check(_c_measure_not_cad, [C_C_CAL_INTRO],
+                                    "measures the real chassis rather than trusting CAD"),
+    },
+    extra_claims=[C_C_SYM_ODOM, C_C_CAL_REVERIFY],
+    probe_only=True,
+)
+
+
+P_C_DOCS = Probe(
+    id="ctl-docs",
+    suite="control",
+    skill="ros2-control",
+    prompt=(
+        "I need the full parameter list for a ros2_control controller I have "
+        "not used before on ROS 2 Jazzy, and I do not want to guess. Where do I "
+        "look it up?"
+    ),
+    checks={
+        "docs_url": Check(_c_control_docs_url, [C_C_NAV_ROOT, C_C_NAV_PARAMS],
+                          "points at control.ros.org for the Jazzy docs"),
+    },
+    joint=[[C_C_NAV_ROOT, C_C_NAV_PARAMS]],
+    probe_only=True,
+)
+
+
 PROBES: list[Probe] = [
     P_SCAN, P_TF, P_PARAMS, P_EXECUTOR, P_ROS1, P_DOMAIN, P_ODOM,
     P_T_COLCON, P_T_ROSBAG_WRITE, P_T_LAUNCH_TESTING, P_T_DIAGNOSE,
@@ -2354,4 +2659,5 @@ PROBES: list[Probe] = [
     P_TS_SILENT_TOPIC, P_TS_IMU_MOUNT, P_TS_DRIVE_BACKWARD, P_TS_TF_ADVISORY,
     P_TS_REP103, P_TS_INVERTED_DRIVE, P_TS_EKF_IMU, P_TS_SIM_CLOCK,
     P_TS_NAV2_LIFECYCLE, P_TS_EXEC_MOVEIT_DDS,
+    P_C_CMDVEL, P_C_BRINGUP, P_C_URDF, P_C_DIAGNOSE, P_C_CALIBRATION, P_C_DOCS,
 ]
