@@ -14,8 +14,11 @@
 # an empty directory bind-mounted over the repo path. Inside the namespace the
 # repo looks empty; outside, nothing changed. No root, no container runtime.
 #
-# HOME is also pointed at the cell directory, so the obvious discovery path --
-# listing the home directory -- finds only the cell's own files.
+# HOME is deliberately left alone. An earlier version pointed it at the cell
+# directory to hide the repo from a plain `ls ~`, and that broke authentication
+# for every cell -- `claude` keeps its credentials under $HOME, so all 20 cells
+# of a round returned "Not logged in" and were scored as real answers. The
+# bind-mount is what closes the leak; moving HOME added nothing and cost a round.
 #
 # Verify it works before trusting a round:
 #   ./isolate_cell.sh /tmp ls /home/hyunlee/home/claude-ros2-skills
@@ -42,11 +45,11 @@ chmod 555 "$EMPTY"
 unshare --map-root-user --mount -- bash -c '
   set -uo pipefail
   mount --bind "$1" "$2" || { echo "isolate_cell.sh: bind-mount failed" >&2; exit 4; }
-  # Drop back to the invoking user inside the namespace.
-  export HOME="$3"
   cd "$3" || exit 5
   shift 3
-  exec "$@"
+  # stdin from /dev/null: `claude -p` otherwise waits on it inside the
+  # namespace, warns, and produces a stub. Another round lost to this.
+  exec "$@" </dev/null
 ' _ "$EMPTY" "$REPO" "$WORKDIR" "$@"
 rc=$?
 rmdir "$EMPTY" 2>/dev/null || true

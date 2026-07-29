@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[WARN] [1785367356.357099825] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367356.477335107] [controller_manager]: Received robot description from topic.
+[WARN] [1785367356.477377307] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367356.972245070] [controller_manager]: Received robot description from topic.
+[WARN] [1785367356.972280581] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367357.116275348] [controller_manager]: Received robot description from topic.
+[WARN] [1785367357.116322140] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367357.348426404] [controller_manager]: Received robot description from topic.
+[WARN] [1785367357.348486861] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367357.417480851] [controller_manager]: Received robot description from topic.
+[WARN] [1785367357.417511249] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367357.464314963] [controller_manager]: Received robot description from topic.
+[WARN] [1785367357.464347733] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367357.572928179] [controller_manager]: Received robot description from topic.
+[WARN] [1785367357.572971791] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367357.575069435] [controller_manager]: Received robot description from topic.
+[WARN] [1785367357.575087193] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[WARN] [1785367357.690957810] [spawner_diff_drive_controller]: Controller already loaded, skipping load_controller
+[ERROR] [1785367357.694281968] [spawner_diff_drive_controller]: Failed to configure controller
+[ros2run]: Process exited with failure 1

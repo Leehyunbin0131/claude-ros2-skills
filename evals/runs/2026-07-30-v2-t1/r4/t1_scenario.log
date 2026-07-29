@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[INFO] [1785366700.695990689] [controller_manager]: Received robot description from topic.
+[WARN] [1785366700.696039165] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366700.928773822] [controller_manager]: Received robot description from topic.
+[WARN] [1785366700.928801737] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366700.937071285] [controller_manager]: Received robot description from topic.
+[WARN] [1785366700.937111641] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366701.075027419] [controller_manager]: Received robot description from topic.
+[WARN] [1785366701.075072467] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366701.503699437] [controller_manager]: Received robot description from topic.
+[WARN] [1785366701.503727367] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366701.746708721] [controller_manager]: Received robot description from topic.
+[WARN] [1785366701.746743951] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366704.339990483] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[INFO] [1785366704.340022487] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[INFO] [1785366704.344528077] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/t1-ddrive-EQIQ/ctl.yaml 
+[ros2run]: Process exited with failure 1
+[INFO] [1785366704.842253596] [spawner_diff_drive_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [1785366706.146286404] [spawner_diff_drive_controller]: waiting for service /controller_manager/load_controller to become available...
+[FATAL] [1785366707.898331807] [spawner_diff_drive_controller]: Failed loading controller diff_drive_controller
+[ros2run]: Process exited with failure 1

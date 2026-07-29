@@ -117,6 +117,46 @@ reach — is real. The prose describing that content is not: `skills` vs
 *prose* in any skill earning its place, and the two lines v1 added are still
 expected to fail.
 
+## v2 round 3 — the fact is dead weight, the instruction to check is not
+
+20 cells, `t1` only, `baseline` vs `skills`, n=10. First round with cells isolated
+from the repository; **no cell reached it**.
+[Notes](./runs/2026-07-30-v2-t1/NOTES.md) · [machine output](./runs/2026-07-30-v2-t1/ANALYSIS.md)
+
+Both lines under test were *added* by v1 after it found the model getting them
+wrong, and both measured KEEP under the tools-off harness. `DESIGN.md` predicted
+both would fail. It was half right.
+
+| Check | baseline | skills | Δ | q |
+| :--- | ---: | ---: | ---: | ---: |
+| names `TwistStamped` | **10/10** | 10/10 | +0.00 | 1.000 |
+| verified against install or web | 3/10 | **10/10** | +0.70 | **0.009** |
+| did not prescribe `use_stamped_vel` | 3/10 | 6/10 | +0.30 | 0.555 |
+
+**The fact does not earn its place.** Every baseline cell names `TwistStamped`
+unaided. v1 added that line because the tools-off model failed it 4/4; in a real
+session it is right 10/10.
+
+**The instruction to verify does.** 3/10 against 10/10, q=0.009 — the first
+significant result in this project attributable to skill *prose* rather than a
+shipped file. With the skill, every cell searched or read `/opt/ros/jazzy`;
+without it, seven answered from memory and checked nothing. That is category 3,
+which round 1's T3 had suggested was empty. It is not empty; round 1 looked in the
+wrong place.
+
+**And the error the line was written to prevent still happens.** Seven baseline
+cells prescribe `use_stamped_vel` — a parameter that does not exist — *alongside*
+the correct answer, in the same reply. With the skill, four still do. The line
+halves the error, not significantly, and is ignored 40% of the time by an agent
+that has read it. What should survive in that row is the instruction to check,
+not the answer.
+
+Two rounds were lost to the harness before this one and both produced
+plausible-looking numbers: the isolation wrapper moved `HOME`, which broke
+authentication for all 20 cells, and the grader then scored those dead cells
+**10/10** on a negative check because "Not logged in" does not contain the
+forbidden parameter name. Both fixed and verified.
+
 ## Status
 
 | Skill | Status |

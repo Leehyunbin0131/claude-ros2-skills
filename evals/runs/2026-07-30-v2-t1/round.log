@@ -1,0 +1,81 @@
+scenario for task t1 up (pids: 27722)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-hIQZ)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r1/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-jphO)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r1/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 1 done
+scenario for task t1 up (pids: 28943)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-YUxn)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r2/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-wn3y)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r2/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 2 done
+scenario for task t1 up (pids: 29541)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-4fUf)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r3/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-L9qE)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r3/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 3 done
+scenario for task t1 up (pids: 30072)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-SZjR)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r4/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-lmgL)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r4/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 4 done
+scenario for task t1 up (pids: 30833)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-mIl8)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r5/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-UlJB)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r5/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 5 done
+scenario for task t1 up (pids: 31522)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-12tK)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r6/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-6wFZ)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r6/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 6 done
+scenario for task t1 up (pids: 32601)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-VIOx)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r7/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-KVyn)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r7/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 7 done
+scenario for task t1 up (pids: 736)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-ewCt)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r8/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-xsjf)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r8/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 8 done
+scenario for task t1 up (pids: 1422)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-z2lR)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r9/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-csll)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r9/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 9 done
+scenario for task t1 up (pids: 2041)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-gHZy)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r10/t1-baseline_final.md
+--- task t1 / skills  (model=sonnet, cwd=/tmp/eval-t1-skills-zPlv)
+    -> /home/hyunlee/home/claude-ros2-skills/evals/runs/2026-07-30-v2-t1/r10/t1-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 10 done
+ALL DONE

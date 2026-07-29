@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[WARN] [1785366628.409325683] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366628.852106461] [controller_manager]: Received robot description from topic.
+[WARN] [1785366628.852141522] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366629.793919688] [controller_manager]: Received robot description from topic.
+[WARN] [1785366629.793953340] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366629.795308702] [controller_manager]: Received robot description from topic.
+[WARN] [1785366629.795328987] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366630.075505723] [controller_manager]: Received robot description from topic.
+[WARN] [1785366630.075531396] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366630.099928021] [controller_manager]: Loading controller : 'diff_drive_controller' of type 'diff_drive_controller/DiffDriveController'
+[INFO] [1785366630.099957997] [controller_manager]: Loading controller 'diff_drive_controller'
+[INFO] [1785366630.101731577] [controller_manager]: Controller 'diff_drive_controller' node arguments: --ros-args --params-file /tmp/t1-ddrive-SekK/ctl.yaml 
+[INFO] [1785366630.287794895] [controller_manager]: Received robot description from topic.
+[WARN] [1785366630.287828346] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366630.289183403] [controller_manager]: Received robot description from topic.
+[WARN] [1785366630.289201013] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366630.289556767] [controller_manager]: Received robot description from topic.
+[WARN] [1785366630.289571052] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366630.291557158] [controller_manager]: Received robot description from topic.
+[WARN] [1785366630.291586614] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.

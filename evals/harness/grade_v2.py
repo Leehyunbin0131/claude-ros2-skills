@@ -77,9 +77,22 @@ class Cell:
     def answer(self) -> str:
         return self.final or "\n".join(self.assistant_text)
 
+    # Strings that mean the harness failed, not that the model answered. A
+    # round was scored 10/10 on a negative check because every cell returned
+    # "Not logged in - Please run /login" and the check only asked whether a
+    # wrong parameter appeared in it. An error message is not an answer.
+    HARNESS_FAILURE = re.compile(
+        r"(not logged in|please run /login|invalid api key|authentication"
+        r"|rate limit|no stdin data received|usage limit|credit balance)", re.I)
+
     def gradable(self) -> bool:
-        """False when the cell never produced an answer at all."""
-        return bool(self.answer.strip())
+        """False when the cell produced no answer, or produced a harness error."""
+        a = self.answer.strip()
+        if not a:
+            return False
+        # A genuine answer can be long and mention rate limits in passing; a
+        # harness failure is short and is nothing but the error.
+        return not (len(a) < 400 and self.HARNESS_FAILURE.search(a))
 
     def tool_names(self) -> set[str]:
         return {n for n, _ in self.tools}

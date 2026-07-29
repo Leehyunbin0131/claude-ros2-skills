@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[INFO] [1785367539.653659462] [controller_manager]: Received robot description from topic.
+[WARN] [1785367539.653734812] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367539.656055872] [controller_manager]: Received robot description from topic.
+[WARN] [1785367539.656096557] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367539.685960654] [controller_manager]: Received robot description from topic.
+[WARN] [1785367539.686019678] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367539.763024387] [controller_manager]: Received robot description from topic.
+[WARN] [1785367539.763074798] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367540.294812456] [controller_manager]: Received robot description from topic.
+[WARN] [1785367540.294845602] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367540.416202856] [controller_manager]: Received robot description from topic.
+[WARN] [1785367540.416236576] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367540.469460563] [controller_manager]: Received robot description from topic.
+[WARN] [1785367540.469514870] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367540.538020616] [controller_manager]: Received robot description from topic.
+[WARN] [1785367540.538066298] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785367540.599585582] [controller_manager]: Received robot description from topic.
+[WARN] [1785367540.599650624] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[FATAL] [1785367541.153751046] [spawner_diff_drive_controller]: Failed loading controller diff_drive_controller
+[ros2run]: Process exited with failure 1

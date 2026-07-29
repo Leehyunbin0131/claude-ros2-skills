@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[INFO] [1785367436.924943189] [controller_manager]: Loading controller : 'diff_drive_controller' of type 'diff_drive_controller/DiffDriveController'
+[INFO] [1785367436.924988852] [controller_manager]: Loading controller 'diff_drive_controller'
+[INFO] [1785367436.926718694] [controller_manager]: Controller 'diff_drive_controller' node arguments: --ros-args --params-file /tmp/t1-ddrive-Z8az/ctl.yaml 
+nit_port fastrtps_port7018: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:51.563 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7019: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:51.563 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7020: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[INFO] [1785367432.062481004] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[WARN] [1785367434.065519932] [spawner_joint_state_broadcaster]: Controller already loaded, skipping load_controller
+[ERROR] [1785367434.067808135] [spawner_joint_state_broadcaster]: Failed to configure controller
+[ros2run]: Process exited with failure 1
+[37;1m2026-07-30 08:23:54.525 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7005: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:54.526 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7014: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:54.526 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7016: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:54.526 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7018: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:54.526 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7019: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 08:23:54.526 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7020: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[INFO] [1785367434.578394871] [spawner_diff_drive_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [1785367436.173649313] [spawner_diff_drive_controller]: waiting for service /controller_manager/load_controller to become available...
+[FATAL] [1785367436.926316714] [spawner_diff_drive_controller]: Failed loading controller diff_drive_controller
+[ros2run]: Process exited with failure 1

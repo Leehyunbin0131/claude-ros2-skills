@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[INFO] [1785366538.977167204] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[INFO] [1785366539.243035603] [controller_manager]: Received robot description from topic.
+[WARN] [1785366539.243068616] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366539.243214875] [controller_manager]: Received robot description from topic.
+[WARN] [1785366539.243231763] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366539.268625874] [controller_manager]: Received robot description from topic.
+[WARN] [1785366539.268656193] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366539.508397927] [controller_manager]: Received robot description from topic.
+[WARN] [1785366539.508431116] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366539.608263768] [controller_manager]: Received robot description from topic.
+[WARN] [1785366539.608295969] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366540.270047308] [controller_manager]: Received robot description from topic.
+[WARN] [1785366540.270090159] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785366540.489575638] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[INFO] [1785366540.506030161] [controller_manager]: Successfully switched controllers!
+ntroller : joint_state_broadcaster
+[ros2run]: Process exited with failure 1
+[INFO] [1785366540.975909248] [spawner_diff_drive_controller]: waiting for service /controller_manager/list_controllers to become available...
+[FATAL] [1785366541.728611909] [spawner_diff_drive_controller]: Failed loading controller diff_drive_controller
+[ros2run]: Process exited with failure 1
