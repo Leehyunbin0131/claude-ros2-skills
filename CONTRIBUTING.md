@@ -115,6 +115,71 @@ not produce it. That rule and the shutdown pattern are the two smallest addition
 ever made here, and both appeared near-verbatim in generated code and turned a
 wrong answer into the right one.
 
+### What nine measured skills actually taught
+
+Every skill in this pack has now been swept per-claim against the model it ships
+against. `evals/RESULTS.md` has the numbers and
+[`evals/FINDINGS.md`](./evals/FINDINGS.md) has the full write-up including what
+the method got wrong; these are the parts that change how you should write a
+line.
+
+**Correct is not the same as useful, and it is not even close.** Most lines that
+get cut are true, well-written, and reproduce exactly what the model already
+says unaided. Being right is not a reason to keep a line. Before you write one,
+ask the model the question cold and read what it gives you — if the answer is
+already there, so is the line's fate.
+
+**The failure a line targets can disappear.** `ros2-dev` opens by calling a
+dropped package prefix "the single most common startup-killing error"; measured,
+every plugin string the model emits unaided is one pluginlib really registers,
+9 times in 9. `ros2-package` had two lines added earlier because the model kept
+omitting a `package.xml` export tag and a `setup.cfg` path — it now supplies
+both without help. Content expires. A line that earned its place two releases
+ago has to re-earn it.
+
+**A skill can be a liability, not merely inert.** `ros2-moveit` told readers to
+call `/servo_node/start_servo`, an interface Jazzy removed; the model prescribes
+the same dead service 4 times in 4, so the file was confirming an error rather
+than correcting one. Ablation cannot see this — measuring a wrong line only asks
+whether the model repeats it, and it does. Only checking the claim against the
+install separates "this line is working" from "this line and the model are wrong
+together". **Every factual line needs a source you can point at in
+`/opt/ros/jazzy/`, not a memory.**
+
+**Keep the reason, not just the instruction.** This is the most expensive lesson
+here. A body that explains a cause and then gives a fix compresses very
+naturally into the fix alone — and measurably loses, because the model then
+reproduces the action without the diagnosis. "A single-threaded executor cannot
+process service responses while executing a blocking callback, so use
+`MultiThreadedExecutor`" is worth more than "use `MultiThreadedExecutor`". Cut
+the worked example before you cut the *because*.
+
+**A terse summary can be worse than saying nothing.** Not merely worse than the
+full text — worse than omission. Omit a topic and the model answers from its own
+knowledge, completely. Summarise it badly and your summary becomes the frame the
+answer is built on, and whatever you dropped is dropped from the answer too. If
+a section cannot be shortened without losing its reasoning, deleting it outright
+is the better option.
+
+**Prose often beats a worked example.** Replacing a 23-line `launch_testing`
+block with one descriptive sentence tied on every check and *gained* four correct
+API details the example never showed; the same substitution worked on a CMake
+reference block. A worked example appears to act as a ceiling the model
+reproduces and stops at. This only holds when the prose names the specifics —
+the exact install path, the exact flag, the exact ordering constraint.
+
+**The lines that survive hardest are the ones the model cannot know.** Filenames
+and paths local to this repository, behaviours of scripts shipped beside the
+skill, project conventions. Those score near zero unaided and 1.00 with the file.
+Everything else competes with what the model already has.
+
+**And the strongest single result in the pack is not a fact at all.** `ros2-dev`
+asked cold to "set up Nav2 and tune it" produces a full parameter file
+immediately; with the skill loaded it stops and asks for footprint, drive type
+and who publishes `map -> odom` first — 5 times in 7 against 1 in 7. Prose whose
+whole job is to make the agent *stop and ask* is the highest-value content
+measured here, and it is the content most easily destroyed by compression.
+
 ### Where a rule lives is a correctness decision
 
 Routing is not guaranteed. Measured: one identical prompt selected three

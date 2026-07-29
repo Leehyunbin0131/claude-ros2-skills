@@ -7,7 +7,9 @@ runs behind it.
 
 For *how* to run a verification — the steps, in order, in plain language —
 see **[`PROCEDURE.md`](./PROCEDURE.md)**. For the tools themselves, see
-[`harness/README.md`](./harness/README.md).
+[`harness/README.md`](./harness/README.md). For what nine measured skills
+taught about writing one, without running anything, see
+**[`FINDINGS.md`](./FINDINGS.md)**.
 
 ## What "verified" means here
 

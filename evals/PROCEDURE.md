@@ -2,7 +2,8 @@
 
 This is the step-by-step. It assumes you have never seen this project before.
 `RESULTS.md` is the record of what is already finished; `harness/README.md` is
-the reference for the tools. This file is the order you do things in.
+the reference for the tools; [`FINDINGS.md`](./FINDINGS.md) is what the finished
+runs concluded. This file is the order you do things in.
 
 ## The two questions
 
