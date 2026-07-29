@@ -44,6 +44,37 @@ Both were found by asking the model cold and checking its answer against
   model prescribes the removed service 4 times out of 4, and the skill used to
   agree with it.
 
+## v2 round 1 — first measurement under the new criterion
+
+45 cells, tools on, live install, n=5.
+[Notes](./runs/2026-07-29-v2/NOTES.md) · [machine output](./runs/2026-07-29-v2/ANALYSIS.md)
+
+**The control gate passed** — `t4`, a task the model handles cold, is 5/5 vs 5/5
+on both checks, so the harness is not tilted toward the skills condition.
+
+**Nothing reached q<0.05, and the one thing that came closest is the shipped
+scripts rather than any skill text.**
+
+| Task | What it tested | Result |
+| :--- | :--- | :--- |
+| T1 | version-specific breakage | baseline names `TwistStamped` **5/5 with zero searches** — it knows. It also volunteers the nonexistent `use_stamped_vel` 5/5, so it has the right fact and a wrong one side by side and no habit of checking. Both skill effects point the right way, neither clears the bar |
+| T2 | content that exists nowhere else | `scripts-only` vs `baseline` **+1.00** on "ran the script" and "reported its verdict" (q=0.063). `skills` vs `scripts-only` **+0.00 on every check** |
+| T3 | asking before writing | **null.** Baseline asks for footprint and drive type before writing config 4/5 on its own |
+| T4 | null control | 5/5 vs 5/5. Gate passed |
+
+Two of the three predictions recorded in [`TASKS.md`](./TASKS.md) before the
+round held; T3 did not. In v1 that same behaviour measured 1/7 against 5/7 and
+was written up as the highest-value content in the pack — it was an artifact of a
+harness where the agent could not ask, look anything up, or do anything but emit
+text in one turn.
+
+**What this establishes.** The v1 verdicts were measuring the restriction, not
+the skills: two of three targeted effects vanish once the agent can search and
+act. Category 2 (files the agent cannot reach) is the only category with support
+so far, and even there the prose describing the files adds nothing measurable on
+top of shipping them. The two lines v1 added to the skills are now expected to
+fail as well.
+
 ## Status
 
 | Skill | Status |

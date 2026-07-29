@@ -1,0 +1,25 @@
+[37;1m2026-07-30 00:21:25.025 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7005: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:21:25.025 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7014: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:21:25.025 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7016: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:21:25.026 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7018: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:21:25.026 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7019: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:21:25.026 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7020: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[INFO] [1785338485.106377800] [fake_imu_pub]: publishing /imu/data — stationary robot, gravity on +X (a 90 deg rotated mount). Correct answer: the IMU is misaligned.
+Traceback (most recent call last):
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_imu_pub.py", line 99, in <module>
+    main()
+  File "/home/hyunlee/home/claude-ros2-skills/evals/harness/fake_imu_pub.py", line 89, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException

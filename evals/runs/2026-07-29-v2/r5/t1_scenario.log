@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[WARN] [1785338356.544386724] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785338356.608514431] [controller_manager]: Received robot description from topic.
+[WARN] [1785338356.608554287] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785338356.609512677] [controller_manager]: Received robot description from topic.
+[WARN] [1785338356.609528190] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785338357.487638256] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[INFO] [1785338357.487664012] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[INFO] [1785338357.489137404] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/t1-ddrive-PcR7/ctl.yaml 
+[INFO] [1785338359.371855235] [controller_manager]: Loading controller : 'diff_drive_controller' of type 'diff_drive_controller/DiffDriveController'
+[INFO] [1785338359.371888357] [controller_manager]: Loading controller 'diff_drive_controller'
+[INFO] [1785338359.373148996] [controller_manager]: Controller 'diff_drive_controller' node arguments: --ros-args --params-file /tmp/t1-ddrive-PcR7/ctl.yaml 
+[INFO] [1785338359.392900233] [controller_manager]: Configuring controller: 'diff_drive_controller'
+[INFO] [1785338359.412395637] [controller_manager]: Activating controllers: [ diff_drive_controller ]
+[INFO] [1785338359.430861757] [controller_manager]: Successfully switched controllers!
+ror] [37mFailed init_port fastrtps_port7018: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:19:17.926 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7019: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[37;1m2026-07-30 00:19:17.926 [31;1m[[37;1mRTPS_TRANSPORT_SHM[31;1m Error] [37mFailed init_port fastrtps_port7020: open_and_lock_file failed[34;1m -> Function [36mopen_port_internal[m
+[INFO] [1785338357.971867202] [spawner_diff_drive_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [1785338359.391610113] [spawner_diff_drive_controller]: Loaded diff_drive_controller
+[INFO] [1785338359.451698941] [spawner_diff_drive_controller]: Configured and activated diff_drive_controller

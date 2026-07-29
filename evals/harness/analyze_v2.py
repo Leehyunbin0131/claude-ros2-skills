@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+"""Aggregate a v2 round: grade every cell, tally per check, test per TASKS.md.
+
+Usage:
+    python3 analyze_v2.py evals/runs/<round-dir>
+
+Comparisons and the significance handling are fixed in TASKS.md and are not
+chosen here after seeing the numbers:
+  * t1, t3, t4  -> skills vs baseline
+  * t2          -> skills vs scripts-only (what the TEXT buys)
+                   and scripts-only vs baseline (what the FILES buy)
+  * Fisher exact, two-sided; Benjamini-Hochberg across every test in the round.
+  * t4 must be null. If any t4 check is significant, the round is void.
+"""
+from __future__ import annotations
+
+import argparse
+import collections
+import json
+import math
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+import grade_v2  # noqa: E402
+
+ALPHA = 0.05
+COMPARISONS = {
+    "t1": [("skills", "baseline")],
+    "t2": [("skills", "scripts-only"), ("scripts-only", "baseline")],
+    "t3": [("skills", "baseline")],
+    "t4": [("skills", "baseline")],
+}
+
+
+def fisher_exact_two_sided(a: int, b: int, c: int, d: int) -> float:
+    """2x2 Fisher exact, two-sided. Same implementation as analyze.py used."""
+    def logf(n: int) -> float:
+        return math.lgamma(n + 1)
+
+    n = a + b + c + d
+    if n == 0:
+        return 1.0
+    r1, r2 = a + b, c + d
+    c1, c2 = a + c, b + d
+
+    def p_table(x: int) -> float:
+        y, z, w = c1 - x, r1 - x, r2 - c1 + x
+        if min(y, z, w) < 0:
+            return 0.0
+        return math.exp(logf(r1) + logf(r2) + logf(c1) + logf(c2) - logf(n)
+                        - logf(x) - logf(z) - logf(y) - logf(w))
+
+    obs = p_table(a)
+    total = 0.0
+    for x in range(max(0, c1 - r2), min(c1, r1) + 1):
+        p = p_table(x)
+        if p <= obs * (1 + 1e-9):
+            total += p
+    return min(1.0, total)
+
+
+def bh_qvalues(pvals: list[float]) -> list[float]:
+    m = len(pvals)
+    if m == 0:
+        return []
+    order = sorted(range(m), key=lambda i: pvals[i])
+    q = [0.0] * m
+    prev = 1.0
+    for rank, i in enumerate(reversed(order), start=1):
+        k = m - rank + 1
+        prev = min(prev, pvals[i] * m / k)
+        q[i] = prev
+    return q
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("round_dir")
+    a = ap.parse_args()
+    root = Path(a.round_dir)
+
+    # tally[(task, check, cell)] = [passed, gradable]
+    tally: dict[tuple[str, str, str], list[int]] = collections.defaultdict(lambda: [0, 0])
+    tools: dict[tuple[str, str], collections.Counter] = collections.defaultdict(collections.Counter)
+    cells = 0
+
+    for f in sorted(root.rglob("*_result.jsonl")):
+        stem = f.name[: -len("_result.jsonl")]
+        task, _, cell = stem.partition("-")
+        if task not in COMPARISONS:
+            continue
+        c = grade_v2.Cell(f)
+        fn = getattr(grade_v2, task)
+        grade = fn(c) if task not in ("t1", "t4") else (
+            fn(c, live=False) if task == "t1" else fn(c, workdir=str(f.parent)))
+        cells += 1
+        for tn in c.tool_names():
+            tools[(task, cell)][tn] += 1
+        for check, v in grade.items():
+            if v is None:
+                continue
+            t = tally[(task, check, cell)]
+            t[1] += 1
+            t[0] += 1 if v else 0
+
+    print(f"# v2 round — `{root.name}`\n")
+    print(f"{cells} cells graded\n")
+
+    # --- per-check table ---------------------------------------------------
+    print("## Pass rate per check\n")
+    order = ["t4", "t1", "t2", "t3"]
+    cellnames = ["baseline", "scripts-only", "skills"]
+    print("| Task | Check | " + " | ".join(cellnames) + " |")
+    print("| :--- | :--- | " + " | ".join("---:" for _ in cellnames) + " |")
+    checks_seen = []
+    for task in order:
+        names = sorted({ch for (t, ch, _) in tally if t == task})
+        for ch in names:
+            checks_seen.append((task, ch))
+            row = []
+            for cell in cellnames:
+                p, n = tally.get((task, ch, cell), [0, 0])
+                row.append(f"{p}/{n}" if n else "—")
+            print(f"| `{task}` | {ch} | " + " | ".join(row) + " |")
+    print()
+
+    # --- tests -------------------------------------------------------------
+    pending = []
+    for task, ch in checks_seen:
+        for hi, lo in COMPARISONS[task]:
+            ph, nh = tally.get((task, ch, hi), [0, 0])
+            pl, nl = tally.get((task, ch, lo), [0, 0])
+            if not nh or not nl:
+                continue
+            p = fisher_exact_two_sided(ph, nh - ph, pl, nl - pl)
+            delta = (ph / nh) - (pl / nl)
+            pending.append({"task": task, "check": ch, "hi": hi, "lo": lo,
+                            "ph": ph, "nh": nh, "pl": pl, "nl": nl,
+                            "delta": delta, "p": p})
+    qs = bh_qvalues([r["p"] for r in pending])
+    for r, q in zip(pending, qs):
+        r["q"] = q
+
+    print("## Tests\n")
+    print("Comparisons and alpha fixed in TASKS.md before the round. "
+          "`q` is Benjamini-Hochberg across every test here.\n")
+    print("| Task | Check | Comparison | higher | lower | Δ | p | q | Verdict |")
+    print("| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | :--- |")
+    for r in sorted(pending, key=lambda x: (x["q"], -abs(x["delta"]))):
+        if r["q"] < ALPHA:
+            v = "**SIGNIFICANT**"
+        elif abs(r["delta"]) >= 0.25:
+            v = "UNDERPOWERED"
+        else:
+            v = "null"
+        print(f"| `{r['task']}` | {r['check']} | {r['hi']} vs {r['lo']} "
+              f"| {r['ph']}/{r['nh']} | {r['pl']}/{r['nl']} "
+              f"| {r['delta']:+.2f} | {r['p']:.3f} | {r['q']:.3f} | {v} |")
+    print()
+
+    # --- control gate ------------------------------------------------------
+    t4sig = [r for r in pending if r["task"] == "t4" and r["q"] < ALPHA]
+    print("## Control gate\n")
+    if t4sig:
+        print("**ROUND VOID.** The t4 null control moved:")
+        for r in t4sig:
+            print(f"- {r['check']}: {r['ph']}/{r['nh']} vs {r['pl']}/{r['nl']}, q={r['q']:.3f}")
+        print("\nFind the bias before reading anything above.")
+    else:
+        print("t4 shows no significant difference between cells — the harness is "
+              "not tilted toward the skills condition, so the other tasks can be read.")
+    print()
+
+    print("## Tool use per cell\n")
+    print("| Task | Cell | Tools seen (cells using each) |")
+    print("| :--- | :--- | :--- |")
+    for (task, cell), cnt in sorted(tools.items()):
+        print(f"| `{task}` | {cell} | " +
+              ", ".join(f"{k} ({v})" for k, v in sorted(cnt.items())) + " |")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

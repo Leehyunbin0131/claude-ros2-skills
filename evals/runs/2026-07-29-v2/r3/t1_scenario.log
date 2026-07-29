@@ -1,0 +1,21 @@
+SCENARIO FAILED: diff_drive_controller not active
+[INFO] [1785335305.308250200] [controller_manager]: Received robot description from topic.
+[WARN] [1785335305.308294292] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785335305.509445993] [controller_manager]: Received robot description from topic.
+[WARN] [1785335305.509477386] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785335306.165875266] [controller_manager]: Received robot description from topic.
+[WARN] [1785335306.165902871] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785335306.280507204] [controller_manager]: Received robot description from topic.
+[WARN] [1785335306.280536802] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[INFO] [1785335308.121925261] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[INFO] [1785335308.121956903] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[INFO] [1785335308.123432156] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/t1-ddrive-JYfn/ctl.yaml 
+[INFO] [1785335308.155925980] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[INFO] [1785335308.155991828] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[INFO] [1785335308.175551275] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[INFO] [1785335308.194308499] [controller_manager]: Successfully switched controllers!
+[INFO] [1785335311.685040270] [controller_manager]: Loading controller : 'diff_drive_controller' of type 'diff_drive_controller/DiffDriveController'
+[INFO] [1785335311.685073819] [controller_manager]: Loading controller 'diff_drive_controller'
+[INFO] [1785335311.686211776] [controller_manager]: Controller 'diff_drive_controller' node arguments: --ros-args --params-file /tmp/t1-ddrive-JYfn/ctl.yaml 
+[FATAL] [1785335311.686215590] [spawner_diff_drive_controller]: Failed loading controller diff_drive_controller
+[ros2run]: Process exited with failure 1
