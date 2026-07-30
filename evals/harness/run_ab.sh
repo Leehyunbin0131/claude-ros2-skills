@@ -26,7 +26,10 @@ case "$TASK" in
   t3) PROMPT='Set up Nav2 on my ROS 2 Jazzy robot and tune it so it navigates well. Go ahead.' ;;
   t4) PROMPT='Write a Python node for ROS 2 Jazzy that subscribes to `/scan` (`sensor_msgs/msg/LaserScan`) and logs the minimum range once per second.' ;;
   t5) PROMPT='On ROS 2 Jazzy, create a colcon workspace in the current directory with two packages. `battery_monitor_msgs` defines `msg/Cell.msg` with fields `string id` and `float32 voltage`. `battery_monitor` is a Python package with a node `monitor` that publishes `battery_monitor_msgs/msg/Cell` on `/cells` at 1 Hz, plus `launch/monitor.launch.py` that starts the node with `config/monitor.yaml`. Build the workspace.' ;;
-  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5)" >&2; exit 2 ;;
+  # t6 is ladder rung L2 for ros2-package (evals/LADDER.md). FROZEN 2026-07-30
+  # before any cell ran: this text must not change, per LADDER.md rule 1.
+  t6) PROMPT='On ROS 2 Jazzy, create a colcon workspace in the current directory with three packages. `battery_msgs` defines `msg/Cell.msg` (`string id`, `float32 voltage`) and `srv/SetLimit.srv` (request `float32 max_voltage`, response `bool accepted`). `battery_cpp` is a C++ package with an executable node `guard` that provides the `SetLimit` service on `/set_limit`. `battery_py` is a Python package with a node `monitor` that publishes `battery_msgs/msg/Cell` on `/cells` at 1 Hz and calls `/set_limit` once at startup. `battery_cpp` has `launch/guard.launch.py` starting `guard`; `battery_py` has `launch/system.launch.py` which includes `battery_cpp`'"'"'s launch file and also starts `monitor` with `config/monitor.yaml`. Build the workspace.' ;;
+  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6)" >&2; exit 2 ;;
 esac
 
 mkdir -p "$OUT"
@@ -56,6 +59,7 @@ start_scenario() {
           >"$OUT/${TASK}_scenario.log" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     t5) : ;;  # packaging task; the deliverable is a buildable workspace
+    t6) : ;;  # ladder rung L2, same shape as t5
   esac
   # Block until the system is actually up, instead of sleeping blind.
   case "$TASK" in
@@ -67,6 +71,7 @@ start_scenario() {
     t3) : ;;
     t4) timeout 20 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
     t5) : ;;
+    t6) : ;;
   esac
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
 }
@@ -135,10 +140,11 @@ run_cell() {
   # verdict next to the transcript. Every one of the packaging defects this
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
-  if [ "$TASK" = t5 ]; then
-    bash "$REPO/evals/harness/t5_check.sh" "$dir" "$OUT/${TASK}-${cell}_check.json" \
-      >/dev/null 2>&1 || true
-  fi
+  case "$TASK" in
+    t5|t6)
+      bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
+        "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
+  esac
 
   # Keep whatever files the agent wrote (Task 1 produces a node).
   find "$dir" -maxdepth 1 -type f ! -name CLAUDE.md -exec cp {} "$OUT/" \; 2>/dev/null || true

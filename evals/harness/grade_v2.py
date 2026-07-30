@@ -363,6 +363,41 @@ def t4(c: Cell, workdir: str | None = None) -> dict:
     }
 
 
+def _external_checks(c: Cell, check, keys: list[str], found_key: str,
+                     first_build_key: str) -> dict:
+    """Shared shape for ladder rungs: real outcomes from a JSON verdict file,
+    plus one transcript fact about the first `colcon build`."""
+    out: dict[str, bool | None] = {k: None for k in keys}
+    out[first_build_key] = None
+    if not c.gradable():
+        return out
+
+    if check:
+        p = Path(check)
+        if p.exists():
+            try:
+                d = json.loads(p.read_text())
+            except json.JSONDecodeError:
+                d = {}
+            found = d.get(found_key)
+            for k in keys:
+                out[k] = bool(d.get(k)) if found else False
+
+    for i, (n, inp) in enumerate(c.tools):
+        if n != "Bash" or "colcon build" not in str(inp.get("command", "")):
+            continue
+        body, is_err = c.results.get(c.tool_ids[i] if i < len(c.tool_ids) else "",
+                                     ("", False))
+        if not body:
+            break
+        if re.search(r"moved to the background|did not complete within", body):
+            break
+        out[first_build_key] = not is_err and not re.search(
+            r"Failed\s+<<<|packages? failed|aborted", body)
+        break
+    return out
+
+
 # --------------------------------------------------------------------------
 # T5 — ros2-package: does the wiring prose earn its place?
 # --------------------------------------------------------------------------
@@ -375,50 +410,40 @@ def t5(c: Cell, check: str | Path | None = None) -> dict:
     code 0**. The failure only appears when you try to use the package. See the
     discrimination table in `t5_check.sh`.
     """
-    keys = ["t5_builds", "t5_interface_resolves", "t5_run_works",
-            "t5_launch_resolves", "t5_params_installed"]
-    out: dict[str, bool | None] = {k: None for k in keys}
-    out["t5_first_build_clean"] = None
-
-    if not c.gradable():
-        return out
-
-    if check:
-        p = Path(check)
-        if p.exists():
-            try:
-                d = json.loads(p.read_text())
-            except json.JSONDecodeError:
-                d = {}
-            if d.get("t5_workspace_found"):
-                for k in keys:
-                    out[k] = bool(d.get(k))
-            else:
-                # No workspace at all is a real failure, not missing data.
-                for k in keys:
-                    out[k] = False
-
-    # The one transcript-anchored check: did the *first* `colcon build`
-    # succeed? Final success is reachable by iterating until the error stops,
-    # which is what a build loop is for; getting the wiring right first time is
-    # what the skill claims to buy.
-    for i, (n, inp) in enumerate(c.tools):
-        if n != "Bash" or "colcon build" not in str(inp.get("command", "")):
-            continue
-        body, is_err = c.results.get(c.tool_ids[i] if i < len(c.tool_ids) else "",
-                                     ("", False))
-        if not body:
-            break                       # no result recorded -> ungradable
-        if re.search(r"moved to the background|did not complete within", body):
-            break                       # verdict unknown, not a failure
-        out["t5_first_build_clean"] = not is_err and not re.search(
-            r"Failed\s+<<<|packages? failed|aborted", body)
-        break
-
-    return out
+    # `t5_first_build_clean` is separated from the rest because final success is
+    # reachable by iterating until the error stops, which is what a build loop
+    # is for; getting the wiring right first time is the different thing.
+    # No workspace at all counts as a real failure, not as missing data.
+    return _external_checks(
+        c, check,
+        ["t5_builds", "t5_interface_resolves", "t5_run_works",
+         "t5_launch_resolves", "t5_params_installed"],
+        "t5_workspace_found", "t5_first_build_clean")
 
 
-TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5}
+# --------------------------------------------------------------------------
+# T6 — ros2-package ladder rung L2 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def t6(c: Cell, check: str | Path | None = None) -> dict:
+    """L2 adds a C++ executable, a `.srv` used from both languages, and a
+    launch file that includes another package's launch file.
+
+    As at L1, every defect this rung can catch **builds clean**: verified
+    2026-07-30 against two broken reference workspaces, both `colcon build`
+    rc=0. The two failures leave different signatures, which is what makes the
+    diagnosis mechanical rather than a story:
+
+        cpp_run_works FAIL                  -> wrong install destination
+        cpp_run_works pass, composed FAIL   -> launch/ never installed
+    """
+    return _external_checks(
+        c, check,
+        ["t6_builds", "t6_srv_resolves", "t6_cpp_run_works", "t6_py_run_works",
+         "t6_composed_launch", "t6_service_available"],
+        "t6_workspace_found", "t6_first_build_clean")
+
+
+TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6}
 
 
 # --------------------------------------------------------------------------
@@ -576,7 +601,7 @@ def main() -> int:
     ap.add_argument("--live", action="store_true",
                     help="enable graders that query a running system")
     ap.add_argument("--workdir", help="cell working directory, for files on disk")
-    ap.add_argument("--check", help="t5: the JSON verdict written by t5_check.sh "
+    ap.add_argument("--check", help="t5/t6: the JSON verdict written by t5_check.sh "
                                     "at cell time (defaults to the sibling "
                                     "<stem>_check.json)")
     ap.add_argument("--selftest", action="store_true")
@@ -593,7 +618,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task == "t5":
+    elif a.task in ("t5", "t6"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)

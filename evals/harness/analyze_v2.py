@@ -39,6 +39,11 @@ COMPARISONS = {
     "t3": [("skills", "baseline")],
     "t4": [("skills", "baseline")],
     "t5": [("skills", "baseline")],
+    # Ladder rungs (evals/LADDER.md) run `baseline` only in phase 1 -- the
+    # question is whether the model reaches it at all, and a real-outcome
+    # grader answers that without a comparison cell. `patch` is phase 2: the
+    # candidate line and nothing else, tested one line at a time.
+    "t6": [("patch", "baseline")],
 }
 
 
@@ -112,7 +117,7 @@ def main() -> int:
             grade = fn(c, live=False)
         elif task == "t4":
             grade = fn(c, workdir=str(f.parent))
-        elif task == "t5":
+        elif task in ("t5", "t6"):
             # Real-outcome verdicts were written next to the transcript by
             # t5_check.sh at cell time, while the workspace still existed.
             grade = fn(c, check=f.parent / f"{stem}_check.json")
@@ -136,8 +141,9 @@ def main() -> int:
 
     # --- per-check table ---------------------------------------------------
     print("## Pass rate per check\n")
-    order = [x for x in ("t4", "t1", "t2", "t3", "t5") if not only or x in only]
-    cellnames = [c for c in ("baseline", "scripts-only", "claude-md-only", "skills")
+    order = [x for x in ("t4", "t1", "t2", "t3", "t5", "t6") if not only or x in only]
+    cellnames = [c for c in ("baseline", "scripts-only", "claude-md-only",
+                             "patch", "skills")
                  if any(cl == c for (_, _, cl) in tally)]
     print("| Task | Check | " + " | ".join(cellnames) + " |")
     print("| :--- | :--- | " + " | ".join("---:" for _ in cellnames) + " |")
