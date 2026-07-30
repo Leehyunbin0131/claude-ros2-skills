@@ -224,3 +224,142 @@ the finding is that category 2 content earns its place while the prose describin
 it does not. If it does not clear at n=10, the result is recorded as unresolved
 and the scripts stay on the same footing as everything else — not topped up
 again.
+
+
+---
+
+## Round 4 — who owns the one prose result, `CLAUDE.md` or the skills?
+
+Round 3 produced the project's only significant prose effect:
+`t1_searched_or_read`, 3/10 baseline vs 10/10 skills, q=0.009. It was written up
+as evidence that skill prose earns its place.
+
+**That write-up is confounded.** `run_ab.sh`'s `skills` cell installs
+`skills/*` *and* `CLAUDE.md`, and `CLAUDE.md` opens with:
+
+> Do NOT answer ROS 2 / Gazebo / Nav2 / MoveIt / ros2_control / perception
+> questions from memorized knowledge. [...] Verify the specific API / message /
+> parameter against the doc that skill names, or against local `/opt/ros/jazzy/`
+
+That is the measured behaviour, stated outright, in the file that is always in
+context. The grader cannot tell which of the two produced it.
+
+| | Round 3 | Round 4 |
+| :--- | :--- | :--- |
+| Task | t1 | t1 |
+| Cells | baseline, skills | **baseline, `claude-md-only`** |
+| n | 10 | 10 |
+| Primary check | — | **`t1_searched_or_read`** |
+
+`claude-md-only` installs `CLAUDE.md` and nothing else: no `SKILL.md`, no
+`scripts/`.
+
+**Why this is worth a round.** It is the highest-leverage measurement left. If
+`CLAUDE.md` alone reaches round 3's 10/10, then every skill's "verify against
+the install" line is redundant with one paragraph shipped once — and the
+licensed reduction is much larger than the coverage table currently allows. If
+it does not, round 3's reading stands and the prose is skill-local.
+
+**The control is built in, and is stronger than re-running t4.** Round 4 re-runs
+`baseline` concurrently on the same task and grader. It must reproduce round 3's
+3/10; if it comes back at 8/10 the harness has drifted and neither round can be
+read. `t4` is not re-run: it was 5/5 vs 5/5 at ceiling in round 1, and round 4
+has no `skills` cell for that bias to act on.
+
+**Decided in advance:**
+
+| Outcome | Reading |
+| :--- | :--- |
+| `claude-md-only` significantly > `baseline`, at or near 10/10 | `CLAUDE.md` owns the effect. Skill-level verify prose is unlicensed; cut it in favour of the one paragraph. |
+| `claude-md-only` ≈ `baseline` (~3/10) | The effect is skill-local. Round 3 stands as written. |
+| In between, or not significant | Unresolved. **No top-up.** Nothing is cut on it either way. |
+
+**Prediction, recorded before running:** `claude-md-only` reaches at or near
+10/10. `CLAUDE.md`'s instruction is more explicit and more reliably in context
+than anything in `ros2-control/SKILL.md`, which only says to confirm the type
+with `ros2 topic info`. If this prediction is wrong, that is the finding.
+
+Corrected across the three `t1` graders with Benjamini-Hochberg, as in round 3.
+
+
+---
+
+## T5 — `ros2-package`, the first of the uncovered skills
+
+Seven skills have no v2 measurement and therefore may not be cut. This task
+starts closing that, and it is deliberately the easiest of the seven to anchor:
+a package either builds and runs or it does not.
+
+**Prompt**
+
+> On ROS 2 Jazzy, create a colcon workspace in the current directory with two
+> packages. `battery_monitor_msgs` defines `msg/Cell.msg` with fields
+> `string id` and `float32 voltage`. `battery_monitor` is a Python package with
+> a node `monitor` that publishes `battery_monitor_msgs/msg/Cell` on `/cells`
+> at 1 Hz, plus `launch/monitor.launch.py` that starts the node with
+> `config/monitor.yaml`. Build the workspace.
+
+**Why this shape.** It touches every seam `skills/ros2-package/SKILL.md`
+claims: the `ament_python` build_type export, `setup.cfg`'s install location,
+`launch/` and `config/` needing explicit installation, and an interface package
+that must be `ament_cmake`. Nothing in the prompt hints at any of them.
+
+**Graders — five real outcomes and one transcript fact**
+
+| id | Rule | Anchor |
+| :--- | :--- | :--- |
+| `t5_builds` | clean `colcon build` from scratch exits 0 | **real outcome** |
+| `t5_interface_resolves` | `ros2 interface show battery_monitor_msgs/msg/Cell` exits 0 and shows both fields | **real outcome** |
+| `t5_run_works` | `ros2 run battery_monitor monitor` finds the executable | **real outcome** |
+| `t5_launch_resolves` | `monitor.launch.py` is in the install tree under `share/` **and** `ros2 launch` resolves it | **real outcome** |
+| `t5_params_installed` | a `.yaml` reached `share/battery_monitor/` | **real outcome** |
+| `t5_first_build_clean` | the **first** `colcon build` in the transcript reported no failure | transcript, from the tool result |
+
+`t5_first_build_clean` is separated out because final success is reachable by
+iterating until the error stops — that is what a build loop is for. Getting the
+wiring right the first time is the different thing the skill claims to buy.
+Recorded as ungradable, not as a failure, when the build was backgrounded on a
+timeout and its verdict never appeared.
+
+**Verified to discriminate before being trusted** (2026-07-30, this install).
+Four reference workspaces, one correct and three carrying one real packaging
+defect each:
+
+| variant | `builds` | `interface` | `run` | `launch` | `params` |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| correct | pass | pass | pass | pass | pass |
+| `setup.cfg` deleted | pass | pass | **FAIL** | pass | pass |
+| launch/config not in `data_files` | pass | pass | pass | **FAIL** | **FAIL** |
+| interfaces in an `ament_python` package | pass | **FAIL** | pass | pass | pass |
+
+Two things this table settles:
+
+1. Each defect is caught by exactly the check meant to catch it, and by no
+   other. The graders are not measuring one underlying thing.
+2. **`colcon build` exits 0 in all four.** Every one of these defects builds
+   clean. A grader that read the build log — the obvious design — would have
+   passed all three broken packages. This is the check-anchoring rule from
+   `PROCEDURE.md` doing real work.
+
+The `setup.cfg` claim in `skills/ros2-package/SKILL.md` §2 was itself confirmed
+against the install rather than taken from the file: with it the console script
+installs to `lib/battery_monitor/monitor` and `ros2 run` works; without it the
+script installs to `bin/monitor` and `ros2 run` answers `No executable found`.
+
+**Cells:** `baseline` vs `skills`, n=10. No `scripts-only` — `ros2-package`
+ships no scripts.
+
+**Decided in advance:**
+
+| Outcome | Reading |
+| :--- | :--- |
+| `skills` significantly ahead on any real-outcome check | that seam earns its place in `ros2-package`; keep the lines that name it |
+| all checks null, both cells high | the build loop reaches the wiring unaided — the prose is dead weight and `ros2-package` may be cut |
+| all checks null, both cells low | the task is too hard to separate the cells; redesign rather than conclude |
+
+**Prediction, recorded before running:** `t5_launch_resolves` and
+`t5_params_installed` are where the cells separate, if anywhere. `setup.cfg` is
+generated by `ros2 pkg create` so most cells will never meet that defect, and
+`ros2 interface show` failing is loud enough to be caught by iteration. Whether
+`launch/` was actually installed is invisible unless the agent runs
+`ros2 launch`, and nothing in the prompt asks it to.

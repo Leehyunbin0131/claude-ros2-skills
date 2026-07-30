@@ -60,9 +60,9 @@ measurement, and it is exactly what went wrong on the first attempt.
 
 | Skill | v2 coverage | May cut? |
 | :--- | :--- | :--- |
-| `ros2-troubleshooting` | t2, n=10, scripts 0/7 vs 8/8 | **yes** — for the script section |
-| `ros2-control` | t1, n=10, the `cmd_vel` fact 10/10 unaided | **yes** — for that row |
-| `ros2-moveit` | t1 covers the servo row indirectly | partially — the servo row needs its own task |
+| `ros2-control` | t1, n=10, the `cmd_vel` fact 10/10 unaided | **yes** — that fact clause only |
+| `ros2-troubleshooting` | t2, n=10 — but see the confound below | **no** — the measurement licenses a *keep*, not a cut |
+| `ros2-moveit` | t1 covers the servo row indirectly | **no** — the servo row needs its own task |
 | `ros2-core` | none | **no** |
 | `ros2-package` | none | **no** |
 | `ros2-testing` | none | **no** |
@@ -73,6 +73,34 @@ measurement, and it is exactly what went wrong on the first attempt.
 
 Seven skills have no v2 measurement at all. They stay as shipped until one
 exists, however confident the generalisation feels.
+
+### Two confounds found when this table was checked against `run_ab.sh`
+
+The table's first draft said `ros2-troubleshooting` could lose its script
+section. Reading how the cells are actually built (`run_ab.sh` `run_cell`)
+shows it cannot.
+
+**Confound 1 — script location travels with the prose.** In `scripts-only` the
+bundled scripts are copied to `$dir/scripts/`, i.e. into the working directory,
+where any glob finds them. In `skills` they are at
+`$dir/.claude/skills/ros2-troubleshooting/scripts/`, which is *not* in the
+working directory. So the two cells differ in two ways at once, and round 1's
+`skills` 5/5 vs `scripts-only` 5/5 reads as "prose plus a path pointer ≈ scripts
+sitting in the CWD" — not as "the prose is worthless". §1a is the only thing
+that names the install path. **Cutting it on that null would be cutting on a
+confounded comparison.**
+
+**Confound 2 — `CLAUDE.md` rides along in the `skills` cell.** `run_cell` copies
+`CLAUDE.md` into the `skills` directory and nothing else. `CLAUDE.md` opens with
+"Do NOT answer ROS 2 questions from memorized knowledge... verify the specific
+API against the doc that skill names, or against local `/opt/ros/jazzy/`".
+
+That is the same instruction round 3 credited to skill prose when
+`t1_searched_or_read` went 3/10 → 10/10 at q=0.009 — **the only significant
+prose result in the project.** It may belong entirely to `CLAUDE.md`. If it
+does, every skill's "verify against the install" line is redundant with one
+paragraph shipped once, and the licensed reduction is far larger than this table
+suggests. Round 4 resolves it with a `claude-md-only` cell.
 
 ## Expected result, recorded in advance
 

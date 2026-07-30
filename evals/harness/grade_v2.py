@@ -42,6 +42,11 @@ class Cell:
         self.path = Path(path)
         self.events: list[tuple[str, str]] = []   # (kind, payload)
         self.tools: list[tuple[str, dict]] = []   # (name, input)
+        self.tool_ids: list[str] = []             # parallel to self.tools
+        # tool_use_id -> (result text, is_error). T5 needs this: whether the
+        # *first* colcon build succeeded is only visible in the result, and a
+        # broken package builds clean, so the build log is the only witness.
+        self.results: dict[str, tuple[str, bool]] = {}
         self.assistant_text: list[str] = []
         self.final = ""
         self._load()
@@ -65,10 +70,23 @@ class Cell:
                 for b in d.get("message", {}).get("content", []):
                     if b.get("type") == "tool_use":
                         self.tools.append((b.get("name", ""), b.get("input", {}) or {}))
+                        self.tool_ids.append(b.get("id", ""))
                         self.events.append(("tool", b.get("name", "")))
                     elif b.get("type") == "text":
                         self.assistant_text.append(b.get("text", ""))
                         self.events.append(("text", b.get("text", "")))
+            elif d.get("type") == "user":
+                content = d.get("message", {}).get("content", [])
+                if isinstance(content, list):
+                    for b in content:
+                        if isinstance(b, dict) and b.get("type") == "tool_result":
+                            body = b.get("content", "")
+                            if isinstance(body, list):
+                                body = "\n".join(
+                                    str(x.get("text", "")) for x in body
+                                    if isinstance(x, dict))
+                            self.results[b.get("tool_use_id", "")] = (
+                                str(body), bool(b.get("is_error")))
             elif d.get("type") == "result":
                 self.final = d.get("result", "") or ""
 
@@ -345,7 +363,62 @@ def t4(c: Cell, workdir: str | None = None) -> dict:
     }
 
 
-TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4}
+# --------------------------------------------------------------------------
+# T5 — ros2-package: does the wiring prose earn its place?
+# --------------------------------------------------------------------------
+def t5(c: Cell, check: str | Path | None = None) -> dict:
+    """Every check but one is a real outcome produced by `t5_check.sh`.
+
+    Grading cannot be done from the transcript here. All three packaging
+    defects this task is about -- no `setup.cfg`, launch/config missing from
+    `data_files`, interfaces in an `ament_python` package -- **exit colcon with
+    code 0**. The failure only appears when you try to use the package. See the
+    discrimination table in `t5_check.sh`.
+    """
+    keys = ["t5_builds", "t5_interface_resolves", "t5_run_works",
+            "t5_launch_resolves", "t5_params_installed"]
+    out: dict[str, bool | None] = {k: None for k in keys}
+    out["t5_first_build_clean"] = None
+
+    if not c.gradable():
+        return out
+
+    if check:
+        p = Path(check)
+        if p.exists():
+            try:
+                d = json.loads(p.read_text())
+            except json.JSONDecodeError:
+                d = {}
+            if d.get("t5_workspace_found"):
+                for k in keys:
+                    out[k] = bool(d.get(k))
+            else:
+                # No workspace at all is a real failure, not missing data.
+                for k in keys:
+                    out[k] = False
+
+    # The one transcript-anchored check: did the *first* `colcon build`
+    # succeed? Final success is reachable by iterating until the error stops,
+    # which is what a build loop is for; getting the wiring right first time is
+    # what the skill claims to buy.
+    for i, (n, inp) in enumerate(c.tools):
+        if n != "Bash" or "colcon build" not in str(inp.get("command", "")):
+            continue
+        body, is_err = c.results.get(c.tool_ids[i] if i < len(c.tool_ids) else "",
+                                     ("", False))
+        if not body:
+            break                       # no result recorded -> ungradable
+        if re.search(r"moved to the background|did not complete within", body):
+            break                       # verdict unknown, not a failure
+        out["t5_first_build_clean"] = not is_err and not re.search(
+            r"Failed\s+<<<|packages? failed|aborted", body)
+        break
+
+    return out
+
+
+TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5}
 
 
 # --------------------------------------------------------------------------
@@ -429,6 +502,63 @@ def selftest() -> int:
     expect("t4 ok/runs", t4(ok)["t4_node_runs"], True)
     expect("t4 ok/guard", t4(ok)["t4_guards_range"], True)
     expect("t4 naive/guard", t4(naive)["t4_guards_range"], False)
+
+    # T5 -- needs tool_use ids and tool_results, which mk() does not emit.
+    import tempfile
+
+    def mk_build(cmd_results):
+        """Transcript of Bash calls paired with their results."""
+        lines = []
+        for k, (cmd, body, is_err) in enumerate(cmd_results):
+            tid = f"toolu_{k}"
+            lines.append(json.dumps({"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "id": tid, "name": "Bash",
+                 "input": {"command": cmd}}]}}))
+            lines.append(json.dumps({"type": "user", "message": {"content": [
+                {"type": "tool_result", "tool_use_id": tid,
+                 "content": body, "is_error": is_err}]}}))
+        lines.append(json.dumps({"type": "result",
+                                 "result": "Workspace built. " + "x" * 500}))
+        fh = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False)
+        fh.write("\n".join(lines))
+        fh.close()
+        return Cell(fh.name)
+
+    def chk(d):
+        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
+        json.dump(d, fh)
+        fh.close()
+        return fh.name
+
+    all_ok = chk({"t5_workspace_found": True, "t5_builds": True,
+                  "t5_interface_resolves": True, "t5_run_works": True,
+                  "t5_launch_resolves": True, "t5_params_installed": True})
+    # The real no_datafiles variant, measured 2026-07-30: builds clean, the
+    # launch file and params never reach share/.
+    no_df = chk({"t5_workspace_found": True, "t5_builds": True,
+                 "t5_interface_resolves": True, "t5_run_works": True,
+                 "t5_launch_resolves": False, "t5_params_installed": False})
+
+    clean = mk_build([("colcon build", "Summary: 2 packages finished", False)])
+    retried = mk_build([
+        ("colcon build", "Failed   <<< battery_monitor_msgs\n1 package failed", False),
+        ("colcon build", "Summary: 2 packages finished", False)])
+    backgrounded = mk_build([
+        ("colcon build", "Command did not complete within its 120s timeout and "
+                         "was moved to the background (ID: abc)", False)])
+
+    expect("t5 ok/run", t5(clean, all_ok)["t5_run_works"], True)
+    expect("t5 ok/first-build", t5(clean, all_ok)["t5_first_build_clean"], True)
+    expect("t5 nodf/launch", t5(clean, no_df)["t5_launch_resolves"], False)
+    expect("t5 nodf/params", t5(clean, no_df)["t5_params_installed"], False)
+    expect("t5 nodf/builds", t5(clean, no_df)["t5_builds"], True)
+    expect("t5 retried/first-build", t5(retried, all_ok)["t5_first_build_clean"], False)
+    expect("t5 retried/final", t5(retried, all_ok)["t5_run_works"], True)
+    expect("t5 backgrounded/first-build",
+           t5(backgrounded, all_ok)["t5_first_build_clean"], None)
+    expect("t5 no-check/run", t5(clean, None)["t5_run_works"], None)
+    expect("t5 no-workspace/run",
+           t5(clean, chk({"t5_workspace_found": False}))["t5_run_works"], False)
 
     if fails:
         print("SELFTEST FAILED")

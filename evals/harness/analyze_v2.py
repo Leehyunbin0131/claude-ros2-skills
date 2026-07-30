@@ -29,10 +29,16 @@ ALPHA = 0.05
 # tests actually run, which is why a narrow round is not the same as cherry-
 # picking from a wide one: the comparisons are fixed before the cells exist.
 COMPARISONS = {
-    "t1": [("skills", "baseline")],
+    # `claude-md-only vs baseline` is round 4: it separates CLAUDE.md's
+    # "verify, do not answer from memory" paragraph from the skill prose, which
+    # the `skills` cell ships together. A pair with no cells in the round is
+    # skipped, so listing it here does not affect earlier rounds.
+    "t1": [("skills", "baseline"), ("claude-md-only", "baseline"),
+           ("skills", "claude-md-only")],
     "t2": [("skills", "scripts-only"), ("scripts-only", "baseline")],
     "t3": [("skills", "baseline")],
     "t4": [("skills", "baseline")],
+    "t5": [("skills", "baseline")],
 }
 
 
@@ -102,8 +108,16 @@ def main() -> int:
             continue
         c = grade_v2.Cell(f)
         fn = getattr(grade_v2, task)
-        grade = fn(c) if task not in ("t1", "t4") else (
-            fn(c, live=False) if task == "t1" else fn(c, workdir=str(f.parent)))
+        if task == "t1":
+            grade = fn(c, live=False)
+        elif task == "t4":
+            grade = fn(c, workdir=str(f.parent))
+        elif task == "t5":
+            # Real-outcome verdicts were written next to the transcript by
+            # t5_check.sh at cell time, while the workspace still existed.
+            grade = fn(c, check=f.parent / f"{stem}_check.json")
+        else:
+            grade = fn(c)
         cells += 1
         lk = grade_v2.leaked(c)
         if lk:
@@ -122,8 +136,9 @@ def main() -> int:
 
     # --- per-check table ---------------------------------------------------
     print("## Pass rate per check\n")
-    order = [x for x in ("t4", "t1", "t2", "t3") if not only or x in only]
-    cellnames = ["baseline", "scripts-only", "skills"]
+    order = [x for x in ("t4", "t1", "t2", "t3", "t5") if not only or x in only]
+    cellnames = [c for c in ("baseline", "scripts-only", "claude-md-only", "skills")
+                 if any(cl == c for (_, _, cl) in tally)]
     print("| Task | Check | " + " | ".join(cellnames) + " |")
     print("| :--- | :--- | " + " | ".join("---:" for _ in cellnames) + " |")
     checks_seen = []
