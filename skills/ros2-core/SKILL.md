@@ -20,7 +20,6 @@ Navigate within these rather than guessing deep URLs.
 
 - **TF2** — `tf2_ros::TransformBroadcaster`, `tf2_ros::StaticTransformBroadcaster`, `tf2_ros::Buffer`, `tf2_ros::TransformListener`, `canTransform()`, `lookupTransform()`, `tf2::TimePointZero`, `tf2::ExtrapolationException`; message `geometry_msgs/msg/TransformStamped`. Frame conventions are REP 105 (`map` -> `odom` -> `base_link` -> `base_footprint` -> sensor frames) — see `ros2-troubleshooting`.
 - **QoS** — `rclcpp::SensorDataQoS()` / `rclpy.qos.qos_profile_sensor_data` on sensor topics; inspect real endpoint QoS with `ros2 topic info <topic> -v`. The depth-only default (`create_subscription(..., 10)`) is RELIABLE + **VOLATILE** — not TRANSIENT_LOCAL; check the enum rather than asserting it.
-- **Packaging & build wiring** — see `ros2-package`.
 
 ## 3. Local System Inspection & Interfaces (Ground Truth)
 - **Message Definition Inspection**: `ros2 interface show <interface_name>` (e.g. `ros2 interface show nav_msgs/msg/Odometry` or `geometry_msgs/msg/TransformStamped`).

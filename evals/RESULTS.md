@@ -252,11 +252,56 @@ interfaces section, all measured 10/10 unaided. **Kept, unexercised:** the
 every node package in this task was `ament_python`. A C++ variant of `t5`
 settles both in one round.
 
+## The ladder — `ros2-package` climbed to the top and was deleted
+
+[`LADDER.md`](./LADDER.md) replaced the audit after round 5. The audit asked
+"does this line change anything?", which can only delete. The ladder asks **where
+the model stops being able to do the task unaided** — so it can also find content
+to *write*. Six rules stop it becoming search: the whole ladder is written and
+frozen first, rungs are defined by mechanisms added rather than difficulty felt,
+the length is fixed at three, you stop at the first rung that fails, and an
+exhausted ladder is a verdict — **adding a rung 4 is forbidden.**
+
+Rungs run `baseline` only, n=10. A rung fails at ≤7/10 on a real-outcome check.
+
+| Rung | Mechanisms added | Result |
+| :--- | :--- | ---: |
+| **L1** (`t5`) | `ament_python` node package, `ament_cmake` interfaces, launch, params | 60/60 |
+| **L2** (`t6`) | + C++ executable, `.srv` used from both languages, cross-package launch include | 70/70 |
+| **L3** (`t7`) | + cross-package `.msg` field, composable node loaded into a live container, `colcon test` that must run | 60/60 real outcomes |
+[L1](./runs/2026-07-30-v2-t5-package/NOTES.md) · [L2](./runs/2026-07-30-ladder-pkg-L2/NOTES.md) · [L3](./runs/2026-07-30-ladder-pkg-L3/NOTES.md)
+
+**19 real-outcome checks, n=10 each, 190 cell-checks, nothing below ceiling.** An
+agent with a shell and no skill file writes the `ros2 run`-discoverable console
+script, the `lib/${PROJECT_NAME}` install, the installed `launch/` and `config/`,
+the cross-package launch include, `.msg`/`.srv` generation with `DEPENDENCIES`, a
+component registered and **loaded into a running container**, and a test
+`colcon test` actually runs and passes.
+
+The only non-ceiling number in three rungs was `t7_first_build_clean` at 8/10,
+and the two failures were unrelated one-offs — a redundant `<depend>` that
+`catkin_pkg` rejects out loud, and a gtest target that did not link the library
+under test — both fixed on the next build. Two different loud errors is ordinary
+iteration, not a shared gap.
+
+**Rule 5 fired: `skills/ros2-package/` is deleted.** Of its 31 remaining lines,
+§2 and §3 were measured 10/10 unaided (and checked on disk in all 10 L2 cells);
+§1's documentation-entry-point table was never graded directly and goes out on
+the ladder verdict rather than on a number of its own — recorded as such.
+
+Two real Jazzy silent failures turned up while building the rung fixtures, and
+are kept in [`LADDER.md`](./LADDER.md) because they are the shape this project is
+hunting: omitting `<export><build_type>ament_cmake</build_type></export>` makes
+colcon treat the package as catkin, so it never reaches `AMENT_PREFIX_PATH` —
+build rc=0, every file installed, and `ros2 run` says `Package not found`. And
+**`colcon test` exits 0 when there are no tests**, which is why `t7_tests_ran` is
+graded separately from `t7_tests_pass`.
+
 ## Status
 
 | Skill | Status |
 | :--- | :--- |
-| `ros2-package` | VERIFIED — t5, n=10, 120/120. Reduced 69 → 31 lines; two `ament_cmake` rules remain unexercised |
+| `ros2-package` | **DELETED** — ladder exhausted at ceiling, 190 cell-checks across three rungs |
 | `ros2-control` | PARTIALLY VERIFIED — t1, n=10 across rounds 3 and 4. The `/cmd_vel` row is cut; the rest is unmeasured |
 | `ros2-core`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev`, `gazebo-sim` | NOT VERIFIED — awaiting v2 |
 | `ros2-microros` | OUT OF SCOPE — no `micro_ros_agent` or `micro_ros_setup` in apt for Jazzy; needs a multi-repository source build |

@@ -116,13 +116,21 @@ needs `CLAUDE.md` present must have it present in **both** cells.
 Three rungs per skill, all written before running. `L1` for `ros2-package` is
 `t5`, already run.
 
-### `ros2-package`
+### `ros2-package` — **LADDER EXHAUSTED AT CEILING, SKILL DELETED**
+
+19 real-outcome checks across three rungs, n=10 each, 190 cell-checks, nothing
+below ceiling. Rule 5 fired and the file was removed. The only non-ceiling number
+in the whole ladder was `t7_first_build_clean` at 8/10, and the two failures were
+unrelated one-offs — a redundant `<depend>` that `catkin_pkg` rejects out loud,
+and a gtest target that did not link the library under test — both fixed on the
+next build. Diagnosis in
+[`runs/2026-07-30-ladder-pkg-L3/NOTES.md`](./runs/2026-07-30-ladder-pkg-L3/NOTES.md).
 
 | Rung | Mechanisms added | Status |
 | :--- | :--- | :--- |
 | **L1** | `ament_python` node package; `ament_cmake` interface package with one `.msg`; launch file; params file | **run — 10/10 on all six checks** |
 | **L2** | + a C++ node package (`ament_cmake` with an executable, which L1 never had); + a `.srv` consumed by both the C++ and the Python node; + a launch file that includes the other package's launch file | **run — 70/70** |
-| **L3** | + a message field typed by another package's message (`DEPENDENCIES`); + a composable node registered through `rclcpp_components` and loaded into a container at launch; + a `colcon test` that must pass | running |
+| **L3** | + a message field typed by another package's message (`DEPENDENCIES`); + a composable node registered through `rclcpp_components` and loaded into a container at launch; + a `colcon test` that must pass | **run — every real outcome 10/10** |
 
 L2 exists because L1 left two claims in the file unexercised — the `ament_cmake`
 `lib/${PROJECT_NAME}` install rule and `install(DIRECTORY ...)` — for the
