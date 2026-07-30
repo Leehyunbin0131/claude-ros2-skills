@@ -1,2 +1,80 @@
 scenario for task t5 up (pids: )
 --- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-cbUi)
+    -> evals/runs/2026-07-30-v2-t5-package/r1/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-aDGR)
+    -> evals/runs/2026-07-30-v2-t5-package/r1/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 1 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-2bXV)
+    -> evals/runs/2026-07-30-v2-t5-package/r2/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-m7yQ)
+    -> evals/runs/2026-07-30-v2-t5-package/r2/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 2 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-oRtv)
+    -> evals/runs/2026-07-30-v2-t5-package/r3/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-ZEgL)
+    -> evals/runs/2026-07-30-v2-t5-package/r3/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 3 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-7svg)
+    -> evals/runs/2026-07-30-v2-t5-package/r4/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-3Zva)
+    -> evals/runs/2026-07-30-v2-t5-package/r4/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 4 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-mLPN)
+    -> evals/runs/2026-07-30-v2-t5-package/r5/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-TFmh)
+    -> evals/runs/2026-07-30-v2-t5-package/r5/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 5 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-Jj8c)
+    -> evals/runs/2026-07-30-v2-t5-package/r6/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-vapR)
+    -> evals/runs/2026-07-30-v2-t5-package/r6/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 6 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-ZY8p)
+    -> evals/runs/2026-07-30-v2-t5-package/r7/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-EwUr)
+    -> evals/runs/2026-07-30-v2-t5-package/r7/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 7 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-I5tR)
+    -> evals/runs/2026-07-30-v2-t5-package/r8/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-lytf)
+    -> evals/runs/2026-07-30-v2-t5-package/r8/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 8 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-R7V2)
+    -> evals/runs/2026-07-30-v2-t5-package/r9/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-k8lO)
+    -> evals/runs/2026-07-30-v2-t5-package/r9/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 9 done
+scenario for task t5 up (pids: )
+--- task t5 / baseline  (model=sonnet, cwd=/tmp/eval-t5-baseline-zOcQ)
+    -> evals/runs/2026-07-30-v2-t5-package/r10/t5-baseline_final.md
+--- task t5 / skills  (model=sonnet, cwd=/tmp/eval-t5-skills-vPu7)
+    -> evals/runs/2026-07-30-v2-t5-package/r10/t5-skills_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t5 <result.jsonl>
+=== rep 10 done

@@ -75,7 +75,7 @@ measurement, and it is exactly what went wrong on the first attempt.
 | `ros2-troubleshooting` | t2, n=10 — but see the confound below | **no** — the measurement licenses a *keep*, not a cut |
 | `ros2-moveit` | t1 covers the servo row indirectly | **no** — the servo row needs its own task |
 | `ros2-core` | none | **no** |
-| `ros2-package` | none | **no** |
+| `ros2-package` | t5, n=10, **120/120** — six real outcomes, both cells | **done** — 69 lines to 31; the `ament_cmake` executable and `install(DIRECTORY)` rules stay, unexercised |
 | `ros2-testing` | none | **no** |
 | `ros2-perception` | none | **no** |
 | `ros2-dev` | round 1 T3 only, which was null | **no** |

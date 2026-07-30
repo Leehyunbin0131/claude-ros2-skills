@@ -206,12 +206,49 @@ by `CLAUDE.md` alone, and `ros2-control` is the skill `t1` directly exercises.
 `ros2-perception`, and generalising it there is the error that caused the
 reverted reduction.
 
+## v2 round 5 — `ros2-package`: the build loop reaches every seam unaided
+
+20 cells, `t5` only, `baseline` vs `skills`, n=10, isolated. First of the seven
+skills that had no v2 measurement at all.
+[Notes](./runs/2026-07-30-v2-t5-package/NOTES.md) · [machine output](./runs/2026-07-30-v2-t5-package/ANALYSIS.md)
+
+**120 out of 120.** Six real-outcome checks — clean build, `ros2 interface
+show`, `ros2 run`, `ros2 launch`, params in `share/`, first build clean — all
+10/10 in **both** cells.
+
+A total ceiling is when to distrust the grader, so three things were checked
+before reading anything into it:
+
+- The graders were **validated against three deliberately broken workspaces
+  before the round**, and each defect is caught by exactly the check meant to
+  catch it. All three broken packages **exit `colcon build` with code 0** — the
+  obvious grader, reading the build log, would have passed every one.
+- **Nobody iterated into correctness.** 17 of 20 cells ran `colcon build` once,
+  3 ran it twice, and no build in the round failed.
+- **Two baseline workspaces were opened on disk**: `setup.cfg` with the ROS
+  install paths, the script at `install/battery_monitor/lib/battery_monitor/`,
+  launch and config under `share/`. The wiring is genuinely right.
+
+The prediction recorded in `TASKS.md` was that `launch`/`params` installation
+would separate the cells, since nothing in the prompt asks the agent to run
+`ros2 launch` and find out. It did not: asked for a launch file that runs the
+node with a config, agents install both, because a launch file they cannot
+launch is obviously not the deliverable.
+
+**Applied.** `ros2-package` goes from 69 lines to 31 — the `ament_python`
+`build_type` export, the `setup.cfg` install location, and the entire custom
+interfaces section, all measured 10/10 unaided. **Kept, unexercised:** the
+`ament_cmake` `lib/${PROJECT_NAME}` rule and `install(DIRECTORY ...)`, because
+every node package in this task was `ament_python`. A C++ variant of `t5`
+settles both in one round.
+
 ## Status
 
 | Skill | Status |
 | :--- | :--- |
+| `ros2-package` | VERIFIED — t5, n=10, 120/120. Reduced 69 → 31 lines; two `ament_cmake` rules remain unexercised |
 | `ros2-control` | PARTIALLY VERIFIED — t1, n=10 across rounds 3 and 4. The `/cmd_vel` row is cut; the rest is unmeasured |
-| `ros2-core`, `ros2-package`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev`, `gazebo-sim` | NOT VERIFIED — awaiting v2 |
+| `ros2-core`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev`, `gazebo-sim` | NOT VERIFIED — awaiting v2 |
 | `ros2-microros` | OUT OF SCOPE — no `micro_ros_agent` or `micro_ros_setup` in apt for Jazzy; needs a multi-repository source build |
 
 `ros2-security` was deleted during the first round because the model reproduced
