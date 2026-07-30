@@ -492,8 +492,33 @@ def g1(c: Cell, check: str | Path | None = None) -> dict:
         "g1_world_found", "g1_unused_transcript_key")
 
 
+# --------------------------------------------------------------------------
+# G2 — gazebo-sim ladder rung L2 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def g2(c: Cell, check: str | Path | None = None) -> dict:
+    """The cell's own bringup.sh is executed and the result read from ROS.
+
+    Each check has an isolated failing case, verified 2026-07-30 against four
+    reference workspaces:
+
+        no gz-sim-sensors-system -> g2_scan_in_ros FAIL, clock and motion fine
+                                    (/scan advertises in Gazebo and never
+                                     publishes -- the silent one)
+        '[' on /cmd_vel          -> g2_ros_cmd_moves FAIL, scan and clock fine
+        /clock not bridged       -> g2_clock_in_ros FAIL, scan and motion fine
+
+    `g2_scan_360` moves with `g2_scan_in_ros` in those variants; a 180-sample
+    lidar would separate them but was not run, so it is validated by
+    construction rather than by a reference variant.
+    """
+    return _external_checks(
+        c, check,
+        ["g2_scan_in_ros", "g2_scan_360", "g2_clock_in_ros", "g2_ros_cmd_moves"],
+        "g2_bringup_found", "g2_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
-         "g1": g1}
+         "g1": g1, "g2": g2}
 
 
 # --------------------------------------------------------------------------
@@ -668,7 +693,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7", "g1"):
+    elif a.task in ("t5", "t6", "t7", "g1", "g2"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)
