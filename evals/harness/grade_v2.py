@@ -576,6 +576,9 @@ def main() -> int:
     ap.add_argument("--live", action="store_true",
                     help="enable graders that query a running system")
     ap.add_argument("--workdir", help="cell working directory, for files on disk")
+    ap.add_argument("--check", help="t5: the JSON verdict written by t5_check.sh "
+                                    "at cell time (defaults to the sibling "
+                                    "<stem>_check.json)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
 
@@ -590,6 +593,12 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
+    elif a.task == "t5":
+        chk = a.check
+        if not chk:
+            p = Path(a.transcript)
+            chk = p.parent / (p.name.split("_result.jsonl")[0] + "_check.json")
+        grade = fn(cell, check=chk)
     else:
         grade = fn(cell)
     print(json.dumps({"transcript": a.transcript, "task": a.task,
