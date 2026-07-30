@@ -209,7 +209,7 @@ Freezing the prompts now is what stops the ladder being reshaped after a result.
 | :--- | :--- | :--- |
 | **L1** (`g1`) | SDF world authoring; `gz-sim-physics-system`; a diff-drive robot with joints; `gz-sim-diff-drive-system` wired to those joints; headless `gz sim -s -r` | **run — 40/40**, every robot drove 1.65–1.69 m |
 | **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | **run — 40/40** (after a grader fix; see below) |
-| **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | frozen, no checker yet |
+| **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | running |
 
 **L1's graders, validated before the rung ran** (`g1_check.sh`). Every check has
 a demonstrated failing case — the standard, since a grader with no constructible
@@ -261,6 +261,28 @@ Rule 1 freezes a rung once it *has run*. Fixing a gradability flaw found while
 building the checker — the same stage that turned up the ogre2 crash — is
 allowed. Changing a rung after seeing a result is not, and this is recorded so
 the difference stays checkable.
+
+**L3's graders, validated before the rung ran** (`g3_check.sh`):
+
+| variant | `spawned` | `imu_in_ros` | `frame_id_is_link` | `sim_time` | measured `frame_id` |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| correct | pass | pass | pass | pass | `imu_link` |
+| no `gz-sim-imu-system` | pass | **FAIL** | FAIL | pass | `` |
+| no `<gz_frame_id>` | pass | pass | **FAIL** | pass | **`imubot/base_link/imu_sensor`** |
+| `/clock` not bridged | pass | pass | pass | **FAIL** | `imu_link` |
+
+The third row confirms `SKILL.md`'s claim **literally**: without `<gz_frame_id>`
+Gazebo composes the frame as `<model>/<link>/<sensor>`, and the measured value is
+exactly that. `g3_frame_id_is_link` compares against the link names parsed out of
+the cell's own URDF, not against a fixed string.
+
+`g3_sim_time` runs a real ROS node with `use_sim_time:=true` and reads its clock.
+Sim time starts near zero and wall time is ~1.75e18 ns, so the two can never be
+confused; the correct reference reported `SIMTIME 12655000000`.
+
+`g3_spawned` passed in all four variants. A bring-up that never publishes
+`/robot_description` would fail it, but that variant was not run — validated by
+construction, and recorded as such rather than implied.
 
 #### L2 almost failed for the wrong reason — the most instructive episode here
 

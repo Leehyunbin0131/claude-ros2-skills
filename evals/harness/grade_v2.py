@@ -517,8 +517,33 @@ def g2(c: Cell, check: str | Path | None = None) -> dict:
         "g2_bringup_found", "g2_unused_transcript_key")
 
 
+# --------------------------------------------------------------------------
+# G3 — gazebo-sim ladder rung L3 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def g3(c: Cell, check: str | Path | None = None) -> dict:
+    """URDF spawned with ros_gz_sim, an IMU, frame naming, and sim time.
+
+    Verified 2026-07-30 against four reference workspaces:
+
+        no gz-sim-imu-system -> g3_imu_in_ros FAIL, spawn and clock fine
+        no <gz_frame_id>     -> g3_frame_id_is_link FAIL, and the frame comes
+                                back as `imubot/base_link/imu_sensor`, which is
+                                SKILL.md's <model>/<link>/<sensor> claim
+                                confirmed literally
+        /clock not bridged   -> g3_sim_time FAIL, everything else fine
+
+    `g3_spawned` passed in all four; a bring-up that never publishes
+    /robot_description would fail it, but that variant was not run, so it is
+    validated by construction rather than by a reference.
+    """
+    return _external_checks(
+        c, check,
+        ["g3_spawned", "g3_imu_in_ros", "g3_frame_id_is_link", "g3_sim_time"],
+        "g3_bringup_found", "g3_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
-         "g1": g1, "g2": g2}
+         "g1": g1, "g2": g2, "g3": g3}
 
 
 # --------------------------------------------------------------------------
@@ -693,7 +718,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7", "g1", "g2"):
+    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)
