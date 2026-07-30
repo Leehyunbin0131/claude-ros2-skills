@@ -1,0 +1,80 @@
+scenario for task t1 up (pids: 25478)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-zx71)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r1/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-ytjG)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r1/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 1 done
+scenario for task t1 up (pids: 29748)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-Gjfx)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r2/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-LSCY)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r2/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 2 done
+scenario for task t1 up (pids: 2424)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-fPJf)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r3/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-1RGs)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r3/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 3 done
+scenario for task t1 up (pids: 4076)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-hv6v)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r4/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-D1rO)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r4/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 4 done
+scenario for task t1 up (pids: 4872)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-sdby)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r5/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-inPS)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r5/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 5 done
+scenario for task t1 up (pids: 5720)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-MRML)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r6/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-amZ4)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r6/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 6 done
+scenario for task t1 up (pids: 6598)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-6K9o)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r7/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-ux22)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r7/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 7 done
+scenario for task t1 up (pids: 7572)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-IqeH)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r8/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-szcY)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r8/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 8 done
+scenario for task t1 up (pids: 8607)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-3p4G)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r9/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-6QU3)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r9/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 9 done
+scenario for task t1 up (pids: 9373)
+--- task t1 / baseline  (model=sonnet, cwd=/tmp/eval-t1-baseline-yDQm)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r10/t1-baseline_final.md
+--- task t1 / claude-md-only  (model=sonnet, cwd=/tmp/eval-t1-claude-md-only-QyOy)
+    -> evals/runs/2026-07-30-v2-t1-claudemd/r10/t1-claude-md-only_final.md
+
+Grade with: python3 evals/harness/grade_v2.py t1 <result.jsonl>
+=== rep 10 done

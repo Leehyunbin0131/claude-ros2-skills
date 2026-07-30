@@ -137,12 +137,15 @@ both would fail. It was half right.
 unaided. v1 added that line because the tools-off model failed it 4/4; in a real
 session it is right 10/10.
 
-**The instruction to verify does.** 3/10 against 10/10, q=0.009 — the first
-significant result in this project attributable to skill *prose* rather than a
-shipped file. With the skill, every cell searched or read `/opt/ros/jazzy`;
-without it, seven answered from memory and checked nothing. That is category 3,
-which round 1's T3 had suggested was empty. It is not empty; round 1 looked in the
-wrong place.
+**The instruction to verify does — but it is not the skill's.** 3/10 against
+10/10, q=0.009. With the skill loaded every cell searched or read
+`/opt/ros/jazzy`; without it, seven answered from memory and checked nothing.
+That is category 3, which round 1's T3 had suggested was empty.
+
+This was originally written up as the first significant result attributable to
+skill *prose*. **Round 4 shows that attribution was wrong** — the `skills` cell
+also ships `CLAUDE.md`, which contains the same instruction, and `CLAUDE.md`
+alone reproduces the 10/10. See below.
 
 **And the error the line was written to prevent still happens.** Seven baseline
 cells prescribe `use_stamped_vel` — a parameter that does not exist — *alongside*
@@ -157,11 +160,58 @@ authentication for all 20 cells, and the grader then scored those dead cells
 **10/10** on a negative check because "Not logged in" does not contain the
 forbidden parameter name. Both fixed and verified.
 
+## v2 round 4 — the one prose result belongs to `CLAUDE.md`, not to any skill
+
+20 cells, `t1` only, `baseline` vs **`claude-md-only`**, n=10, isolated.
+Pre-registered in [`TASKS.md`](./TASKS.md), prediction included, before any cell
+existed.
+[Notes](./runs/2026-07-30-v2-t1-claudemd/NOTES.md) · [machine output](./runs/2026-07-30-v2-t1-claudemd/ANALYSIS.md)
+
+Round 3's result was confounded. `run_ab.sh` installs `CLAUDE.md` into the
+`skills` cell along with `skills/*`, and `CLAUDE.md` opens by telling the agent
+not to answer from memorized knowledge and to verify against `/opt/ros/jazzy` —
+which is exactly what `t1_searched_or_read` measures. This round installs that
+one file and nothing else.
+
+| Check | baseline | `claude-md-only` | `skills` (r3) |
+| :--- | ---: | ---: | ---: |
+| names `TwistStamped` | 10/10 | 10/10 | 10/10 |
+| verified against install or web | **2/10** | **10/10** (q=0.002) | 10/10 |
+| did not prescribe `use_stamped_vel` | 4/10 | 6/10 | 6/10 |
+
+**`CLAUDE.md` alone reproduces the `skills` cell exactly, on every check.**
+Adding ten `SKILL.md` files on top of it moves nothing.
+
+The control held without spending cells on `t4`: round 4 re-ran `baseline`
+concurrently and it reproduced round 3's figure (3/10 vs 2/10, p=1.000), which is
+a stronger check for this question than `t4` because it is the same grader on the
+same task.
+
+**Score after four rounds:**
+
+| Content | Status |
+| :--- | :--- |
+| bundled scripts (`check_imu_gravity.py`) | **earns its place** — round 2, q<0.001 |
+| `CLAUDE.md`'s verify paragraph | **earns its place** — round 4, q=0.002 |
+| any `SKILL.md` prose | **no measured effect anywhere** |
+
+That is not a verdict that the skills are worthless: seven have never been
+measured, and this is one task. It is a verdict on the single number that was
+being used to justify keeping skill prose.
+
+**Applied.** `ros2-control`'s `/cmd_vel` row was cut in full — every effect in it
+(the fact, the verify instruction, the `use_stamped_vel` warning) is reproduced
+by `CLAUDE.md` alone, and `ros2-control` is the skill `t1` directly exercises.
+**Not applied** to the other nine: `t1` says nothing about `gazebo-sim` or
+`ros2-perception`, and generalising it there is the error that caused the
+reverted reduction.
+
 ## Status
 
 | Skill | Status |
 | :--- | :--- |
-| `ros2-core`, `ros2-package`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-control`, `ros2-moveit`, `ros2-dev`, `gazebo-sim` | NOT VERIFIED — awaiting v2 |
+| `ros2-control` | PARTIALLY VERIFIED — t1, n=10 across rounds 3 and 4. The `/cmd_vel` row is cut; the rest is unmeasured |
+| `ros2-core`, `ros2-package`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev`, `gazebo-sim` | NOT VERIFIED — awaiting v2 |
 | `ros2-microros` | OUT OF SCOPE — no `micro_ros_agent` or `micro_ros_setup` in apt for Jazzy; needs a multi-repository source build |
 
 `ros2-security` was deleted during the first round because the model reproduced

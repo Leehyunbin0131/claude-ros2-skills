@@ -3,6 +3,15 @@
 
 # v2 round 3 — do the two lines v1 added earn their place?
 
+> **CORRECTED BY ROUND 4 — read this first.** The `t1_searched_or_read` result
+> below is real, but its attribution is wrong. `run_ab.sh` installs `CLAUDE.md`
+> into the `skills` cell alongside `skills/*`, and `CLAUDE.md` already instructs
+> the agent to verify against `/opt/ros/jazzy` instead of answering from memory.
+> Round 4 ran a `claude-md-only` cell: **10/10, identical to `skills`, with no
+> skill files at all** (`../2026-07-30-v2-t1-claudemd/`). So the sentence below
+> calling this "the first significant result attributable to skill *prose*" is
+> withdrawn — it is attributable to `CLAUDE.md`. The rest of this round stands.
+
 20 cells, `t1` only, `baseline` vs `skills`, n=10. First round with isolation
 enforced; **no cell reached the repository.**
 

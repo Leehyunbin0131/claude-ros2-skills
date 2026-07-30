@@ -1,0 +1,3 @@
+scenario up: diff_drive_controller active on mock hardware
+No controllers are currently loaded!
+Ctrl-C to stop.

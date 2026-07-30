@@ -31,7 +31,6 @@ is **not** started automatically and must be spawned before the others, or
 
 | Symptom | Likely root cause | Action |
 | :--- | :--- | :--- |
-| `diff_drive_controller` active, `/cmd_vel` published, nothing moves | Publisher and subscriber message types do not match — this fails silently, nothing errors | Read what the controller actually subscribes to: `ros2 topic info /cmd_vel -v`, then match it. There is **no `use_stamped_vel` parameter** in Jazzy; do not invent one |
 | Spawner times out waiting for `/controller_manager` | controller_manager not running, wrong namespace, or `use_sim_time` mismatch delaying clock | Check `ros2 node list` for controller_manager; pass `--controller-manager` with the actual namespace |
 | Controller activation fails with resource/interface conflict | Two controllers claim the same `command_interface` | `ros2 control list_hardware_interfaces` — check which interfaces are claimed; deactivate the conflicting controller |
 | Controller loads then fails to configure | Params YAML not passed to controller_manager, or controller type string wrong | Verify params file reaches the `ros2_control_node`/`gz_ros2_control` node; check `type:` matches installed plugin (`ros2 control list_controller_types`) |

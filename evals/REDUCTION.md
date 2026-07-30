@@ -13,16 +13,27 @@ A line ships if and only if it is something the agent **cannot reach on its
 own**, given the model's knowledge, web search, and a live install. Three rounds
 found exactly two things that qualify:
 
-| Keep | Evidence |
-| :--- | :--- |
-| **Files the agent cannot reach** — bundled scripts, project-local facts | round 2: 0/7 vs 8/8 on running the check, p=0.0002 |
-| **Instructions to verify** — not the answer, the prompt to go look | round 3: 3/10 vs 10/10, q=0.009 |
+| Keep | Where it belongs | Evidence |
+| :--- | :--- | :--- |
+| **Files the agent cannot reach** — bundled scripts, project-local facts | `scripts/`, next to the skill | round 2: 1/10 vs 10/10 on running the check, q<0.001 |
+| **The instruction to verify** — not the answer, the prompt to go look | **`CLAUDE.md`, once** — *not* per skill | round 4: 2/10 vs 10/10, q=0.002, with **no skill files installed** |
 
-And one thing that clearly does not:
+And two things that clearly do not:
 
 | Cut | Evidence |
 | :--- | :--- |
 | **Facts the model already has or can search for** | round 3: 10/10 unaided on the exact fact v1 added a line for |
+| **Per-skill restatements of "verify against the install"** | round 4: `CLAUDE.md` alone reaches 10/10; adding all ten skills on top moves **nothing** — 10/10 vs 10/10, 6/10 vs 6/10 |
+
+**Round 4 changed the second row of the keep table.** It used to credit skill
+prose, on round 3's `t1_searched_or_read`. That comparison had `CLAUDE.md` in
+the `skills` cell; a `claude-md-only` cell reproduces it exactly. The behaviour
+is real and worth shipping — it just belongs in one file, not eleven.
+
+**This does not license cutting verify prose from the other nine skills.** `t1`
+exercises `ros2-control` and touches `ros2-moveit`. Generalising it to
+`gazebo-sim` or `ros2-perception` is the same move that caused the reverted
+reduction below.
 
 ## Per-line decision procedure
 
@@ -60,7 +71,7 @@ measurement, and it is exactly what went wrong on the first attempt.
 
 | Skill | v2 coverage | May cut? |
 | :--- | :--- | :--- |
-| `ros2-control` | t1, n=10, the `cmd_vel` fact 10/10 unaided | **yes** — that fact clause only |
+| `ros2-control` | t1, n=10 ×2 rounds — every effect in the `/cmd_vel` row reproduced by `CLAUDE.md` alone | **done** — the whole row was cut |
 | `ros2-troubleshooting` | t2, n=10 — but see the confound below | **no** — the measurement licenses a *keep*, not a cut |
 | `ros2-moveit` | t1 covers the servo row indirectly | **no** — the servo row needs its own task |
 | `ros2-core` | none | **no** |
