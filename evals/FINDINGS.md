@@ -1,5 +1,20 @@
 # What measuring nine skills taught
 
+> **Mixed validity — read with this in mind.** Every number here comes from the
+> **v1** harness, which ran cells with tools disabled. That data was deleted
+> because it measured a restriction nobody ships.
+>
+> - **Still valid:** the lessons about *measuring* — correct is not useful, a
+>   grader that has only seen good answers is not validated, single runs
+>   generate mechanisms that do not survive.
+> - **Not valid:** every verdict about a specific skill or line. Two lines v1
+>   *added* after the model failed them 4/4 were later measured 10/10 correct by
+>   an agent with a shell. `ros2-security`'s deletion rests on a tools-off
+>   1.000 and is flagged in [`RESULTS.md`](./RESULTS.md) as the decision that
+>   rested on an argument rather than a number.
+>
+> Current: [`LADDER.md`](./LADDER.md), [`RESULTS.md`](./RESULTS.md).
+
 `RESULTS.md` is the per-skill record and `PROCEDURE.md` is how to run a
 verification. This file is the part worth reading if you are never going to run
 one: what came out of 5,156 graded cells and $122 of measurement, stated as

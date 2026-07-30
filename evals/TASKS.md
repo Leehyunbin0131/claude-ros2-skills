@@ -20,7 +20,10 @@ between conditions is what is installed in that directory.
 `scripts-only` exists for T2 only, and it is the cell that makes T2 a real test
 rather than a tautology — see the note there.
 
-n = 5 per cell per task.
+n = 5 per cell per task. **This was round 1 only.** Every round after it ran
+n=10 — round 1 was under-powered because it was wide, not because n was small
+(see "Round 2 — narrow, by design" below). Ladder rungs run n=10, baseline
+only; see [`LADDER.md`](./LADDER.md).
 
 ---
 

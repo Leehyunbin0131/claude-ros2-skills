@@ -33,16 +33,26 @@ The criterion is now: **a skill supplies what the agent cannot reach on its own*
 ### The two install-verified facts
 
 Both were found by asking the model cold and checking its answer against
-`/opt/ros/jazzy/`, and both are now in the shipped skills:
+`/opt/ros/jazzy/`. **Both are still true about Jazzy. Neither is still a reason
+to ship a line, and the first is no longer in any skill:**
 
 - Jazzy's `diff_drive_controller` subscribes to `geometry_msgs/msg/TwistStamped`
-  only, and has **no `use_stamped_vel` parameter** — the model prescribes one
-  4 times out of 4. (`diff_drive_controller_parameters.hpp` declares 23
-  parameters; none is that.)
+  only, and has **no `use_stamped_vel` parameter**. The tools-off model
+  prescribed one 4 times out of 4. (`diff_drive_controller_parameters.hpp`
+  declares 23 parameters; none is that.)
+  **Round 3 measured an agent with a shell and a web search at 10/10 on this,
+  unaided. Cut from `ros2-control` after round 4.**
 - Jazzy replaced `/servo_node/start_servo` (`std_srvs/srv/Trigger`) with
   `/servo_node/switch_command_type` (`moveit_msgs/srv/ServoCommandType`). The
-  model prescribes the removed service 4 times out of 4, and the skill used to
-  agree with it.
+  tools-off model prescribed the removed service 4 times out of 4, and the skill
+  used to agree with it. **Still in `ros2-moveit`, and still unmeasured under the
+  v2 criterion** — `t1` touches it only indirectly. The `DESIGN.md` pre-check
+  found search fixes it, so it is expected to go the same way.
+
+This section used to say both facts "are now in the shipped skills", which
+stopped being true the moment the first was cut. It is left visible rather than
+quietly reworded, because a record that silently agrees with the present is not
+a record.
 
 ## v2 round 1 — first measurement under the new criterion
 

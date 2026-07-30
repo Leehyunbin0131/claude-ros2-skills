@@ -27,7 +27,7 @@ and a skill should contain these and close to nothing else.
 | :-- | :--- | :--- | :--- |
 | 1 | **Wrong even with search** | agent searches, still gets it wrong | rarer than expected — see the pre-check below |
 | 2 | **Not reachable at all** | nothing on the web or in the install contains it | the four `check_*.py` scripts shipped beside `ros2-troubleshooting`; this robot's real wheel radius; this workspace's conventions |
-| 3 | **Known but not done** | the agent can state the right behaviour when asked, and does not do it unprompted | asked to "set up Nav2", it writes a parameter file instead of first asking for footprint and drive type |
+| 3 | **Known but not done** | the agent can state the right behaviour when asked, and does not do it unprompted | **the example that was here has been refuted** — see the note below |
 
 Category 3 is not knowledge. Search cannot fix it. It was the highest-value
 content measured in the previous round and is the easiest to mistake for padding.
@@ -65,6 +65,17 @@ confidence than the model had alone.
 So a skill's job on category 1 is often **not to supply the fact** but to pin
 the version and name the authoritative local source. That is an argument for
 keeping a small number of pointers, not for deleting them.
+
+> **Category 3, as illustrated, did not survive measurement.** The example
+> written here was: asked to "set up Nav2", the agent writes a parameter file
+> instead of first asking for footprint and drive type. Round 1's `t3` measured
+> baseline asking unprompted **4/5**, so that is not a gap.
+>
+> Round 3 then found a real instance — the agent verifying against the install
+> instead of answering from memory, 3/10 vs 10/10 — and round 4 showed that
+> belongs to `CLAUDE.md`, not to any skill. So category 3 has **one confirmed
+> instance and it lives in `CLAUDE.md`**. The category is not empty; it is just
+> not somewhere a `SKILL.md` has yet been shown to reach.
 
 ## 3. The environment must be the real one
 

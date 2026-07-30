@@ -1,5 +1,24 @@
 # How to verify a skill
 
+> ## SUPERSEDED — do not follow this document
+>
+> This describes the **v1** method: per-claim ablation with tools disabled. The
+> data it produced has been deleted and the criterion it used has been replaced.
+> Following it restarts v1.
+>
+> | | |
+> | :--- | :--- |
+> | Current method | [`LADDER.md`](./LADDER.md) |
+> | Current criterion | [`DESIGN.md`](./DESIGN.md) §1 — a skill supplies what the agent **cannot reach on its own** |
+> | Current results | [`RESULTS.md`](./RESULTS.md) |
+> | The v1 tools | [`harness/v1-superseded/`](./harness/v1-superseded/) |
+>
+> Two things in here are still worth reading and are **not** v1-specific: the
+> check-anchoring hierarchy (a real outcome beats an install-verified fact beats
+> the file's own phrasing) and the recorded method failures. Everything about
+> ablating single lines, tools-off cells, `1.000` scores, and the `VERIFIED`
+> threshold is stale.
+
 This is the step-by-step. It assumes you have never seen this project before.
 `RESULTS.md` is the record of what is already finished; `harness/README.md` is
 the reference for the tools; [`FINDINGS.md`](./FINDINGS.md) is what the finished

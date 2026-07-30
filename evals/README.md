@@ -1,5 +1,15 @@
 # Evals — measure the skills instead of trusting them
 
+> **The method described below is v1 and is superseded.** "Efficiency = per-line
+> ablation" only works with tools disabled, and measuring an agent that cannot
+> look anything up was the project's founding error. The current method is
+> [`LADDER.md`](./LADDER.md): climb a pre-registered difficulty ladder until the
+> model stops being able to do the task unaided, then write only what is past
+> that point. `n≥5` below is also stale — narrow rounds run n=10.
+>
+> Still accurate: the grading philosophy (mechanical, anchored to a real
+> outcome, ungradable is never a failure) and cost being a first-class result.
+
 Current per-skill status: [`RESULTS.md`](./RESULTS.md).
 
 ## What is being measured

@@ -87,6 +87,30 @@ it.
 A line that fails step 4 is not shipped with an argument attached. That is how
 622 lines happened.
 
+### `patch` must not contain `CLAUDE.md`
+
+The `patch` cell installs the candidate line **and nothing else** — no
+`CLAUDE.md`, no other skill, no scripts. This is not a detail; it is the one way
+phase 2 can go wrong, and it has already gone wrong once at task level.
+
+`run_ab.sh`'s `skills` cell copies `CLAUDE.md` in alongside the skills, and
+`CLAUDE.md` contains, verbatim, several of the behaviours the graders measure:
+
+| `CLAUDE.md` says | which is the grader |
+| :--- | :--- |
+| "Do NOT answer ... from memorized knowledge ... verify against local `/opt/ros/jazzy/`" | `t1_searched_or_read` |
+| "Ask when the request doesn't say" | `t3_asked_before_writing` |
+| "Report what you actually observed — a build succeeding, `ros2 topic echo` showing data, a check script passing" | `t2_exit_code_read`, and the shape of `t5`/`t6` |
+
+Round 4 caught this for `t1` and had to retract an attribution. **The flaw is
+systemic, not a `t1` quirk.** It did not produce a false published claim
+elsewhere — `t3` was null, round 2's `t2` comparison had no `CLAUDE.md` in either
+cell, and `t5` was 120/120 in both — but every one of those was luck, not design.
+
+A `patch` cell that shipped `CLAUDE.md` would make every candidate line look
+effective, because `CLAUDE.md` would be doing the work. Any future condition that
+needs `CLAUDE.md` present must have it present in **both** cells.
+
 ## The ladders
 
 Three rungs per skill, all written before running. `L1` for `ros2-package` is
