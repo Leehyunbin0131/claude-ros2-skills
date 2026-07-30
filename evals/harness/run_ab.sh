@@ -32,7 +32,15 @@ case "$TASK" in
   # t7 is ladder rung L3 for ros2-package (evals/LADDER.md). FROZEN 2026-07-30
   # before any cell ran: this text must not change, per LADDER.md rule 1.
   t7) PROMPT='On ROS 2 Jazzy, create a colcon workspace in the current directory with two packages. `battery_msgs` defines `msg/Pack.msg` with fields `string id`, `float32 voltage`, and `geometry_msgs/Point location`. `battery_node` is a C++ package containing a composable node class `battery_node::Reporter` that subscribes to `/packs` (`battery_msgs/msg/Pack`) and logs the voltage; it must be loadable into an `rclcpp_components` container at runtime, and `launch/reporter.launch.py` must bring up a container with it loaded. `battery_node` must also have at least one test that `colcon test` runs and passes. Build the workspace and run the tests.' ;;
-  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7)" >&2; exit 2 ;;
+  # gazebo-sim ladder (evals/LADDER.md). All three prompts FROZEN 2026-07-30
+  # before any cell ran, per LADDER.md rule 1. g2/g3 have no checker yet: rule 4
+  # says stop at the first rung that fails, so their harness is built only if the
+  # rung below them passes. The prompts are frozen now so the ladder cannot be
+  # reshaped after seeing a result.
+  g1) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, write a single SDF world file in the current directory containing a ground plane and a differential-drive robot. The robot must drive: publishing a `gz.msgs.Twist` with positive `linear.x` on the Gazebo topic `/cmd_vel` has to move it forward, and it must publish odometry on the Gazebo topic `/odom`. The world has to run headless with `gz sim -s -r`. No ROS bridge is needed for this task.' ;;
+  g2) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, in the current directory build an SDF world with a differential-drive robot carrying a 360-sample GPU lidar, plus whatever is needed to drive and read it from ROS 2. From ROS 2 I must be able to: see `sensor_msgs/msg/LaserScan` with finite ranges on `/scan`, see `rosgraph_msgs/msg/Clock` on `/clock`, and move the robot by publishing `geometry_msgs/msg/Twist` on the ROS topic `/cmd_vel`. Give me the exact commands to bring it all up.' ;;
+  g3) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, in the current directory create a robot described as a URDF that is published on `/robot_description` and spawned into a running Gazebo world with `ros_gz_sim`. The robot carries an IMU. From ROS 2 I must be able to see `sensor_msgs/msg/Imu` on `/imu`, and the `frame_id` on that message must be the URDF link name the sensor is mounted on. A ROS 2 node running with `use_sim_time` must see Gazebo time, not wall time. Give me the exact commands to bring it all up.' ;;
+  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3)" >&2; exit 2 ;;
 esac
 
 mkdir -p "$OUT"
@@ -64,6 +72,7 @@ start_scenario() {
     t5) : ;;  # packaging task; the deliverable is a buildable workspace
     t6) : ;;  # ladder rung L2, same shape as t5
     t7) : ;;  # ladder rung L3
+    g1|g2|g3) : ;;  # gazebo ladder; the deliverable is a world that runs
   esac
   # Block until the system is actually up, instead of sleeping blind.
   case "$TASK" in
@@ -77,6 +86,7 @@ start_scenario() {
     t5) : ;;
     t6) : ;;
     t7) : ;;
+    g1|g2|g3) : ;;
   esac
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
 }
@@ -146,7 +156,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6|t7)
+    t5|t6|t7|g1)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac

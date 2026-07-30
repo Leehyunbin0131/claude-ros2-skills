@@ -468,7 +468,32 @@ def t7(c: Cell, check: str | Path | None = None) -> dict:
         "t7_workspace_found", "t7_first_build_clean")
 
 
-TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7}
+# --------------------------------------------------------------------------
+# G1 — gazebo-sim ladder rung L1 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def g1(c: Cell, check: str | Path | None = None) -> dict:
+    """A world that loads, advertises odometry, and drives when commanded.
+
+    All four checks have a demonstrated failing case, which is the standard this
+    project holds graders to:
+
+        g1_sdf_valid      -- a mismatched </inertia> gives XML_ERROR_MISMATCHED_ELEMENT
+        g1_sim_runs       -- ogre2 headless on this machine segfaults the process
+        g1_topics_present -- a world with no DiffDrive plugin never advertises /odom
+        g1_robot_moves    -- DiffDrive naming joints no <joint> declares: loads,
+                             publishes odometry, moves 0 cm
+
+    There is no `first build` analogue here, so the transcript key is unused and
+    always None.
+    """
+    return _external_checks(
+        c, check,
+        ["g1_sdf_valid", "g1_sim_runs", "g1_topics_present", "g1_robot_moves"],
+        "g1_world_found", "g1_unused_transcript_key")
+
+
+TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
+         "g1": g1}
 
 
 # --------------------------------------------------------------------------
@@ -643,7 +668,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7"):
+    elif a.task in ("t5", "t6", "t7", "g1"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)

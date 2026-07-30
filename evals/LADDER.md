@@ -198,9 +198,60 @@ Ladders get written when each skill's turn comes, under the same six rules, and
 before any of its cells run. Recorded here as they are written so the order
 cannot be rearranged after the fact.
 
+### `gazebo-sim`
+
+All three prompts written and frozen 2026-07-30 in `run_ab.sh` before any cell
+ran. **`g2` and `g3` have no checker yet, deliberately** — rule 4 stops at the
+first rung that fails, so their harness is built only if the rung below passes.
+Freezing the prompts now is what stops the ladder being reshaped after a result.
+
+| Rung | Mechanisms added | Status |
+| :--- | :--- | :--- |
+| **L1** (`g1`) | SDF world authoring; `gz-sim-physics-system`; a diff-drive robot with joints; `gz-sim-diff-drive-system` wired to those joints; headless `gz sim -s -r` | running |
+| **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | frozen, no checker yet |
+| **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | frozen, no checker yet |
+
+**L1's graders, validated before the rung ran** (`g1_check.sh`). Every check has
+a demonstrated failing case — the standard, since a grader with no constructible
+failure is not a grader:
+
+| Check | Shown to fail on |
+| :--- | :--- |
+| `g1_sdf_valid` | a mismatched `</inertia>` — `XML_ERROR_MISMATCHED_ELEMENT` (found by breaking the fixture accidentally) |
+| `g1_sim_runs` | `ogre2` headless on this machine: segfault in `Ogre::Hlms::createDatablock` |
+| `g1_topics_present` | a world with the robot but no `DiffDrive` plugin — `/odom` never advertised |
+| `g1_robot_moves` | `DiffDrive` naming joints no `<joint>` declares: world loads, `/odom` publishes, robot moves 0 cm |
+
+#### The environment nearly manufactured a gap
+
+`skills/gazebo-sim/SKILL.md` tells you to write
+`<render_engine>ogre2</render_engine>`. On this machine, **`ogre2` under
+`--headless-rendering` segfaults**: the sensor topics get advertised, then the
+process dies inside Ogre with no data. `ogre` (Ogre 1.x) works — 60 lidar ranges
+and IMU samples, no crash.
+
+Had the checker run the agent's world as written, **every cell would have failed
+for a reason with nothing to do with its SDF**, and the round would have read as
+"the model cannot make Gazebo sensors work." That is a fabricated gap, and it is
+the same class of error as grading against a document instead of an outcome.
+
+`g1_check.sh` therefore forces `--render-engine ogre`, which overrides whatever
+the SDF asks for (verified: a world requesting `ogre2` runs fine under the flag).
+The machine stops being a variable. **No cell is scored on the crash**, and the
+crash is recorded here as an environment fact rather than smuggled in as a
+finding.
+
+#### One symptom row L1 cannot measure, stated rather than skipped
+
+"Robot spawns then falls through the ground" is in `SKILL.md`'s symptom table and
+is **not** graded. `/odom` carries the planar pose, so z is always 0 — and
+protobuf text format omits zero-valued fields, so there is nothing to read. Worse,
+the obvious defect does not work: deleting `<inertial>` from the wheels leaves the
+robot driving 1.69 m, because SDF supplies a default mass and unit inertia. No
+constructible failing case means no grader, so that row stays unmeasured.
+
 | Skill | Ladder |
 | :--- | :--- |
-| `gazebo-sim` | not yet written |
 | `ros2-troubleshooting` | not yet written |
 | `ros2-perception` | not yet written |
 | `ros2-core` | not yet written |
