@@ -443,7 +443,32 @@ def t6(c: Cell, check: str | Path | None = None) -> dict:
         "t6_workspace_found", "t6_first_build_clean")
 
 
-TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6}
+# --------------------------------------------------------------------------
+# T7 — ros2-package ladder rung L3 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def t7(c: Cell, check: str | Path | None = None) -> dict:
+    """L3 adds a cross-package message field, a composable node loaded into an
+    rclcpp_components container, and a test `colcon test` has to actually run.
+
+    `t7_tests_ran` is deliberately separate from `t7_tests_pass`: **`colcon
+    test` exits 0 when there are no tests.** Verified 2026-07-30 -- the
+    `no_tests` reference workspace reports rc=0 with `tests_total=0`. "The tests
+    pass" is not a claim until something has been shown to run.
+
+    Signatures, for the mechanical diagnosis rule 6 requires:
+
+        component_registered FAIL          -> never registered
+        registered pass, loads FAIL        -> library not installed/loadable
+        tests_ran FAIL                     -> colcon test ran nothing, rc=0
+    """
+    return _external_checks(
+        c, check,
+        ["t7_builds", "t7_msg_dep_resolves", "t7_component_registered",
+         "t7_component_loads", "t7_tests_ran", "t7_tests_pass"],
+        "t7_workspace_found", "t7_first_build_clean")
+
+
+TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7}
 
 
 # --------------------------------------------------------------------------
@@ -601,7 +626,7 @@ def main() -> int:
     ap.add_argument("--live", action="store_true",
                     help="enable graders that query a running system")
     ap.add_argument("--workdir", help="cell working directory, for files on disk")
-    ap.add_argument("--check", help="t5/t6: the JSON verdict written by t5_check.sh "
+    ap.add_argument("--check", help="t5/t6/t7: the JSON verdict written by t5_check.sh "
                                     "at cell time (defaults to the sibling "
                                     "<stem>_check.json)")
     ap.add_argument("--selftest", action="store_true")
@@ -618,7 +643,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6"):
+    elif a.task in ("t5", "t6", "t7"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)

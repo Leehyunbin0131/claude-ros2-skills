@@ -121,8 +121,8 @@ Three rungs per skill, all written before running. `L1` for `ros2-package` is
 | Rung | Mechanisms added | Status |
 | :--- | :--- | :--- |
 | **L1** | `ament_python` node package; `ament_cmake` interface package with one `.msg`; launch file; params file | **run — 10/10 on all six checks** |
-| **L2** | + a C++ node package (`ament_cmake` with an executable, which L1 never had); + a `.srv` consumed by both the C++ and the Python node; + a launch file that includes the other package's launch file | pending |
-| **L3** | + a message field typed by another package's message (`DEPENDENCIES`); + a composable node registered through `rclcpp_components` and loaded into a container at launch; + a `colcon test` that must pass | pending |
+| **L2** | + a C++ node package (`ament_cmake` with an executable, which L1 never had); + a `.srv` consumed by both the C++ and the Python node; + a launch file that includes the other package's launch file | **run — 70/70** |
+| **L3** | + a message field typed by another package's message (`DEPENDENCIES`); + a composable node registered through `rclcpp_components` and loaded into a container at launch; + a `colcon test` that must pass | running |
 
 L2 exists because L1 left two claims in the file unexercised — the `ament_cmake`
 `lib/${PROJECT_NAME}` install rule and `install(DIRECTORY ...)` — for the
@@ -143,6 +143,23 @@ which is what makes rule 6 possible:
 
 - `cpp_run_works` fails → wrong install destination
 - `cpp_run_works` passes but `composed_launch` fails → `launch/` never installed
+
+**L3's graders, validated before the rung ran** (`t7_check.sh`):
+
+| variant | `builds` | `msg_dep` | `comp_reg` | `comp_loads` | `tests_ran` | `tests_pass` |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| correct | pass | pass | pass | pass | pass | pass |
+| component never registered | pass | pass | **FAIL** | FAIL | pass | pass |
+| no test wired | pass | pass | pass | pass | **FAIL** | FAIL |
+
+All three build rc=0, as at L1 and L2.
+
+**`t7_tests_ran` is separate from `t7_tests_pass` because `colcon test` exits 0
+when there are no tests.** Confirmed on the `no_tests` reference workspace: rc=0,
+`tests_total=0`. "The tests pass" is not a claim until something has been shown
+to run — the same class of silent success as a packaging defect that builds
+clean, and a grader that only read `colcon test`'s exit code would have called
+an empty test suite a pass.
 
 ### A silent failure found while building the L2 fixtures
 

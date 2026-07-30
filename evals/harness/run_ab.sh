@@ -29,7 +29,10 @@ case "$TASK" in
   # t6 is ladder rung L2 for ros2-package (evals/LADDER.md). FROZEN 2026-07-30
   # before any cell ran: this text must not change, per LADDER.md rule 1.
   t6) PROMPT='On ROS 2 Jazzy, create a colcon workspace in the current directory with three packages. `battery_msgs` defines `msg/Cell.msg` (`string id`, `float32 voltage`) and `srv/SetLimit.srv` (request `float32 max_voltage`, response `bool accepted`). `battery_cpp` is a C++ package with an executable node `guard` that provides the `SetLimit` service on `/set_limit`. `battery_py` is a Python package with a node `monitor` that publishes `battery_msgs/msg/Cell` on `/cells` at 1 Hz and calls `/set_limit` once at startup. `battery_cpp` has `launch/guard.launch.py` starting `guard`; `battery_py` has `launch/system.launch.py` which includes `battery_cpp`'"'"'s launch file and also starts `monitor` with `config/monitor.yaml`. Build the workspace.' ;;
-  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6)" >&2; exit 2 ;;
+  # t7 is ladder rung L3 for ros2-package (evals/LADDER.md). FROZEN 2026-07-30
+  # before any cell ran: this text must not change, per LADDER.md rule 1.
+  t7) PROMPT='On ROS 2 Jazzy, create a colcon workspace in the current directory with two packages. `battery_msgs` defines `msg/Pack.msg` with fields `string id`, `float32 voltage`, and `geometry_msgs/Point location`. `battery_node` is a C++ package containing a composable node class `battery_node::Reporter` that subscribes to `/packs` (`battery_msgs/msg/Pack`) and logs the voltage; it must be loadable into an `rclcpp_components` container at runtime, and `launch/reporter.launch.py` must bring up a container with it loaded. `battery_node` must also have at least one test that `colcon test` runs and passes. Build the workspace and run the tests.' ;;
+  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7)" >&2; exit 2 ;;
 esac
 
 mkdir -p "$OUT"
@@ -60,6 +63,7 @@ start_scenario() {
         SCENARIO_PIDS+=($!) ;;
     t5) : ;;  # packaging task; the deliverable is a buildable workspace
     t6) : ;;  # ladder rung L2, same shape as t5
+    t7) : ;;  # ladder rung L3
   esac
   # Block until the system is actually up, instead of sleeping blind.
   case "$TASK" in
@@ -72,6 +76,7 @@ start_scenario() {
     t4) timeout 20 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
     t5) : ;;
     t6) : ;;
+    t7) : ;;
   esac
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
 }
@@ -141,7 +146,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6)
+    t5|t6|t7)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac
