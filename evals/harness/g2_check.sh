@@ -43,13 +43,41 @@ export PATH="$HARNESS/gzshim:$PATH"
 export GZ_PARTITION="g2check$$"
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
 
+# Clear strays BEFORE starting, not only after.
+#
+# Two things made this necessary, both verified:
+#   * A cell's own bringup.sh leaves `gz sim` running after the agent's session
+#     ends. Ten cells leave up to ten simulations alive, and they leak into
+#     `gz topic -l` -- 19 topics where the world declares 10 -- so the odometry
+#     discovery can pick a topic belonging to a simulation nobody is commanding.
+#     GZ_PARTITION did not isolate them.
+#   * `pkill -f "gz sim"` matches ANY process whose command line contains that
+#     string, including the wrapper shell running this script. Anchoring the
+#     pattern to the start of the command line kills the simulator and nothing
+#     else.
+#   * **`gz sim` ignores SIGTERM headless.** A stray was found still running 23
+#     minutes after its cell ended, surviving `pkill` (which sends TERM) and
+#     dying only to `kill -9`. That is why every reference variant scored 0 with
+#     `n_sims_running: 2` -- the cleanup looked like it worked and did nothing.
+kill_sims() {
+  pkill -f '^gz sim' 2>/dev/null || true
+  pkill -f '^.*/parameter_bridge' 2>/dev/null || true
+  sleep 2
+  pkill -9 -f '^gz sim' 2>/dev/null || true
+  pkill -9 -f '^.*/parameter_bridge' 2>/dev/null || true
+}
+kill_sims
+sleep 1
+
 p_scan=false; p_360=false; p_clock=false; p_moves=false
 BR_LOG="$(mktemp)"
 ( cd "$(dirname "$BRINGUP")" && timeout 180 bash "$BRINGUP" ) >"$BR_LOG" 2>&1
 
 # Give discovery time on both middlewares.
 for _ in $(seq 1 30); do
-  timeout 5 ros2 topic list 2>/dev/null | grep -q '/scan' && break
+  # same pipefail/grep -q trap as above: capture first, then match.
+  TL="$(timeout 5 ros2 topic list 2>/dev/null || true)"
+  case "$TL" in */scan*) break ;; esac
   sleep 1
 done
 
@@ -85,8 +113,49 @@ grep -q 'sec:' <<<"$CLOCK" && p_clock=true
 # Drive from the ROS side. Reading the pose on the GAZEBO side deliberately:
 # the prompt never asked for /odom to be bridged, so requiring it would grade
 # something the rung did not ask for.
+#
+# THE ODOMETRY TOPIC IS DISCOVERED BY TYPE, NOT BY NAME. The first version
+# hardcoded /odom and scored 4 of 10 cells as "robot did not move" when they had
+# simply left <odom_topic> out of the DiffDrive plugin -- gz-sim then publishes
+# on its default /model/<name>/odometry. The g2 prompt never asked for the topic
+# to be called /odom (g1's did; g2's does not), so those cells did exactly what
+# was asked and the grader could not see it. That would have been a manufactured
+# gap at the exact rung where the ladder was looking for one.
+# Two passes: name-matching topics first (cheap and almost always right --
+# gz-sim's default is /model/<name>/odometry), then every remaining topic. The
+# type from `gz topic -i` is what decides in both passes; the name only sets the
+# order. A single pass over every topic was slow enough to miss the answer.
+#
+# NOT `cmd | grep -q`. `set -o pipefail` is on, and `grep -q` exits the instant
+# it matches, which SIGPIPEs the producer -- so the pipeline reports FAILURE on
+# a successful match. That is why this returned nothing while `gz topic -l`
+# listed /odom and `gz topic -i -t /odom` printed gz.msgs.Odometry. It is racy
+# (short output finishes before grep exits), which is why it passed standalone
+# and failed inside the checker. Capture, then match on the string.
+ODOM_TOPIC=""
+topic_is_odom() {
+  local info
+  info="$(timeout 5 gz topic -i -t "$1" 2>/dev/null || true)"
+  case "$info" in *gz.msgs.Odometry*) return 0 ;; *) return 1 ;; esac
+}
+find_odom_topic() {
+  local t all named rest
+  all="$(timeout 8 gz topic -l 2>/dev/null || true)"
+  named="$(grep -i 'odom' <<<"$all" || true)"
+  rest="$(grep -iv 'odom' <<<"$all" || true)"
+  for t in $named; do
+    topic_is_odom "$t" && { echo "$t"; return 0; }
+  done
+  for t in $rest; do
+    case "$t" in */tf|*/pose*|*/stats|*/clock|*/points|*/marker) continue ;; esac
+    topic_is_odom "$t" && { echo "$t"; return 0; }
+  done
+  return 0
+}
+
 gz_x() {
-  timeout 8 gz topic -e -t /odom -n 1 2>/dev/null | python3 -c '
+  [ -n "$ODOM_TOPIC" ] || return
+  timeout 8 gz topic -e -t "$ODOM_TOPIC" -n 1 2>/dev/null | python3 -c '
 import re,sys
 t=sys.stdin.read()
 m=re.search(r"position\s*\{(.*?)\}", t, re.S)
@@ -95,12 +164,17 @@ if not m:
 mm=re.search(r"x:\s*(-?[0-9.]+(?:[eE][-+]?[0-9]+)?)", m.group(1))
 print(mm.group(1) if mm else "0")'
 }
+ODOM_TOPIC="$(find_odom_topic)"
+N_GZ_TOPICS=$(timeout 8 gz topic -l 2>/dev/null | grep -c . || echo 0)
+N_SIMS=$(pgrep -fc '^gz sim' 2>/dev/null || echo 0)
 X0="$(gz_x)"
+[ -n "$X0" ] || X0=nan
 timeout 20 ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist \
   '{linear: {x: 0.4}}' >/dev/null 2>&1 &
 PUB=$!
 sleep 6
 X1="$(gz_x)"
+[ -n "$X1" ] || X1=nan
 kill $PUB 2>/dev/null || true
 wait $PUB 2>/dev/null || true
 
@@ -113,9 +187,7 @@ open(sys.argv[3], "w").write(str(int(moved)))' "$X0" "$X1" "$V"
 [ "$(cat "$V")" = 1 ] && p_moves=true
 rm -f "$V"
 
-# Everything the bring-up started is a child of this shell's process group.
-pkill -f "gz sim" 2>/dev/null || true
-pkill -f "parameter_bridge" 2>/dev/null || true
+kill_sims
 sleep 1
 
 {
@@ -128,6 +200,9 @@ sleep 1
   printf '  "g2_ros_cmd_moves": %s,\n' "$p_moves"
   printf '  "n_ranges": %d,\n'        "${N_RANGES:-0}"
   printf '  "n_finite": %d,\n'        "${N_FINITE:-0}"
+  printf '  "odom_topic": %s,\n'     "$(printf '%s' "$ODOM_TOPIC" | json_escape)"
+  printf '  "n_gz_topics": %d,\n'    "$N_GZ_TOPICS"
+  printf '  "n_sims_running": %d,\n' "$N_SIMS"
   printf '  "pose_x": "%s -> %s",\n'  "$X0" "$X1"
   printf '  "bringup_tail": %s\n'     "$(tail -c 1500 "$BR_LOG" | json_escape)"
   printf '}\n'

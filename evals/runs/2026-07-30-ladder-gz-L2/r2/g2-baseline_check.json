@@ -1,0 +1,15 @@
+{
+  "g2_bringup_found": true,
+  "bringup": "/tmp/eval-g2-baseline-vF5V/bringup.sh",
+  "g2_scan_in_ros": true,
+  "g2_scan_360": true,
+  "g2_clock_in_ros": true,
+  "g2_ros_cmd_moves": true,
+  "n_ranges": 360,
+  "n_finite": 360,
+  "odom_topic": "/model/diff_drive_robot/odometry",
+  "n_gz_topics": 21,
+  "n_sims_running": 1,
+  "pose_x": "6.3011261245000379e-19 -> 2.1235999999950153",
+  "bringup_tail": "Gazebo + ROS 2 bridge starting in background.\nLogs: /tmp/eval-g2-baseline-vF5V/logs/gz_sim.log , /tmp/eval-g2-baseline-vF5V/logs/ros_gz_bridge.log\n"
+}

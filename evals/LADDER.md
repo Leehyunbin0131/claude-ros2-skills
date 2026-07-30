@@ -208,7 +208,7 @@ Freezing the prompts now is what stops the ladder being reshaped after a result.
 | Rung | Mechanisms added | Status |
 | :--- | :--- | :--- |
 | **L1** (`g1`) | SDF world authoring; `gz-sim-physics-system`; a diff-drive robot with joints; `gz-sim-diff-drive-system` wired to those joints; headless `gz sim -s -r` | **run — 40/40**, every robot drove 1.65–1.69 m |
-| **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | checker being built |
+| **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | **run — 40/40** (after a grader fix; see below) |
 | **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | frozen, no checker yet |
 
 **L1's graders, validated before the rung ran** (`g1_check.sh`). Every check has
@@ -261,6 +261,39 @@ Rule 1 freezes a rung once it *has run*. Fixing a gradability flaw found while
 building the checker — the same stage that turned up the ogre2 crash — is
 allowed. Changing a rung after seeing a result is not, and this is recorded so
 the difference stays checkable.
+
+#### L2 almost failed for the wrong reason — the most instructive episode here
+
+`g2_ros_cmd_moves` first graded **6/10**, under the pre-registered ≤7/10 failure
+threshold. That is the ladder announcing a gap. It was the grader.
+
+The four "failing" cells reported `nan -> nan`, not `0 -> 0`. `nan` is not "the
+robot stayed still" — it is "no odometry was read at all". Those four were
+exactly the cells that left `<odom_topic>` out of the DiffDrive plugin, so
+gz-sim used its default `/model/<name>/odometry`. **The `g2` prompt never asked
+for the topic to be called `/odom`** (`g1`'s did). They did what was asked and
+the checker could not see it. Re-graded from the preserved workspaces after
+switching to discovery **by message type**: 40/40.
+
+The grader defects found on this rung, all by a number looking odd rather than
+by review:
+
+| # | Defect | Left in place |
+| :--- | :--- | :--- |
+| 1 | range parser expected inline `[a, b, c]`; `ros2 topic echo` prints a YAML block sequence | every cell fails |
+| 2 | odometry topic hardcoded to `/odom` | **4/10 false gap** |
+| 3 | `pkill -f "gz sim"` matches any command line containing that string, including the wrapper shell | kills its own parent |
+| 4 | a cell's `bringup.sh` leaves `gz sim` alive after the session; strays leak into `gz topic -l` | reads a simulation nobody is driving |
+| 5 | **`gz sim` ignores SIGTERM headless** — a stray survived 23 minutes and `pkill`, dying only to `kill -9` | cleanup silently does nothing |
+| 6 | **`set -o pipefail` + `grep -q`** — `grep -q` exits on match, SIGPIPEs the producer, `pipefail` reports the pipeline as failed | success read as failure |
+
+Number 6 is the one to remember: `cmd | grep -q PATTERN` can exit **non-zero on
+a match**, and it is racy, so it passed standalone and failed inside the checker.
+Capture first, then match.
+
+**The rule that saved this round is not one of the six above.** It was refusing
+a failure that arrived in a convenient shape. To a threshold, `nan` and `0` are
+both "did not move"; only one of them is a finding.
 
 #### One symptom row L1 cannot measure, stated rather than skipped
 

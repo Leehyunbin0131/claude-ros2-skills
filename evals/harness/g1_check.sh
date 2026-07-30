@@ -136,8 +136,14 @@ open(sys.argv[3], "w").write(str(int(moved)))' "$X0" "$X1" "$V"
   rm -f "$V"
 fi
 
+# gz sim ignores SIGTERM headless -- a stray was found alive 23 minutes after
+# its cell ended, surviving pkill and dying only to -9. Leftovers leak into
+# `gz topic -l` and can make a later check read a simulation nobody is driving.
 kill $SIM 2>/dev/null || true
+sleep 2
+kill -9 $SIM 2>/dev/null || true
 wait $SIM 2>/dev/null || true
+pkill -9 -f '^gz sim' 2>/dev/null || true
 
 {
   printf '{\n'

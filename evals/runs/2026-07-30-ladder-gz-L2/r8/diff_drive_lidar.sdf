@@ -1,0 +1,365 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="diff_drive_world">
+    <physics name="1ms" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>100 100</size>
+            </plane>
+          </geometry>
+          <material>
+            <ambient>0.8 0.8 0.8 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.8 0.8 0.8 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- A couple of boxes so the lidar has something to see -->
+    <model name="box_1">
+      <static>true</static>
+      <pose>2 0 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>1 1 1</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>1 1 1</size></box></geometry>
+          <material>
+            <ambient>0.8 0.2 0.2 1</ambient>
+            <diffuse>0.8 0.2 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="box_2">
+      <static>true</static>
+      <pose>0 -2 0.5 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>1 1 1</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>1 1 1</size></box></geometry>
+          <material>
+            <ambient>0.2 0.2 0.8 1</ambient>
+            <diffuse>0.2 0.2 0.8 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Enclosing walls so every lidar ray always hits something within
+         range, no matter where the robot drives inside the arena. -->
+    <model name="arena_walls">
+      <static>true</static>
+      <link name="link">
+        <collision name="wall_north_collision">
+          <pose>0 8 0.5 0 0 0</pose>
+          <geometry><box><size>16 0.2 1</size></box></geometry>
+        </collision>
+        <visual name="wall_north_visual">
+          <pose>0 8 0.5 0 0 0</pose>
+          <geometry><box><size>16 0.2 1</size></box></geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+
+        <collision name="wall_south_collision">
+          <pose>0 -8 0.5 0 0 0</pose>
+          <geometry><box><size>16 0.2 1</size></box></geometry>
+        </collision>
+        <visual name="wall_south_visual">
+          <pose>0 -8 0.5 0 0 0</pose>
+          <geometry><box><size>16 0.2 1</size></box></geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+
+        <collision name="wall_east_collision">
+          <pose>8 0 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 16 1</size></box></geometry>
+        </collision>
+        <visual name="wall_east_visual">
+          <pose>8 0 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 16 1</size></box></geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+
+        <collision name="wall_west_collision">
+          <pose>-8 0 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 16 1</size></box></geometry>
+        </collision>
+        <visual name="wall_west_visual">
+          <pose>-8 0 0.5 0 0 0</pose>
+          <geometry><box><size>0.2 16 1</size></box></geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="vehicle">
+      <pose>0 0 0.1 0 0 0</pose>
+
+      <link name="chassis">
+        <pose>0 0 0 0 0 0</pose>
+        <inertial>
+          <mass>5.0</mass>
+          <inertia>
+            <ixx>0.0625</ixx>
+            <iyy>0.125</iyy>
+            <izz>0.125</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="chassis_collision">
+          <geometry>
+            <box><size>0.4 0.3 0.15</size></box>
+          </geometry>
+        </collision>
+        <visual name="chassis_visual">
+          <geometry>
+            <box><size>0.4 0.3 0.15</size></box>
+          </geometry>
+          <material>
+            <ambient>0.2 0.6 0.2 1</ambient>
+            <diffuse>0.2 0.6 0.2 1</diffuse>
+          </material>
+        </visual>
+
+        <sensor name="gpu_lidar" type="gpu_lidar">
+          <pose>0.15 0 0.1 0 0 0</pose>
+          <topic>scan</topic>
+          <update_rate>10</update_rate>
+          <always_on>true</always_on>
+          <visualize>false</visualize>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.141592653589793</min_angle>
+                <max_angle>3.141592653589793</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>1</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.08</min>
+              <max>30.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </lidar>
+        </sensor>
+      </link>
+
+      <link name="left_wheel">
+        <pose>-0.05 0.175 -0.05 -1.5707963267948966 0 0</pose>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.00072</ixx>
+            <iyy>0.00072</iyy>
+            <izz>0.00125</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="left_wheel_collision">
+          <geometry>
+            <cylinder><radius>0.05</radius><length>0.04</length></cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="left_wheel_visual">
+          <geometry>
+            <cylinder><radius>0.05</radius><length>0.04</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.1 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="right_wheel">
+        <pose>-0.05 -0.175 -0.05 -1.5707963267948966 0 0</pose>
+        <inertial>
+          <mass>0.5</mass>
+          <inertia>
+            <ixx>0.00072</ixx>
+            <iyy>0.00072</iyy>
+            <izz>0.00125</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="right_wheel_collision">
+          <geometry>
+            <cylinder><radius>0.05</radius><length>0.04</length></cylinder>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="right_wheel_visual">
+          <geometry>
+            <cylinder><radius>0.05</radius><length>0.04</length></cylinder>
+          </geometry>
+          <material>
+            <ambient>0.1 0.1 0.1 1</ambient>
+            <diffuse>0.1 0.1 0.1 1</diffuse>
+          </material>
+        </visual>
+      </link>
+
+      <link name="caster_wheel">
+        <pose>0.15 0 -0.09 0 0 0</pose>
+        <inertial>
+          <mass>0.2</mass>
+          <inertia>
+            <ixx>0.0001</ixx>
+            <iyy>0.0001</iyy>
+            <izz>0.0001</izz>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyz>0</iyz>
+          </inertia>
+        </inertial>
+        <collision name="caster_collision">
+          <geometry>
+            <sphere><radius>0.025</radius></sphere>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.0</mu>
+                <mu2>0.0</mu2>
+              </ode>
+            </friction>
+          </surface>
+        </collision>
+        <visual name="caster_visual">
+          <geometry>
+            <sphere><radius>0.025</radius></sphere>
+          </geometry>
+        </visual>
+      </link>
+
+      <joint name="left_wheel_joint" type="revolute">
+        <parent>chassis</parent>
+        <child>left_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name="right_wheel_joint" type="revolute">
+        <parent>chassis</parent>
+        <child>right_wheel</child>
+        <axis>
+          <xyz>0 0 1</xyz>
+          <limit>
+            <lower>-1.79769e+308</lower>
+            <upper>1.79769e+308</upper>
+          </limit>
+        </axis>
+      </joint>
+
+      <joint name="caster_wheel_joint" type="ball">
+        <parent>chassis</parent>
+        <child>caster_wheel</child>
+      </joint>
+
+      <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>0.35</wheel_separation>
+        <wheel_radius>0.05</wheel_radius>
+        <odom_publish_frequency>20</odom_publish_frequency>
+        <topic>cmd_vel</topic>
+        <tf_topic>tf</tf_topic>
+        <frame_id>odom</frame_id>
+        <child_frame_id>chassis</child_frame_id>
+      </plugin>
+
+      <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher"/>
+
+    </model>
+
+  </world>
+</sdf>

@@ -1,0 +1,15 @@
+{
+  "g2_bringup_found": true,
+  "bringup": "/tmp/eval-g2-baseline-UPpo/bringup.sh",
+  "g2_scan_in_ros": true,
+  "g2_scan_360": true,
+  "g2_clock_in_ros": true,
+  "g2_ros_cmd_moves": true,
+  "n_ranges": 360,
+  "n_finite": 360,
+  "odom_topic": "/odom",
+  "n_gz_topics": 20,
+  "n_sims_running": 1,
+  "pose_x": "5.8485847623107591e-18 -> 2.0644664999915383",
+  "bringup_tail": "bringup started: gazebo pid group + ros_gz_bridge launched in background\n  gazebo log:  /tmp/diffbot_gz.log\n  bridge log:  /tmp/diffbot_bridge.log\n"
+}
