@@ -207,8 +207,8 @@ Freezing the prompts now is what stops the ladder being reshaped after a result.
 
 | Rung | Mechanisms added | Status |
 | :--- | :--- | :--- |
-| **L1** (`g1`) | SDF world authoring; `gz-sim-physics-system`; a diff-drive robot with joints; `gz-sim-diff-drive-system` wired to those joints; headless `gz sim -s -r` | running |
-| **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | frozen, no checker yet |
+| **L1** (`g1`) | SDF world authoring; `gz-sim-physics-system`; a diff-drive robot with joints; `gz-sim-diff-drive-system` wired to those joints; headless `gz sim -s -r` | **run — 40/40**, every robot drove 1.65–1.69 m |
+| **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | checker being built |
 | **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | frozen, no checker yet |
 
 **L1's graders, validated before the rung ran** (`g1_check.sh`). Every check has
@@ -240,6 +240,27 @@ the SDF asks for (verified: a world requesting `ogre2` runs fine under the flag)
 The machine stops being a variable. **No cell is scored on the crash**, and the
 crash is recorded here as an environment fact rather than smuggled in as a
 finding.
+
+From L2 up the checker has to execute the agent's own `bringup.sh`, so it cannot
+pass the flag on its own command line, and there is no environment variable for
+it (`GZ_SIM_RENDER_ENGINE_PATH` is a plugin search path, not a selection).
+[`harness/gzshim/gz`](./harness/gzshim/gz) is prepended to `PATH` instead and
+appends `--render-engine ogre` to any `gz sim` invocation. Verified to win even
+when the caller passes `--render-engine ogre2` explicitly *and* the SDF requests
+ogre2: 60 lidar ranges, no crash.
+
+#### `g2` and `g3` were revised before either ran, and here is exactly why
+
+Both originally ended "Give me the exact commands to bring it all up." That is
+not mechanically gradable — the checker would have had to parse free-form
+commands out of a transcript, which is the kind of judgement this project keeps
+out of graders. Both now ask for a `bringup.sh` the checker can execute. **The
+mechanism set is unchanged**; only the delivery format is.
+
+Rule 1 freezes a rung once it *has run*. Fixing a gradability flaw found while
+building the checker — the same stage that turned up the ogre2 crash — is
+allowed. Changing a rung after seeing a result is not, and this is recorded so
+the difference stays checkable.
 
 #### One symptom row L1 cannot measure, stated rather than skipped
 

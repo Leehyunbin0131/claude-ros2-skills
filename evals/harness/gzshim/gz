@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# PATH shim: force `gz sim` onto the ogre (Ogre 1.x) render engine.
+#
+# Why this exists. On this machine ogre2 -- Gazebo's default, and what
+# skills/gazebo-sim/SKILL.md tells you to write -- segfaults under
+# --headless-rendering inside Ogre::Hlms::createDatablock. Sensor topics get
+# advertised and then the process dies with no data.
+#
+# Ladder rungs L2 and up have to execute the agent's own bring-up script, so the
+# checker cannot simply pass --render-engine on its own command line. There is no
+# environment variable for it either (GZ_SIM_RENDER_ENGINE_PATH is a plugin
+# search path, not a selection). Prepending this directory to PATH is the only
+# way to take the machine out of the measurement.
+#
+# The flag goes LAST so it wins if the agent's script also passes one.
+# No cell is ever scored on the ogre2 crash; see evals/LADDER.md.
+set -uo pipefail
+REAL="/opt/ros/jazzy/opt/gz_tools_vendor/bin/gz"
+[ -x "$REAL" ] || REAL="$(PATH="${PATH#*:}" command -v gz)"
+if [ "${1:-}" = "sim" ]; then
+  shift
+  exec "$REAL" sim "$@" --render-engine ogre
+fi
+exec "$REAL" "$@"

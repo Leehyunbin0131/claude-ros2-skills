@@ -1,0 +1,12 @@
+{
+  "g1_world_found": true,
+  "world": "/tmp/eval-g1-baseline-5wqe/diff_drive_world.sdf",
+  "g1_sdf_valid": true,
+  "g1_sim_runs": true,
+  "g1_topics_present": true,
+  "g1_robot_moves": true,
+  "pose_x": "-5.4839599134778157e-20 -> 1.6943999999755019",
+  "topics": "/gazebo/resource_paths\n/model/diff_drive_robot/tf\n/odom\n/world/diff_drive_world/stats",
+  "sdf_check": "Valid.",
+  "sim_tail": ""
+}

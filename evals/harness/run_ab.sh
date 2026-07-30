@@ -38,8 +38,15 @@ case "$TASK" in
   # rung below them passes. The prompts are frozen now so the ladder cannot be
   # reshaped after seeing a result.
   g1) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, write a single SDF world file in the current directory containing a ground plane and a differential-drive robot. The robot must drive: publishing a `gz.msgs.Twist` with positive `linear.x` on the Gazebo topic `/cmd_vel` has to move it forward, and it must publish odometry on the Gazebo topic `/odom`. The world has to run headless with `gz sim -s -r`. No ROS bridge is needed for this task.' ;;
-  g2) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, in the current directory build an SDF world with a differential-drive robot carrying a 360-sample GPU lidar, plus whatever is needed to drive and read it from ROS 2. From ROS 2 I must be able to: see `sensor_msgs/msg/LaserScan` with finite ranges on `/scan`, see `rosgraph_msgs/msg/Clock` on `/clock`, and move the robot by publishing `geometry_msgs/msg/Twist` on the ROS topic `/cmd_vel`. Give me the exact commands to bring it all up.' ;;
-  g3) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, in the current directory create a robot described as a URDF that is published on `/robot_description` and spawned into a running Gazebo world with `ros_gz_sim`. The robot carries an IMU. From ROS 2 I must be able to see `sensor_msgs/msg/Imu` on `/imu`, and the `frame_id` on that message must be the URDF link name the sensor is mounted on. A ROS 2 node running with `use_sim_time` must see Gazebo time, not wall time. Give me the exact commands to bring it all up.' ;;
+  # g2/g3 REVISED 2026-07-30, before any cell of either ran, and recorded in
+  # LADDER.md. The frozen text ended "Give me the exact commands to bring it all
+  # up", which is not mechanically gradable -- the checker would have had to
+  # parse free-form commands out of a transcript. Asking for `bringup.sh`
+  # instead gives the checker an entry point it can execute. The mechanism set
+  # is unchanged. Fixing a gradability flaw before running is allowed; changing
+  # a rung after seeing a result is not.
+  g2) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, in the current directory build an SDF world with a differential-drive robot carrying a 360-sample GPU lidar, plus whatever is needed to drive and read it from ROS 2. Also write `bringup.sh` in the current directory that starts everything in the background and returns; it does not need to clean up. After `bash bringup.sh`, from ROS 2 I must be able to: see `sensor_msgs/msg/LaserScan` with 360 finite ranges on `/scan`, see `rosgraph_msgs/msg/Clock` on `/clock`, and move the robot by publishing `geometry_msgs/msg/Twist` on the ROS topic `/cmd_vel`.' ;;
+  g3) PROMPT='On ROS 2 Jazzy with Gazebo Harmonic, in the current directory create a robot described as a URDF that is published on `/robot_description` and spawned into a running Gazebo world with `ros_gz_sim`. The robot carries an IMU. Also write `bringup.sh` in the current directory that starts everything in the background and returns; it does not need to clean up. After `bash bringup.sh`, from ROS 2 I must be able to see `sensor_msgs/msg/Imu` on `/imu`, and the `frame_id` on that message must be the URDF link name the sensor is mounted on. A ROS 2 node running with `use_sim_time` must see Gazebo time, not wall time.' ;;
   *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3)" >&2; exit 2 ;;
 esac
 
@@ -156,7 +163,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6|t7|g1)
+    t5|t6|t7|g1|g2)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac
