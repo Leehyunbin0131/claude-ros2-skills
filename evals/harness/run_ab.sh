@@ -205,10 +205,10 @@ start_scenario() {
     tst1|tst2|tst3) : ;;
     mvt1|mvt2|mvt3) : ;;
     cor1|cor2|cor3) : ;;   # the node is the whole deliverable
-    dev1|dev2) : ;;        # the install is the system; nothing to bring up
+    dev1) : ;;             # the install is the system; nothing to bring up
     # dev3 says the scan and the TF chain are already published, so they must
     # actually be up during the cell -- the mistake qos1 paid for.
-    dev3) bash "$REPO/evals/harness/dev3_scenario.sh" up \
+    dev2|dev3) bash "$REPO/evals/harness/dev3_scenario.sh" up \
           >"$OUT/${TASK}_scenario.log" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     per1|per2) python3 "$REPO/evals/harness/camera_publisher.py" \
@@ -238,8 +238,8 @@ start_scenario() {
           sleep 1
         done ;;
     ctl1|ctl2|ctl3|tst1|tst2|tst3|mvt1|mvt2|mvt3) : ;;
-    cor1|cor2|cor3|dev1|dev2) : ;;
-    dev3) timeout 30 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
+    cor1|cor2|cor3|dev1) : ;;
+    dev2|dev3) timeout 30 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
     per1|per2) timeout 25 ros2 topic echo /camera/image_raw --once >/dev/null 2>&1 || true ;;
     per3) timeout 25 ros2 topic echo /depth/image_raw --once >/dev/null 2>&1 || true ;;
   esac
@@ -320,7 +320,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|ctl1|ctl2|ctl3|tst1|tst2|tst3|per1|per2|per3|mvt1|mvt2|mvt3|cor1|dev1)
+    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|ctl1|ctl2|ctl3|tst1|tst2|tst3|per1|per2|per3|mvt1|mvt2|mvt3|cor1|cor2|cor3|dev1|dev2|dev3)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac

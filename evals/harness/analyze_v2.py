@@ -68,6 +68,12 @@ COMPARISONS = {
     "mvt1": [],
     "mvt2": [],
     "mvt3": [],
+    "dev3": [],
+    "dev2": [],
+    "dev1": [],
+    "cor3": [],
+    "cor2": [],
+    "cor1": [],
 }
 
 
@@ -144,7 +150,8 @@ def main() -> int:
             grade = fn(c, workdir=str(f.parent))
         elif task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3",
                       "qos1", "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "per3", "mvt1", "mvt2", "mvt3",
-                      "ctl3", "tst3"):
+                      "ctl3", "tst3",
+                      "cor1", "cor2", "cor3", "dev1", "dev2", "dev3"):
             # Real-outcome verdicts were written next to the transcript by
             # t5_check.sh at cell time, while the workspace still existed.
             grade = fn(c, check=f.parent / f"{stem}_check.json")
@@ -173,7 +180,8 @@ def main() -> int:
     print("## Pass rate per check\n")
     order = [x for x in ("t4", "t1", "t2", "t3", "t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1",
                  "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "per3", "mvt1", "mvt2", "mvt3",
-                 "ctl3", "tst3")
+                 "ctl3", "tst3",
+                 "cor1", "cor2", "cor3", "dev1", "dev2", "dev3")
                  if not only or x in only]
     cellnames = [c for c in ("baseline", "scripts-only", "claude-md-only",
                              "patch", "skills")

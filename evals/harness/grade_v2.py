@@ -968,12 +968,40 @@ def mvt3(c: Cell, check: str | Path | None = None) -> dict:
         "mvt3_bringup_found", "mvt3_unused_transcript_key")
 
 
+
+def _simple(task, keys, found):
+    """Ladder rungs whose verdict file is written by a <task>_check.sh.
+
+    Every one of these graders was validated against a deliberately broken
+    reference before its round ran; the pairs are recorded in LADDER.md.
+    """
+    def fn(c, check=None, _k=keys, _f=found, _t=task):
+        return _external_checks(c, check, _k, _f, f"{_t}_unused_transcript_key")
+    fn.__name__ = task
+    return fn
+
+
+cor1 = _simple("cor1", ["cor1_tf_logged", "cor1_tf_correct", "cor1_params_used",
+                        "cor1_exits_clean"], "cor1_node_found")
+cor2 = _simple("cor2", ["cor2_tf_lines", "cor2_motion", "cor2_extrap",
+                        "cor2_exits_clean"], "cor2_node_found")
+cor3 = _simple("cor3", ["cor3_lifecycle_node", "cor3_silent_when_inactive",
+                        "cor3_publishes_when_active"], "cor3_node_found")
+dev1 = _simple("dev1", ["dev1_yaml_valid", "dev1_servers_load", "dev1_mppi",
+                        "dev1_footprint"], "dev1_params_found")
+dev2 = _simple("dev2", ["dev2_servers_up", "dev2_controller_active",
+                        "dev2_planner_active"], "dev2_bringup_found")
+dev3 = _simple("dev3", ["dev3_controller_active", "dev3_costmap_published",
+                        "dev3_obstacle_marked"], "dev3_bringup_found")
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
          "qos1": qos1, "ctl1": ctl1, "ctl2": ctl2, "tst1": tst1, "tst2": tst2,
          "per1": per1, "per2": per2, "per3": per3,
          "mvt1": mvt1, "mvt2": mvt2, "mvt3": mvt3,
-         "ctl3": ctl3, "tst3": tst3}
+         "ctl3": ctl3, "tst3": tst3,
+         "cor1": cor1, "cor2": cor2, "cor3": cor3,
+         "dev1": dev1, "dev2": dev2, "dev3": dev3}
 
 
 # --------------------------------------------------------------------------
