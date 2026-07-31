@@ -1,0 +1,15 @@
+{
+  "cor1_node_found": true,
+  "node": "/tmp/eval-cor1-baseline-PPx9/node.py",
+  "cor1_tf_logged": true,
+  "cor1_tf_correct": true,
+  "cor1_params_used": true,
+  "cor1_exits_clean": true,
+  "n_tf_lines": 1,
+  "xyz": "0.2000 0.0000 0.1000",
+  "x_with_param": "0.7000",
+  "exit_code": 0,
+  "param_exit_code": 0,
+  "elapsed_s": 1,
+  "run_tail": "[INFO] [1785541493.987851749] [static_tf_node]: TF 0.2 0.0 0.1\n"
+}

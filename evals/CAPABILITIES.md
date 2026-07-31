@@ -90,12 +90,12 @@ the L3 round runs.
 
 | Rung | Mechanisms added | Checks | Result |
 | :--- | :--- | :--- | ---: |
-| `cor1` | static TF broadcast + lookup, values driven by ROS parameters | tf_logged, tf_correct, **params_used**, exits_clean | grader validated |
-| `cor2` | + a dynamic transform, lookup at a stamp, extrapolation handled not crashed | — | not run |
-| `cor3` | + a lifecycle node whose publication is gated on the active state | — | not run |
-| `dev1` | a Nav2 param file the servers accept as-is | yaml_valid, **servers_load**, mppi, footprint | grader validated |
-| `dev2` | + the stack driven through lifecycle to active | — | not run |
-| `dev3` | + a costmap that ingests live scan data and marks an obstacle | — | not run |
+| `cor1` | static TF broadcast + lookup, values driven by ROS parameters | tf_logged, tf_correct, **params_used**, exits_clean | **40/40 reached** |
+| `cor2` | + a dynamic transform, lookup at a stamp, extrapolation handled not crashed | tf_lines, motion, **extrap**, exits_clean | running |
+| `cor3` | + a lifecycle node whose publication is gated on the active state | lifecycle_node, **silent_when_inactive**, publishes_when_active | queued |
+| `dev1` | a Nav2 param file the servers accept as-is | yaml_valid, **servers_load**, mppi, footprint | queued |
+| `dev2` | + the stack driven through lifecycle to active | servers_up, **controller_active**, planner_active | queued (prompt amended pre-run; see LADDER.md) |
+| `dev3` | + a costmap that ingests live scan data and marks an obstacle | controller_active, costmap_published, **obstacle_marked** | queued |
 
 `cor1`'s `params_used` re-runs the node with `-p tx:=0.7`: a node that
 hardcodes the translation prints the right default and ignores the override.

@@ -18,3 +18,45 @@ Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
 === cor1 rep 3 done
 scenario for task cor1 up (pids: )
 --- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-PPx9)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r4/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 4 done
+scenario for task cor1 up (pids: )
+--- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-lzqx)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r5/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 5 done
+scenario for task cor1 up (pids: )
+--- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-wLdr)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r6/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 6 done
+scenario for task cor1 up (pids: )
+--- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-3ZTc)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r7/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 7 done
+scenario for task cor1 up (pids: )
+--- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-zwUc)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r8/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 8 done
+scenario for task cor1 up (pids: )
+--- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-jE62)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r9/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 9 done
+scenario for task cor1 up (pids: )
+--- task cor1 / baseline  (model=sonnet, cwd=/tmp/eval-cor1-baseline-4M7g)
+    -> evals/runs/2026-08-01-sweep-coredev/cor1/r10/cor1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor1 <result.jsonl>
+=== cor1 rep 10 done
+scenario for task cor2 up (pids: )
+--- task cor2 / baseline  (model=sonnet, cwd=/tmp/eval-cor2-baseline-3r7d)
