@@ -120,7 +120,33 @@ case "$TASK" in
   #   applied and actually respected.
   mvt3) PROMPT='On ROS 2 Jazzy, in the current directory create a MoveIt 2 setup for a simple 3-joint revolute serial arm you define yourself as a URDF, with a matching SRDF declaring a planning group named `arm`. Write `bringup.sh` that starts `move_group` and everything it needs in the background and returns. Also write `plan.py` in the current directory which must: add a box collision object to the planning scene, verify the scene contains it, request a motion plan to a joint-space goal for the `arm` group, and print `POINTS <n>` for the returned trajectory followed by `OBJECTS <m>` where m is the number of collision objects the planning scene reports, then exit 0. After `bash bringup.sh`, running `python3 plan.py` must print `POINTS` with n greater than 1 and `OBJECTS` with m at least 1.' ;;
 
-  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|qos2|qos3|ctl1-3|tst1-3|per1-3|mvt1-3)" >&2; exit 2 ;;
+  # --- ros2-core ----------------------------------------------------------
+  # The remaining two skills, added to the same sweep. SIX PROMPTS FROZEN
+  # 2026-07-31 before any cell of either ran, per LADDER.md rule 1.
+  #
+  # L1 mechanisms: TF2 broadcast + listen; a lookup that must use
+  #   tf2::TimePointZero rather than "now"; parameters declared and read.
+  cor1) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that broadcasts a static transform from `base_link` to `sensor_link` with translation `(0.2, 0.0, 0.1)` and no rotation, then looks that transform back up through a `tf2_ros` buffer and logs a line `TF <x> <y> <z>` with the translation it read. It must take the three translation values from ROS parameters named `tx`, `ty`, `tz` (defaults as above). Exit with status 0 once it has logged the TF line.' ;;
+  # L2 adds: a dynamic (time-varying) transform; a lookup at a specific
+  #   stamp rather than latest; handling the extrapolation exception that
+  #   asking for a future stamp raises.
+  cor2) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that broadcasts a DYNAMIC transform `odom` -> `base_link` at 20 Hz where x increases by 0.05 m per second, and simultaneously looks up `odom` -> `base_link` at the timestamp of each broadcast, logging `TF <t> <x>`. It must also attempt one lookup 5 seconds in the future and log `EXTRAP <message>` with the exception text instead of crashing. Exit with status 0 after 20 TF lines and the EXTRAP line.' ;;
+  # L3 adds: a lifecycle node -- managed transitions, activation gating
+  #   publication, and an external transition request being honoured.
+  cor3) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python LIFECYCLE node named `counter` that publishes an incrementing `std_msgs/msg/Int32` on `/count` at 10 Hz, but ONLY while it is in the active state — nothing may be published while it is unconfigured or inactive. Log `STATE <label>` on every transition. The node must start unconfigured and stay running so that an external `ros2 lifecycle set` can drive it. Do not exit on your own.' ;;
+
+  # --- ros2-dev -----------------------------------------------------------
+  # L1 mechanisms: reading the shipped nav2_params.yaml as a baseline;
+  #   producing a config that Nav2's own parameter loading accepts.
+  dev1) PROMPT='On ROS 2 Jazzy with Nav2 installed, write `nav2_params.yaml` in the current directory: a complete Nav2 parameter file for a differential-drive robot with a 0.3 m radius circular footprint and a maximum speed of 0.4 m/s, using the MPPI controller. It must be loadable by the Nav2 servers as-is.' ;;
+  # L2 adds: bringing the stack up and driving it through lifecycle to active,
+  #   which is where a wrong plugin string or missing param actually bites.
+  dev2) PROMPT='On ROS 2 Jazzy with Nav2 installed, in the current directory produce a Nav2 parameter file and a `bringup.sh` that starts the Nav2 controller_server, planner_server, behavior_server, bt_navigator and a lifecycle manager in the background and returns; it does not need to clean up. Use the MPPI controller and a 0.3 m radius circular footprint. After `bash bringup.sh`, `ros2 lifecycle get /controller_server` and `ros2 lifecycle get /planner_server` must both report `active`.' ;;
+  # L3 adds: a costmap that actually ingests live sensor data and marks an
+  #   obstacle -- the layer must be configured AND the observation source wired.
+  dev3) PROMPT='On ROS 2 Jazzy with Nav2 installed, in the current directory produce a Nav2 parameter file and a `bringup.sh` that starts the Nav2 stack in the background and returns; it does not need to clean up. A `sensor_msgs/msg/LaserScan` is being published on `/scan` in frame `laser_frame`, and the transforms `map -> odom -> base_link -> laser_frame` are already being published by someone else. Configure the local costmap so that scan is an observation source marking obstacles. After `bash bringup.sh`, `/local_costmap/costmap` must be published and must contain at least one cell with cost above 250.' ;;
+
+  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|qos2|qos3|ctl1-3|tst1-3|per1-3|mvt1-3|cor1-3|dev1-3)" >&2; exit 2 ;;
 esac
 
 mkdir -p "$OUT"
@@ -178,6 +204,13 @@ start_scenario() {
     ctl1|ctl2|ctl3) : ;;
     tst1|tst2|tst3) : ;;
     mvt1|mvt2|mvt3) : ;;
+    cor1|cor2|cor3) : ;;   # the node is the whole deliverable
+    dev1|dev2) : ;;        # the install is the system; nothing to bring up
+    # dev3 says the scan and the TF chain are already published, so they must
+    # actually be up during the cell -- the mistake qos1 paid for.
+    dev3) bash "$REPO/evals/harness/dev3_scenario.sh" up \
+          >"$OUT/${TASK}_scenario.log" 2>&1 &
+        SCENARIO_PIDS+=($!) ;;
     per1|per2) python3 "$REPO/evals/harness/camera_publisher.py" \
           >"$OUT/${TASK}_scenario.log" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
@@ -205,6 +238,8 @@ start_scenario() {
           sleep 1
         done ;;
     ctl1|ctl2|ctl3|tst1|tst2|tst3|mvt1|mvt2|mvt3) : ;;
+    cor1|cor2|cor3|dev1|dev2) : ;;
+    dev3) timeout 30 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
     per1|per2) timeout 25 ros2 topic echo /camera/image_raw --once >/dev/null 2>&1 || true ;;
     per3) timeout 25 ros2 topic echo /depth/image_raw --once >/dev/null 2>&1 || true ;;
   esac
@@ -285,7 +320,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|ctl1|tst1|per1|mvt1)
+    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|ctl1|tst1|per1|mvt1|cor1|dev1)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac
