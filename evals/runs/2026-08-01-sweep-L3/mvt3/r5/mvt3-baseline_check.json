@@ -1,0 +1,16 @@
+{
+  "mvt3_bringup_found": true,
+  "bringup": "/tmp/eval-mvt3-baseline-GD59/bringup.sh",
+  "plan": "/tmp/eval-mvt3-baseline-GD59/plan.py",
+  "mvt3_move_group_up": true,
+  "mvt3_plan_runs": true,
+  "mvt3_points": true,
+  "mvt3_objects": true,
+  "n_points": 13,
+  "n_objects": 1,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 1,
+  "plan_tail": "POINTS 13\nOBJECTS 1\n",
+  "bringup_tail": "launched bringup (pid 10077), logging to log/bringup.log\nwaiting for move_group action server...\nmove_group is up.\n"
+}

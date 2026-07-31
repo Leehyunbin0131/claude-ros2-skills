@@ -1,0 +1,16 @@
+{
+  "mvt3_bringup_found": true,
+  "bringup": "/tmp/eval-mvt3-baseline-ABTr/bringup.sh",
+  "plan": "/tmp/eval-mvt3-baseline-ABTr/plan.py",
+  "mvt3_move_group_up": true,
+  "mvt3_plan_runs": true,
+  "mvt3_points": true,
+  "mvt3_objects": true,
+  "n_points": 14,
+  "n_objects": 1,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 1,
+  "plan_tail": "POINTS 14\nOBJECTS 1\n",
+  "bringup_tail": "Using ROS_DOMAIN_ID=25 (see /tmp/eval-mvt3-baseline-ABTr/.ros_domain_id)\nLaunching MoveIt bringup in the background (log: /tmp/eval-mvt3-baseline-ABTr/moveit_bringup.log)\nmove_group is up and ready.\n"
+}

@@ -1,0 +1,16 @@
+{
+  "mvt3_bringup_found": true,
+  "bringup": "/tmp/eval-mvt3-baseline-YlqR/bringup.sh",
+  "plan": "/tmp/eval-mvt3-baseline-YlqR/plan.py",
+  "mvt3_move_group_up": true,
+  "mvt3_plan_runs": true,
+  "mvt3_points": true,
+  "mvt3_objects": true,
+  "n_points": 12,
+  "n_objects": 1,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 0,
+  "plan_tail": "POINTS 12\nOBJECTS 1\n",
+  "bringup_tail": "Launched MoveIt bringup in the background (pid 16903).\nLogs: /tmp/eval-mvt3-baseline-YlqR/log/bringup.log\nWaiting for move_group to become ready...\nmove_group is ready.\n"
+}

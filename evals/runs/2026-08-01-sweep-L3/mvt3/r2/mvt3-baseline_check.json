@@ -1,0 +1,16 @@
+{
+  "mvt3_bringup_found": true,
+  "bringup": "/tmp/eval-mvt3-baseline-QECy/bringup.sh",
+  "plan": "/tmp/eval-mvt3-baseline-QECy/plan.py",
+  "mvt3_move_group_up": true,
+  "mvt3_plan_runs": true,
+  "mvt3_points": true,
+  "mvt3_objects": true,
+  "n_points": 17,
+  "n_objects": 1,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 3,
+  "plan_tail": "POINTS 17\nOBJECTS 1\n",
+  "bringup_tail": "Launching move_group in the background (log: /tmp/eval-mvt3-baseline-QECy/move_group.log)...\nWaiting for move_group to become ready (pid 3755)...\nmove_group is up (pid 3755).\n"
+}

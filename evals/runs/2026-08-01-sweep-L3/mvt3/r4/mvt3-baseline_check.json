@@ -1,0 +1,16 @@
+{
+  "mvt3_bringup_found": true,
+  "bringup": "/tmp/eval-mvt3-baseline-gkw1/bringup.sh",
+  "plan": "/tmp/eval-mvt3-baseline-gkw1/plan.py",
+  "mvt3_move_group_up": true,
+  "mvt3_plan_runs": true,
+  "mvt3_points": true,
+  "mvt3_objects": true,
+  "n_points": 16,
+  "n_objects": 1,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 1,
+  "plan_tail": "POINTS 16\nOBJECTS 1\n",
+  "bringup_tail": "move_group launch started in background (pid 8502), logging to /tmp/eval-mvt3-baseline-gkw1/moveit_bringup.log\nmove_group is ready\n"
+}

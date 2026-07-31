@@ -72,16 +72,16 @@ DDS domain, guarding a bringup against double-launch).
 | :--- | :--- | :--- | ---: |
 | `ctl1` | URDF `<ros2_control>`, `mock_components/GenericSystem`, controller_manager params, `joint_state_broadcaster` spawned | cm_running, jsb_active, joint_states | **30/30 reached** |
 | `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | both_active, **command_lands** | **20/20 reached** |
-| `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | builds, **custom_plugin**, component_active, joint_states | running |
+| `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | builds, **custom_plugin**, component_active, joint_states | **40/40 reached** |
 | `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
 | `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | **40/40 reached** |
-| `tst3` | + rosbag2 recorded programmatically and read back | builds, test_ran, no_failures, **bag_written** | running |
+| `tst3` | + rosbag2 recorded programmatically and read back | builds, test_ran, no_failures, **bag_written** | re-grading (the first pass measured a grader defect) |
 | `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | **36/40 reached** (1 cell lost to the QoS trap) |
 | `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | **38/40 reached** (1 cell lost to the QoS trap) |
-| `per3` | + 16UC1 depth → `PointCloud2` in metres | clouds, fields_ok, **metres**, **drops_invalid** | running |
+| `per3` | + 16UC1 depth → `PointCloud2` in metres | clouds, fields_ok, **metres**, **drops_invalid** | **32/40 reached** (2 cells lost to the QoS trap) |
 | `mvt1` | self-authored URDF+SRDF, `move_group` reaching a usable state | move_group_up, plan_service, group_known | **30/30 reached** (re-run; see LADDER.md) |
 | `mvt2` | + a real `GetMotionPlan` returning a trajectory | move_group_up, plan_runs, **points** | **30/30 reached** |
-| `mvt3` | + a collision object applied to and respected by the scene | move_group_up, plan_runs, points, **objects** | running |
+| `mvt3` | + a collision object applied to and respected by the scene | move_group_up, plan_runs, points, **objects** | **reached, clean** |
 
 ### `ros2-core` and `ros2-dev`
 
