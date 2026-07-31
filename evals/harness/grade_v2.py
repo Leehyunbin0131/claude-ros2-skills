@@ -561,8 +561,66 @@ def g3(c: Cell, check: str | Path | None = None) -> dict:
         "g3_bringup_found", "g3_unused_transcript_key")
 
 
+# --------------------------------------------------------------------------
+# TR1 — ros2-troubleshooting executor ladder, rung L1 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def tr1(c: Cell, check: str | Path | None = None) -> dict:
+    """Graded by running the cell's node.py against a live slow service.
+
+    Validated 2026-07-31 against three references, and validating them
+    corrected SKILL.md §3C in passing:
+
+        call_async + done callback        -> 5 results, rc 0, 7 s. passes.
+        spin_until_future_complete(node,  -> SILENT HANG, rc 124 at 45 s, no
+        fut) with no executor arg while      output whatsoever. This is the
+        on a MultiThreadedExecutor           real hang, and §3C does not
+                                             describe it.
+        nested spin inside a callback     -> NOT a hang. rclpy raises
+        while rclpy.spin runs                RuntimeError("Executor is already
+                                             spinning") in ~1 s. Loud and
+                                             immediate -- the opposite of what
+                                             §3C says happens.
+
+    The two failures fail through different checks, which is what makes rule 6's
+    mechanical diagnosis possible here.
+    """
+    return _external_checks(
+        c, check,
+        ["tr1_logs_5", "tr1_no_hang", "tr1_exits_clean"],
+        "tr1_node_found", "tr1_unused_transcript_key")
+
+
+# --------------------------------------------------------------------------
+# TR2 — ros2-troubleshooting executor ladder, rung L2 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def tr2(c: Cell, check: str | Path | None = None) -> dict:
+    """The service call moves into a subscription callback, and the node has to
+    hold its own 10 Hz heartbeat while calls are in flight.
+
+    Validated 2026-07-31 against three references. Every check has a failing
+    case, and `tr2_heartbeat_steady` has one that ISOLATES it -- the standard
+    `g3_spawned` failed to meet:
+
+        reentrant everywhere      -> all pass. 59 beats, max gap 0.31 s, rc 0.
+        rclpy's default group     -> all FAIL. Full deadlock, not partial
+        everywhere                   starvation: the response needs the same
+                                     group the blocked callback holds, so the
+                                     future never completes. rc 124.
+        reentrant CLIENT only,    -> logs_5, no_hang and exits_clean all PASS;
+        timer+sub left in the        only heartbeat_steady fails. Max gap
+        default group                **1.06 s** where 10 Hz means 0.1 s.
+
+    Measured as max gap, not average rate: an executor that stalls one second
+    per call still averages respectably, and the average is what hides it.
+    """
+    return _external_checks(
+        c, check,
+        ["tr2_logs_5", "tr2_no_hang", "tr2_exits_clean", "tr2_heartbeat_steady"],
+        "tr2_node_found", "tr2_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
-         "g1": g1, "g2": g2, "g3": g3}
+         "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2}
 
 
 # --------------------------------------------------------------------------
@@ -737,7 +795,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3"):
+    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)

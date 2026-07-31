@@ -1,0 +1,11 @@
+{
+  "tr1_node_found": true,
+  "node": "/tmp/eval-tr1-baseline-XMu6/node.py",
+  "tr1_logs_5": true,
+  "tr1_no_hang": true,
+  "tr1_exits_clean": true,
+  "n_results": 5,
+  "exit_code": 0,
+  "elapsed_s": 6,
+  "run_tail": "[INFO] [1785464881.244824917] [slow_check_client]: RESULT 1 True\n[INFO] [1785464882.240000907] [slow_check_client]: RESULT 2 True\n[INFO] [1785464883.239938880] [slow_check_client]: RESULT 3 True\n[INFO] [1785464884.239935218] [slow_check_client]: RESULT 4 True\n[INFO] [1785464885.239915985] [slow_check_client]: RESULT 5 True\n"
+}

@@ -1,0 +1,11 @@
+{
+  "tr1_node_found": true,
+  "node": "/tmp/eval-tr1-baseline-wj0l/node.py",
+  "tr1_logs_5": true,
+  "tr1_no_hang": true,
+  "tr1_exits_clean": true,
+  "n_results": 5,
+  "exit_code": 0,
+  "elapsed_s": 6,
+  "run_tail": "[INFO] [1785464908.596679433] [slow_check_client]: RESULT 1 True\n[INFO] [1785464909.591984757] [slow_check_client]: RESULT 2 True\n[INFO] [1785464910.592001260] [slow_check_client]: RESULT 3 True\n[INFO] [1785464911.591915876] [slow_check_client]: RESULT 4 True\n[INFO] [1785464912.591891707] [slow_check_client]: RESULT 5 True\n"
+}

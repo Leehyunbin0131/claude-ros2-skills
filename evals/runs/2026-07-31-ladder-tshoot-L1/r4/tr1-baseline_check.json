@@ -1,0 +1,11 @@
+{
+  "tr1_node_found": true,
+  "node": "/tmp/eval-tr1-baseline-1iEf/node.py",
+  "tr1_logs_5": true,
+  "tr1_no_hang": true,
+  "tr1_exits_clean": true,
+  "n_results": 5,
+  "exit_code": 0,
+  "elapsed_s": 10,
+  "run_tail": "[INFO] [1785464976.477828150] [slow_check_client]: RESULT 1 True\n[INFO] [1785464978.473079036] [slow_check_client]: RESULT 2 True\n[INFO] [1785464980.473034658] [slow_check_client]: RESULT 3 True\n[INFO] [1785464982.473112702] [slow_check_client]: RESULT 4 True\n[INFO] [1785464984.473067379] [slow_check_client]: RESULT 5 True\n"
+}
