@@ -383,11 +383,54 @@ running, after two progress reports from me that said it was.
 | Skill | Ladder |
 | :--- | :--- |
 | `ros2-troubleshooting` | §3C **done** (above). REP 103/105, lifecycle, DDS, bundled scripts: not yet written |
-| `ros2-perception` | not yet written |
+| `ros2-control` | `ctl1`–`ctl3` **frozen 2026-07-31**; `ctl1_check.sh` validated |
+| `ros2-testing` | `tst1`–`tst3` **frozen 2026-07-31**; checker pending |
+| `ros2-perception` | `per1`–`per3` **frozen 2026-07-31**; `per1_check.sh` validated |
+| `ros2-moveit` | `mvt1`–`mvt3` **frozen 2026-07-31**; checker pending |
 | `ros2-core` | not yet written |
-| `ros2-testing` | not yet written |
 | `ros2-dev` | not yet written |
-| `ros2-moveit` | not yet written |
+| `ros2-microros` | out of scope — no MCU on this machine, and a standing instruction not to verify it |
+
+## The 2026-07-31 coverage sweep
+
+Four skills had never had a ladder. All twelve prompts (`ctl1`–`ctl3`,
+`tst1`–`tst3`, `per1`–`per3`, `mvt1`–`mvt3`) were written and frozen in
+`run_ab.sh` **before any cell of any of them ran**, per rule 1. Checkers are
+built rung by rung because rule 4 stops the climb at the first failure, but no
+prompt can be reshaped once a result is visible.
+
+**Rung mechanisms, as required by rule 2:**
+
+| | L1 adds | L2 adds | L3 adds |
+| :--- | :--- | :--- | :--- |
+| `ctl` | URDF `<ros2_control>`; `mock_components/GenericSystem`; controller_manager params; `joint_state_broadcaster` spawned | a second controller claiming interfaces; commands reaching mocked state | a custom C++ `SystemInterface` pluginlib plugin replacing mock_components |
+| `tst` | a pytest registered with the build that `colcon test` actually runs | `launch_testing`: live node, `generate_test_description`, `ReadyToTest`, assertions on real pub/sub | rosbag2 recorded programmatically and read back inside the test |
+| `per` | `cv_bridge` round trip; BEST_EFFORT camera; republish | `CameraInfo` intrinsics; 3D→pixel projection; `vision_msgs` output | 16UC1 depth → `PointCloud2` in metres; invalid-pixel handling |
+| `mvt` | self-authored URDF + SRDF; `move_group` reaching a usable state | a real `GetMotionPlan` request returning a trajectory | a collision object applied to and respected by the planning scene |
+
+### Real Jazzy facts found while validating these graders
+
+Each cost a debugging cycle on a reference that *should* have worked, which is
+what validating a grader against deliberately broken material is for.
+
+- **`controller_manager` does not take `robot_description` as a parameter on
+  Jazzy.** It waits for the `/robot_description` **topic**, published by
+  `robot_state_publisher`. Passing it as a parameter logs
+  `Waiting for data on 'robot_description' topic to finish initialization`
+  forever, with no error and no failure.
+- **`--params-file` without `--ros-args` is silently ignored.** The node starts,
+  the hardware component loads and activates from the topic, and the failure
+  surfaces much later as
+  `The 'type' param was not defined for 'joint_state_broadcaster'` — which
+  points at the YAML rather than at the missing `--ros-args`.
+- **`ros2 topic echo` auto-negotiates QoS and therefore cannot probe a
+  reliability mismatch.** It reports data from a BEST_EFFORT publisher either
+  way. A default (RELIABLE) *rclpy* subscriber on the same topic receives 0 and
+  logs `offering incompatible QoS ... Last incompatible policy: RELIABILITY`.
+  Any check for this trap has to run a real node, not the CLI.
+- **A probe that reports only on a final timer reads as zero** when the checker
+  kills it as soon as the cell's node exits. `per1_check.sh` scored a correct
+  reference 0/2 until the probe was made to report continuously.
 
 ## What the files become
 

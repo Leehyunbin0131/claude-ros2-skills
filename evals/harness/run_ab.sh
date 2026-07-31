@@ -61,7 +61,66 @@ case "$TASK" in
   qos1) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/sensor` (`std_msgs/msg/Int32`) and logs a line `GOT <data>` for every message it receives. Exit with status 0 once it has logged 20 messages. A publisher for `/sensor` is already running.' ;;
   qos2) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to BOTH `/sensor` (`std_msgs/msg/Int32`) and `/config` (`std_msgs/msg/String`), logging `GOT <data>` per `/sensor` message and `CONFIG <data>` when it receives the configuration. `/config` carries a single value that was published once, before your node starts, and is never published again. Exit with status 0 once it has logged the CONFIG line and 20 GOT lines. Publishers for both topics are already running.' ;;
   qos3) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/sensor` (`std_msgs/msg/Int32`), `/config` (`std_msgs/msg/String`) and `/paced` (`std_msgs/msg/Int32`), logging `GOT <data>`, `CONFIG <data>` and `PACED <data>` respectively. `/config` was published once before your node starts and never again. The `/paced` publisher offers a 200 ms deadline. Exit with status 0 once it has logged the CONFIG line, 20 GOT lines and 10 PACED lines. All three publishers are already running.' ;;
-  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|qos2|qos3)" >&2; exit 2 ;;
+  # ========================================================================
+  # 2026-07-31 coverage sweep. Four skills that never had a ladder:
+  # ros2-control (ctl*), ros2-testing (tst*), ros2-perception (per*),
+  # ros2-moveit (mvt*). ALL TWELVE PROMPTS FROZEN 2026-07-31 before any cell
+  # of any of them ran, per LADDER.md rule 1. Checkers are built rung by rung
+  # (rule 4 stops at the first failure), but no prompt may be edited after its
+  # rung has run -- freezing all twelve now is what stops the ladder being
+  # reshaped once a result is visible.
+  #
+  # ros2-microros is deliberately absent: no MCU on this machine, and the user
+  # standing instruction is not to verify it.
+  # ========================================================================
+
+  # --- ros2-control -------------------------------------------------------
+  # L1 mechanisms: URDF <ros2_control> block; mock_components/GenericSystem;
+  #   controller_manager params YAML; joint_state_broadcaster + a controller
+  #   spawned; /joint_states actually populated.
+  ctl1) PROMPT='On ROS 2 Jazzy, in the current directory set up a minimal `ros2_control` system driven by `mock_components/GenericSystem` (no real hardware). One robot with two revolute joints `joint_a` and `joint_b`, each with a position command interface and position+velocity state interfaces. Write `bringup.sh` in the current directory that starts everything in the background and returns; it does not need to clean up. After `bash bringup.sh`, `ros2 topic echo /joint_states --once` must show both joint names, and `ros2 control list_controllers` must show `joint_state_broadcaster` active.' ;;
+  # L2 adds: a second controller claiming interfaces (forward_command_controller);
+  #   command actually flowing through to the mocked state; controller switching.
+  ctl2) PROMPT='On ROS 2 Jazzy, in the current directory set up a `ros2_control` system on `mock_components/GenericSystem` with two revolute joints `joint_a` and `joint_b` (position command interface, position+velocity state interfaces). Alongside `joint_state_broadcaster`, run a `forward_command_controller/ForwardCommandController` named `position_controller` that commands the position interface of both joints. Write `bringup.sh` in the current directory that starts everything in the background and returns; it does not need to clean up. After `bash bringup.sh`, both controllers must be `active` in `ros2 control list_controllers`, and publishing a `std_msgs/msg/Float64MultiArray` with values `[0.5, -0.5]` on the controller command topic must make `/joint_states` report `joint_a` at ~0.5 and `joint_b` at ~-0.5.' ;;
+  # L3 adds: a custom C++ SystemInterface hardware plugin (pluginlib export,
+  #   on_init/export_*_interfaces/read/write), replacing mock_components.
+  ctl3) PROMPT='On ROS 2 Jazzy, in the current directory create a colcon workspace with a C++ package `my_hw` providing a CUSTOM `hardware_interface::SystemInterface` plugin (not `mock_components`) for a robot with two revolute joints `joint_a` and `joint_b`, each exposing a position command interface and position+velocity state interfaces. The hardware must integrate commands into state so a commanded position is reflected back in the state interface. Build the workspace. Write `bringup.sh` in the current directory that starts everything in the background and returns; it does not need to clean up. After `bash bringup.sh`, `ros2 control list_hardware_components` must show your component active, `joint_state_broadcaster` must be active, and `/joint_states` must report both joints.' ;;
+
+  # --- ros2-testing -------------------------------------------------------
+  # L1 mechanisms: ament_cmake package with a registered pytest; colcon test
+  #   actually running it; test-result reporting a nonzero test count.
+  tst1) PROMPT='On ROS 2 Jazzy, in the current directory create a colcon workspace with one Python package `calc_pkg` containing a module with a function `add(a, b)`, and a pytest test file that tests it. Wire the test into the build so `colcon test` runs it. Build the workspace and run `colcon test`. When you are done, `colcon test-result --all` must report at least one test having run, and zero failures.' ;;
+  # L2 adds: launch_testing -- a live node under test, generate_test_description,
+  #   ReadyToTest, an active test asserting on real pub/sub traffic.
+  tst2) PROMPT='On ROS 2 Jazzy, in the current directory create a colcon workspace with one Python package `echo_pkg` containing a node `echo_node` that subscribes to `/in` (`std_msgs/msg/Int32`) and republishes the same value on `/out`. Write a `launch_testing` integration test that launches `echo_node`, publishes on `/in`, and asserts the value arrives on `/out` while the node is running. Wire it into the build so `colcon test` runs it. Build the workspace and run `colcon test`. When you are done, `colcon test-result --all` must report at least one test having run, and zero failures.' ;;
+  # L3 adds: rosbag2 -- programmatic recording of live traffic via rosbag2_py,
+  #   then reading the bag back and asserting on its contents, inside the test.
+  tst3) PROMPT='On ROS 2 Jazzy, in the current directory create a colcon workspace with one Python package `bag_pkg`. It must contain a node `ticker` that publishes an incrementing `std_msgs/msg/Int32` on `/ticks` at 10 Hz, and a test that: launches the node, records `/ticks` into a rosbag2 bag programmatically (not by shelling out to `ros2 bag record`), then opens that bag with the rosbag2 Python API and asserts it contains at least 10 messages on `/ticks` with increasing values. Wire it into the build so `colcon test` runs it. Build the workspace and run `colcon test`. When you are done, `colcon test-result --all` must report at least one test having run, and zero failures.' ;;
+
+  # --- ros2-perception ----------------------------------------------------
+  # L1 mechanisms: cv_bridge Image<->cv2 round trip; sensor-data QoS on a
+  #   BEST_EFFORT camera; publishing a derived Image back.
+  per1) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/camera/image_raw` (`sensor_msgs/msg/Image`, `bgr8`), converts each frame with `cv_bridge`, draws anything you like on it, and republishes the result as `sensor_msgs/msg/Image` on `/annotated`. Log a line `FRAME <n>` per frame processed. Exit with status 0 once it has processed 20 frames. A camera publisher is already running.' ;;
+  # L2 adds: camera_info intrinsics -- projecting a 3D point to pixel coords
+  #   using P (not K) from a real CameraInfo, plus vision_msgs output.
+  per2) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/camera/image_raw` (`sensor_msgs/msg/Image`) and `/camera/camera_info` (`sensor_msgs/msg/CameraInfo`). For each frame, project the fixed 3D point `(0.1, 0.05, 2.0)` in the camera optical frame into pixel coordinates using the camera intrinsics from the CameraInfo message, and publish a `vision_msgs/msg/Detection2D` on `/detection` whose bounding box centre is that pixel. Log a line `PIXEL <u> <v>` per frame. Exit with status 0 once it has published 20 detections. Publishers for both topics are already running.' ;;
+  # L3 adds: depth image -> point cloud; 16UC1 millimetre encoding; building a
+  #   PointCloud2 with correct fields and iterating it back.
+  per3) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/depth/image_raw` (`sensor_msgs/msg/Image`) and `/depth/camera_info` (`sensor_msgs/msg/CameraInfo`), converts each depth frame into a `sensor_msgs/msg/PointCloud2` in metres using the camera intrinsics, and publishes it on `/points`. The cloud must have `x`, `y`, `z` float32 fields and must not contain points for invalid depth pixels. Log a line `CLOUD <n_points>` per frame. Exit with status 0 once it has published 20 clouds. Publishers for both topics are already running.' ;;
+
+  # --- ros2-moveit --------------------------------------------------------
+  # L1 mechanisms: URDF+SRDF for a serial arm; move_group launched and
+  #   reaching a usable state; robot_state_publisher; planning scene alive.
+  mvt1) PROMPT='On ROS 2 Jazzy, in the current directory create a MoveIt 2 setup for a simple 3-joint revolute serial arm you define yourself as a URDF, with a matching SRDF declaring a planning group named `arm`. Write `bringup.sh` in the current directory that starts `move_group` and everything it needs in the background and returns; it does not need to clean up. After `bash bringup.sh`, `ros2 node list` must show `/move_group`, and `ros2 service list` must include `/plan_kinematic_path`.' ;;
+  # L2 adds: actually planning -- calling the GetMotionPlan service with a real
+  #   joint-space goal and getting a trajectory with points back.
+  mvt2) PROMPT='On ROS 2 Jazzy, in the current directory create a MoveIt 2 setup for a simple 3-joint revolute serial arm you define yourself as a URDF, with a matching SRDF declaring a planning group named `arm`. Write `bringup.sh` that starts `move_group` and everything it needs in the background and returns. Also write `plan.py` in the current directory: it must request a motion plan to a joint-space goal for the `arm` group and print `POINTS <n>` where n is the number of points in the returned trajectory, then exit 0. After `bash bringup.sh`, running `python3 plan.py` must print a `POINTS` line with n greater than 1.' ;;
+  # L3 adds: a collision object in the planning scene that invalidates the
+  #   direct path, so the plan must route around it -- requires the scene to be
+  #   applied and actually respected.
+  mvt3) PROMPT='On ROS 2 Jazzy, in the current directory create a MoveIt 2 setup for a simple 3-joint revolute serial arm you define yourself as a URDF, with a matching SRDF declaring a planning group named `arm`. Write `bringup.sh` that starts `move_group` and everything it needs in the background and returns. Also write `plan.py` in the current directory which must: add a box collision object to the planning scene, verify the scene contains it, request a motion plan to a joint-space goal for the `arm` group, and print `POINTS <n>` for the returned trajectory followed by `OBJECTS <m>` where m is the number of collision objects the planning scene reports, then exit 0. After `bash bringup.sh`, running `python3 plan.py` must print `POINTS` with n greater than 1 and `OBJECTS` with m at least 1.' ;;
+
+  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|qos2|qos3|ctl1-3|tst1-3|per1-3|mvt1-3)" >&2; exit 2 ;;
 esac
 
 mkdir -p "$OUT"
@@ -111,6 +170,20 @@ start_scenario() {
     qos1|qos2|qos3) python3 "$REPO/evals/harness/qos_publishers.py" \
           >"$OUT/${TASK}_scenario.log" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
+    # 2026-07-31 coverage sweep. ctl*/tst*/mvt* are self-contained: the
+    # deliverable is a workspace or a bringup script, and the cell brings up its
+    # own system. per* need a camera, and per3 a depth camera -- the prompts say
+    # "publishers are already running", so they must actually be running during
+    # the cell, not only at check time (the mistake qos1 paid for).
+    ctl1|ctl2|ctl3) : ;;
+    tst1|tst2|tst3) : ;;
+    mvt1|mvt2|mvt3) : ;;
+    per1|per2) python3 "$REPO/evals/harness/camera_publisher.py" \
+          >"$OUT/${TASK}_scenario.log" 2>&1 &
+        SCENARIO_PIDS+=($!) ;;
+    per3) python3 "$REPO/evals/harness/camera_publisher.py" --depth \
+          >"$OUT/${TASK}_scenario.log" 2>&1 &
+        SCENARIO_PIDS+=($!) ;;
   esac
   # Block until the system is actually up, instead of sleeping blind.
   case "$TASK" in
@@ -131,6 +204,9 @@ start_scenario() {
           case "$TL" in */sensor*) break ;; esac
           sleep 1
         done ;;
+    ctl1|ctl2|ctl3|tst1|tst2|tst3|mvt1|mvt2|mvt3) : ;;
+    per1|per2) timeout 25 ros2 topic echo /camera/image_raw --once >/dev/null 2>&1 || true ;;
+    per3) timeout 25 ros2 topic echo /depth/image_raw --once >/dev/null 2>&1 || true ;;
   esac
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
 }
@@ -209,7 +285,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1)
+    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|ctl1|tst1|per1|mvt1)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac

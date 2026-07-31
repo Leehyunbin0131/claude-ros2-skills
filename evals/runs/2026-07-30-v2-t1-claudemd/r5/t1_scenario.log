@@ -1,3 +1,0 @@
-scenario up: diff_drive_controller active on mock hardware
-diff_drive_controller diff_drive_controller/DiffDriveController  unconfigured
-Ctrl-C to stop.

@@ -203,19 +203,49 @@ def prescribes(text: str, token: str) -> bool:
 REPO_PATH = str(Path(__file__).resolve().parents[2])
 
 
-def leaked(c: Cell) -> list[str]:
-    """Tool inputs that reached this repository.
+# Strings that appear only inside repository *content*, never in text a cell can
+# produce on its own. The repo PATH alone is not evidence of a leak: `ps aux` and
+# /proc/<pid>/cmdline show the harness's own invocation, which carries the path,
+# so a cell that merely runs `ps` matches without ever reading a file. A round
+# was once reported as "5 of 10 cells reached the repository" on exactly that
+# false signal -- all five had been handed a process listing, and the one that
+# tried `cat .../isolate_cell.sh` got "No such file or directory" because the
+# bind mount had already emptied the directory.
+#
+# "name: ros2-" was tried as a marker and retired: it matched a cell's OWN
+# memory note recording "no ros2-* skills exist in this environment", which is
+# the cell reacting to CLAUDE.md, not reading this repo.
+CONTENT_MARKERS = (
+    "READ THIS FIRST — ROS 2 verification protocol",  # CLAUDE.md, exact heading
+    "unshare --map-root-user",                        # isolate_cell.sh
+    "Anti-manufacturing rules",                       # LADDER.md, exact phrase
+)
 
-    A cell that read evals/DESIGN.md or a scenario source has seen the answer
-    key. Round 2 had one such cell; isolate_cell.sh closes the hole, and this
-    stays as the check that it is actually closed. A round with any leak is
-    reported with the count, never silently averaged in.
+
+def leaked(c: Cell) -> list[str]:
+    """Tool calls that named this repository's path.
+
+    An attempt, not a breach -- see CONTENT_MARKERS. `leak_confirmed` is the one
+    that means the cell actually saw the answer key.
     """
     hits = []
     for name, inp in c.tools:
         blob = json.dumps(inp)
         if REPO_PATH in blob:
             hits.append(f"{name}: {blob[:120]}")
+    return hits
+
+
+def leak_confirmed(c: Cell) -> list[str]:
+    """Tool *results* that carried repository content back into the cell."""
+    hits = []
+    for _tid, (text, _err) in c.results.items():
+        if not text:
+            continue
+        for m in CONTENT_MARKERS:
+            if m in text:
+                hits.append(f"{m}: {text[:120]}")
+                break
     return hits
 
 
@@ -675,9 +705,92 @@ def qos1(c: Cell, check: str | Path | None = None) -> dict:
         "qos1_node_found", "qos1_unused_transcript_key")
 
 
+def ctl1(c: Cell, check: str | Path | None = None) -> dict:
+    """`ros2_control` on `mock_components/GenericSystem`, rung L1.
+
+    `joint_state_broadcaster` is NOT spawned automatically -- the classic silent
+    failure here is a system that comes up entirely, reports no error, and never
+    publishes `/joint_states`.
+
+    Graders validated against references on this install, 2026-07-31:
+
+        full bringup + jsb spawned -> cm=True  jsb=True  joint_states=True
+        same, spawner line removed -> cm=True  jsb=False joint_states=False
+
+    Two Jazzy facts this cost to learn, both silent:
+      * controller_manager reads `robot_description` from the TOPIC (published
+        by robot_state_publisher), not from a parameter. As a parameter it
+        waits forever logging "Waiting for data on 'robot_description' topic".
+      * `--params-file` without `--ros-args` is ignored, and surfaces much later
+        as "The 'type' param was not defined for 'joint_state_broadcaster'".
+    """
+    return _external_checks(
+        c, check,
+        ["ctl1_cm_running", "ctl1_jsb_active", "ctl1_joint_states"],
+        "ctl1_bringup_found", "ctl1_unused_transcript_key")
+
+
+def tst1(c: Cell, check: str | Path | None = None) -> dict:
+    """A pytest actually registered with the build, rung L1.
+
+    `tst1_test_ran` is the rung. Verified on this install before it ran: a
+    package whose test file exists but is not wired into the build exits
+    `colcon test` with code **0** and reports **0 tests**, so a grader reading
+    the exit code alone would pass a workspace that tests nothing.
+
+    References, 2026-07-31:
+
+        ament_python + test/  -> builds=True ran=True  no_fail=True  (1 test)
+        ament_cmake, no wiring-> builds=True ran=False no_fail=False (0 tests)
+        deliberately failing  -> builds=True ran=True  no_fail=False (1 fail)
+    """
+    return _external_checks(
+        c, check,
+        ["tst1_builds", "tst1_test_ran", "tst1_no_failures"],
+        "tst1_workspace_found", "tst1_unused_transcript_key")
+
+
+def per1(c: Cell, check: str | Path | None = None) -> dict:
+    """cv_bridge round trip against a BEST_EFFORT camera, rung L1.
+
+    References, 2026-07-31:
+
+        sensor-data QoS + republish -> frames=True  publishes=True (40 seen)
+        rclpy default (RELIABLE)    -> frames=False publishes=False, rc 124
+        receives but never publishes-> frames=True  publishes=False
+
+    `ros2 topic echo` auto-negotiates QoS and reports data from a BEST_EFFORT
+    publisher either way, so it cannot be used to probe this: the check has to
+    run a real node. A default rclpy subscriber gets 0 and logs
+    "offering incompatible QoS ... Last incompatible policy: RELIABILITY".
+    """
+    return _external_checks(
+        c, check,
+        ["per1_frames", "per1_publishes", "per1_no_hang", "per1_exits_clean"],
+        "per1_node_found", "per1_unused_transcript_key")
+
+
+def mvt1(c: Cell, check: str | Path | None = None) -> dict:
+    """A self-authored URDF+SRDF that move_group actually loads, rung L1.
+
+    `mvt1_group_known` is the check that separates "the process is running"
+    from "MoveIt has a planning group called arm": it reads the SRDF back off
+    move_group itself, so a file written but never passed to the node fails.
+
+    References, 2026-07-31:
+
+        URDF+SRDF+ompl pipeline params -> up=True  svc=True  group=True (GROUPS arm)
+        SRDF written but not passed    -> up=False svc=False group=False
+    """
+    return _external_checks(
+        c, check,
+        ["mvt1_move_group_up", "mvt1_plan_service", "mvt1_group_known"],
+        "mvt1_bringup_found", "mvt1_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
-         "qos1": qos1}
+         "qos1": qos1, "ctl1": ctl1, "tst1": tst1, "per1": per1, "mvt1": mvt1}
 
 
 # --------------------------------------------------------------------------

@@ -1,4 +1,0 @@
-scenario up: diff_drive_controller active on mock hardware
-diff_drive_controller   diff_drive_controller/DiffDriveController      active
-joint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster  active
-Ctrl-C to stop.

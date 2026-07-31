@@ -41,7 +41,7 @@ The most costly errors in AI-generated ROS 2 code are rarely syntax mistakes. In
 
 | Failure | What you see | Why an agent encounters the issue |
 | :--- | :--- | :--- |
-| **Silent failure** | `ros2 topic hz` shows 30 Hz; your callback never fires | A default RELIABLE subscriber attempts to connect to a BEST_EFFORT publisher. The code compiles and passes code review, but fails at the DDS middleware level. |
+| **Middleware mismatch** | `ros2 topic hz` shows 30 Hz; your callback never fires | A default RELIABLE subscriber cannot match a BEST_EFFORT publisher. It compiles, passes review, and fails below the application. rclpy does warn — `offering incompatible QoS ... Last incompatible policy: RELIABILITY` — but only at runtime, in the startup log, to whoever is reading it. |
 | **Wrong ground truth** | `/cmd_vel` indicates forward motion and `/odom` reports forward motion, but the physical robot moves **backward** | The static TF frame is inverted relative to physical mounting. Downstream components compute correctly *using the wrong transform*, producing no obvious errors. |
 | **Outdated API** | Code passes review but fails at runtime when calling an incorrect method | The agent uses deprecated Foxy or Humble API methods that were renamed or removed in Jazzy. |
 | **Invalid premise** | The agent writes 200 lines of code based on an assumption that you could have corrected in a single sentence | No mechanism prompts the agent to verify missing details before generating code. |
@@ -78,25 +78,30 @@ This repository optimizes for a single outcome: minimizing the risk of generatin
 
 ## Evals
 
-**A skill counts as verified here only when two questions are answered:** does it
-change what the agent produces on a task exercising its own content, and is this
-body the *smallest* one that produces that change? Correct is the floor, not the
-bar — fewer tokens and less text may achieve the same result, and until that is
-tested, "the agent used it" is half an answer.
+**The standard.** A skill earns its place only if it supplies something the agent
+**cannot reach on its own** — with its own knowledge, web search, and a live
+Jazzy install in front of it. Text that only tells the agent what it would have
+done anyway is cost without benefit.
 
-**No skill has completed verification yet.** Per-skill status is in
-[`evals/RESULTS.md`](./evals/RESULTS.md); results are published there as each
-skill clears both axes, including the ones that fail. Interim measurements are
-deliberately withheld — an earlier round produced a plausible conclusion from a
-single run that a controlled re-run then disconfirmed, and partial results spread
-that kind of error faster than it can be caught.
+**How it is measured.** A real task in a clean container, ten runs with the piece
+under test and ten without, graded by *running* what came out — a build, a topic
+carrying data, an exit code — never by reading it. Fisher exact test,
+Benjamini–Hochberg across the round.
 
-What is being measured, how it is graded, and how to re-run any of it:
-[`evals/README.md`](./evals/README.md). The current criterion — a skill supplies
-what the agent **cannot reach on its own**, given the model's knowledge, web
-search and a live install — is in
-[`evals/DESIGN.md`](./evals/DESIGN.md), and the status of every skill against it
-is in [`evals/RESULTS.md`](./evals/RESULTS.md).
+**What that has settled so far:**
+
+| Under test | Without it | With it | Verdict |
+| :--- | :---: | :---: | :--- |
+| Bundled check scripts | **0/10** reported a checked pass/fail verdict | **10/10** | **kept** — the only content here with a measured effect (q<0.001) |
+| `CLAUDE.md` verify protocol | **2/10** verified against the install | **10/10** | **kept** (q=0.002) |
+| Prose describing the scripts | — | — | **cut** — +0.00 on every check |
+| `ros2-package` skill body | **190/190** checks already passed | — | **deleted** |
+| `gazebo-sim` skill body | **108/110** | — | **deleted** |
+
+Two skills and roughly a quarter of the pack were removed for changing nothing
+measurable. The remaining skill bodies have not been through this yet and are not
+claimed as verified. Method, per-skill status and every raw run:
+[`evals/`](./evals/).
 
 ## Quickstart
 

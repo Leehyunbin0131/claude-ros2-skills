@@ -52,6 +52,14 @@ COMPARISONS = {
     "tr2": [("patch", "baseline")],
     "tr3": [("patch", "baseline")],
     "qos1": [("patch", "baseline")],
+    # 2026-07-31 coverage sweep. Rungs run baseline-only (LADDER.md rung
+    # mechanics), so there is no within-round comparison to register: the pass
+    # rate per real-outcome check IS the result, and the ≤7/10 threshold is the
+    # verdict.
+    "ctl1": [],
+    "tst1": [],
+    "per1": [],
+    "mvt1": [],
 }
 
 
@@ -108,6 +116,7 @@ def main() -> int:
     tally: dict[tuple[str, str, str], list[int]] = collections.defaultdict(lambda: [0, 0])
     tools: dict[tuple[str, str], collections.Counter] = collections.defaultdict(collections.Counter)
     leaks: list[tuple[str, str, int]] = []
+    breaches: list[tuple[str, str, int]] = []
     cells = 0
 
     files = sorted(root.rglob("*_result.jsonl")) + sorted(root.rglob("*_result.jsonl.gz"))
@@ -125,7 +134,8 @@ def main() -> int:
             grade = fn(c, live=False)
         elif task == "t4":
             grade = fn(c, workdir=str(f.parent))
-        elif task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1"):
+        elif task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3",
+                      "qos1", "ctl1", "tst1", "per1", "mvt1"):
             # Real-outcome verdicts were written next to the transcript by
             # t5_check.sh at cell time, while the workspace still existed.
             grade = fn(c, check=f.parent / f"{stem}_check.json")
@@ -135,6 +145,9 @@ def main() -> int:
         lk = grade_v2.leaked(c)
         if lk:
             leaks.append((f.parent.name, f.name, len(lk)))
+        cf = grade_v2.leak_confirmed(c)
+        if cf:
+            breaches.append((f.parent.name, f.name, len(cf)))
         for tn in c.tool_names():
             tools[(task, cell)][tn] += 1
         for check, v in grade.items():
@@ -149,7 +162,8 @@ def main() -> int:
 
     # --- per-check table ---------------------------------------------------
     print("## Pass rate per check\n")
-    order = [x for x in ("t4", "t1", "t2", "t3", "t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1") if not only or x in only]
+    order = [x for x in ("t4", "t1", "t2", "t3", "t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1",
+                 "ctl1", "tst1", "per1", "mvt1") if not only or x in only]
     cellnames = [c for c in ("baseline", "scripts-only", "claude-md-only",
                              "patch", "skills")
                  if any(cl == c for (_, _, cl) in tally)]
@@ -219,13 +233,23 @@ def main() -> int:
     print()
 
     print("## Isolation\n")
-    if leaks:
-        print(f"**{len(leaks)} of {cells} cells reached the repository** — these "
-              f"have seen the eval design and/or a scenario source, which names "
+    if breaches:
+        print(f"**BREACH — {len(breaches)} of {cells} cells obtained repository "
+              f"content**, i.e. saw the eval design or a scenario source naming "
               f"the planted answer. Reported, not averaged away:\n")
+        for rep, name, n in breaches:
+            print(f"- `{rep}/{name}` — {n} result(s)")
+        print("\nRun through `isolate_cell.sh` to close this.\n")
+    elif leaks:
+        print("Isolation held: no cell obtained repository content.\n")
+        print(f"{len(leaks)} of {cells} cells *named* the repository path in a "
+              f"tool call. That is not a breach on its own — `ps` and "
+              f"`/proc/<pid>/cmdline` expose the harness's own invocation, "
+              f"which contains the path, and the bind mount leaves the "
+              f"directory empty for anything that tries to read it:\n")
         for rep, name, n in leaks:
             print(f"- `{rep}/{name}` — {n} tool call(s)")
-        print("\nRun through `isolate_cell.sh` to close this.\n")
+        print()
     else:
         print("No cell reached the repository. Isolation held.\n")
 
