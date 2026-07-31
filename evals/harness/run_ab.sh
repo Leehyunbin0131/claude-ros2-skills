@@ -55,7 +55,13 @@ case "$TASK" in
   tr1) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory. It is a Python node that calls the `/slow_check` service (`std_srvs/srv/Trigger`) once per second from a timer callback, logs a line `RESULT <n> <success>` for each response it receives, and exits with status 0 once it has logged 5 results. The service takes about one second to respond. A `/slow_check` server is already running.' ;;
   tr2) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory. It must publish `std_msgs/msg/Int32` on `/heartbeat` at a steady 10 Hz, and at the same time call the `/slow_check` service (`std_srvs/srv/Trigger`) from inside its `/tick` subscription callback (`std_msgs/msg/Int32`) every time a tick arrives. Log `RESULT <n> <success>` per response. The heartbeat rate must not drop while service calls are in flight. Exit with status 0 after 5 results. The service takes about one second to respond; a `/slow_check` server and a `/tick` publisher are already running.' ;;
   tr3) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory. It must call the `/slow_check` service (`std_srvs/srv/Trigger`) five times CONCURRENTLY from a single timer callback and wait for all five, logging `RESULT <n> <success>` per response and a final `TOTAL <seconds>` line with the elapsed wall time for the batch. Each call takes about one second, so five sequential calls would take about five seconds; the batch must finish in under three. Exit with status 0. A `/slow_check` server is already running.' ;;
-  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3)" >&2; exit 2 ;;
+  # ros2-troubleshooting QoS ladder (evals/LADDER.md). All three prompts FROZEN
+  # 2026-07-31 before any cell ran, per LADDER.md rule 1. qos2/qos3 have no
+  # checker yet -- rule 4 stops at the first rung that fails.
+  qos1) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/sensor` (`std_msgs/msg/Int32`) and logs a line `GOT <data>` for every message it receives. Exit with status 0 once it has logged 20 messages. A publisher for `/sensor` is already running.' ;;
+  qos2) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to BOTH `/sensor` (`std_msgs/msg/Int32`) and `/config` (`std_msgs/msg/String`), logging `GOT <data>` per `/sensor` message and `CONFIG <data>` when it receives the configuration. `/config` carries a single value that was published once, before your node starts, and is never published again. Exit with status 0 once it has logged the CONFIG line and 20 GOT lines. Publishers for both topics are already running.' ;;
+  qos3) PROMPT='On ROS 2 Jazzy, write `node.py` in the current directory: a Python node that subscribes to `/sensor` (`std_msgs/msg/Int32`), `/config` (`std_msgs/msg/String`) and `/paced` (`std_msgs/msg/Int32`), logging `GOT <data>`, `CONFIG <data>` and `PACED <data>` respectively. `/config` was published once before your node starts and never again. The `/paced` publisher offers a 200 ms deadline. Exit with status 0 once it has logged the CONFIG line, 20 GOT lines and 10 PACED lines. All three publishers are already running.' ;;
+  *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|qos2|qos3)" >&2; exit 2 ;;
 esac
 
 mkdir -p "$OUT"
@@ -88,7 +94,23 @@ start_scenario() {
     t6) : ;;  # ladder rung L2, same shape as t5
     t7) : ;;  # ladder rung L3
     g1|g2|g3) : ;;  # gazebo ladder; the deliverable is a world that runs
-    tr1|tr2|tr3) : ;;  # executor ladder; tr1_check.sh runs its own service
+    # The executor and QoS ladders MUST have their scenario up during the cell,
+    # not only during the check. Both prompt families say "a server/publisher is
+    # already running", and qos1 in particular cannot be solved without
+    # inspecting the publisher's QoS. Running the scenario only at check time
+    # made that sentence false: cells ran `ros2 topic info /sensor -v`, got
+    # "Unknown topic", and had to guess. Four of ten noticed /sensor was absent.
+    tr1|tr2|tr3) python3 "$REPO/evals/harness/slow_trigger_server.py" \
+          >"$OUT/${TASK}_scenario.log" 2>&1 &
+        SCENARIO_PIDS+=($!)
+        if [ "$TASK" != tr1 ]; then
+          python3 "$REPO/evals/harness/tick_publisher.py" \
+            >>"$OUT/${TASK}_scenario.log" 2>&1 &
+          SCENARIO_PIDS+=($!)
+        fi ;;
+    qos1|qos2|qos3) python3 "$REPO/evals/harness/qos_publishers.py" \
+          >"$OUT/${TASK}_scenario.log" 2>&1 &
+        SCENARIO_PIDS+=($!) ;;
   esac
   # Block until the system is actually up, instead of sleeping blind.
   case "$TASK" in
@@ -103,7 +125,12 @@ start_scenario() {
     t6) : ;;
     t7) : ;;
     g1|g2|g3) : ;;
-    tr1|tr2|tr3) : ;;
+    tr1|tr2|tr3) timeout 25 ros2 service list 2>/dev/null | grep -q slow_check || sleep 3 ;;
+    qos1|qos2|qos3) for _ in $(seq 1 20); do
+          TL="$(timeout 5 ros2 topic list 2>/dev/null || true)"
+          case "$TL" in */sensor*) break ;; esac
+          sleep 1
+        done ;;
   esac
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
 }
@@ -182,7 +209,7 @@ run_cell() {
   # task is about builds cleanly, so reading the build log is not enough --
   # see the discrimination table in t5_check.sh.
   case "$TASK" in
-    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3)
+    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1)
       bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
         "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
   esac

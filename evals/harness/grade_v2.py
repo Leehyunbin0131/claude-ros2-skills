@@ -646,8 +646,38 @@ def tr3(c: Cell, check: str | Path | None = None) -> dict:
         "tr3_node_found", "tr3_unused_transcript_key")
 
 
+# --------------------------------------------------------------------------
+# QOS1 — ros2-troubleshooting QoS ladder, rung L1 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def qos1(c: Cell, check: str | Path | None = None) -> dict:
+    """`/sensor` is offered BEST_EFFORT; a default RELIABLE subscriber gets
+    nothing.
+
+    Verified on this install before the rung ran: a default subscriber receives
+    **0** messages in 5 s, an explicit BEST_EFFORT one receives **99**.
+    References, 2026-07-31:
+
+        explicit BEST_EFFORT -> 20 messages in 1 s, rc 0. all pass.
+        rclpy default        -> 0 messages, rc 124 at 40 s. all fail.
+
+    The three checks are NOT independent here and that is stated rather than
+    implied: a node receiving nothing cannot log 20 messages nor exit 0.
+    `qos1_receives` is the rung; the other two catch a node that receives and
+    then mishandles its own exit.
+
+    Recorded but not scored: Jazzy emits
+    "offering incompatible QoS. No messages will be received ... RELIABILITY",
+    so this failure is not as silent as the skill and README describe.
+    """
+    return _external_checks(
+        c, check,
+        ["qos1_receives", "qos1_no_hang", "qos1_exits_clean"],
+        "qos1_node_found", "qos1_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
-         "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3}
+         "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
+         "qos1": qos1}
 
 
 # --------------------------------------------------------------------------
@@ -822,7 +852,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3"):
+    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)
