@@ -892,10 +892,88 @@ def mvt2(c: Cell, check: str | Path | None = None) -> dict:
         "mvt2_bringup_found", "mvt2_unused_transcript_key")
 
 
+def ctl3(c: Cell, check: str | Path | None = None) -> dict:
+    """A custom C++ SystemInterface plugin, rung L3.
+
+    `ctl3_custom_plugin` is the rung: a workspace that quietly falls back to
+    `mock_components/GenericSystem` satisfies every other check. Read from
+    `ros2 control list_hardware_components` at runtime, so any plugin name the
+    cell chooses is accepted as long as it is not a shipped mock.
+
+    References on this install, 2026-07-31 -- identical except for one <plugin>
+    line, so only the plugin check separates them:
+
+        my_hw/IntegratingSystem        -> builds custom active joint_states 4/4
+        mock_components/GenericSystem  -> custom_plugin FALSE, other three pass
+    """
+    return _external_checks(
+        c, check,
+        ["ctl3_builds", "ctl3_custom_plugin", "ctl3_component_active",
+         "ctl3_joint_states"],
+        "ctl3_bringup_found", "ctl3_unused_transcript_key")
+
+
+def tst3(c: Cell, check: str | Path | None = None) -> dict:
+    """rosbag2 recorded programmatically and read back, rung L3.
+
+    `tst3_bag_written` is the rung, graded from what the run left on disk -- a
+    metadata.yaml with a non-empty storage file beside it, created after this
+    run started. Grepping the source for "rosbag2" would pass a test that
+    imports it and records nothing.
+
+    References, 2026-07-31:
+
+        rosbag2_py writer + reader -> builds ran no_fail bag_written  4/4
+        live-traffic assertion only-> bag_written FALSE, other three pass
+    """
+    return _external_checks(
+        c, check,
+        ["tst3_builds", "tst3_test_ran", "tst3_no_failures", "tst3_bag_written"],
+        "tst3_workspace_found", "tst3_unused_transcript_key")
+
+
+def per3(c: Cell, check: str | Path | None = None) -> dict:
+    """16UC1 depth to a metric PointCloud2, rung L3.
+
+    The scenario publishes depth in MILLIMETRES ramping 500..3000 with the left
+    fifth zeroed for "no return", so two independent mistakes are visible:
+
+        correct           -> n=15360 zmin=1.003 zmax=3.000   metres+drops pass
+        left in mm        -> zmax=3000.000                    metres FAILS
+        zeros kept        -> n=19200 zmin=0.000               both FAIL
+
+    15360 is 4/5 of the 19200-pixel frame, which is exactly the valid region.
+    """
+    return _external_checks(
+        c, check,
+        ["per3_clouds", "per3_fields_ok", "per3_metres", "per3_drops_invalid"],
+        "per3_node_found", "per3_unused_transcript_key")
+
+
+def mvt3(c: Cell, check: str | Path | None = None) -> dict:
+    """A collision object the planning scene actually holds, rung L3.
+
+    `mvt3_objects` is the rung. Publishing a CollisionObject on
+    /collision_object and never waiting leaves the scene empty while the plan
+    still succeeds -- so POINTS alone cannot tell the two apart.
+
+    References, 2026-07-31, identical but for how the object is applied:
+
+        ApplyPlanningScene service -> POINTS 14 OBJECTS 1   4/4
+        published on the topic     -> POINTS 14 OBJECTS 0   objects FAILS
+    """
+    return _external_checks(
+        c, check,
+        ["mvt3_move_group_up", "mvt3_plan_runs", "mvt3_points", "mvt3_objects"],
+        "mvt3_bringup_found", "mvt3_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
          "qos1": qos1, "ctl1": ctl1, "ctl2": ctl2, "tst1": tst1, "tst2": tst2,
-         "per1": per1, "per2": per2, "mvt1": mvt1, "mvt2": mvt2}
+         "per1": per1, "per2": per2, "per3": per3,
+         "mvt1": mvt1, "mvt2": mvt2, "mvt3": mvt3,
+         "ctl3": ctl3, "tst3": tst3}
 
 
 # --------------------------------------------------------------------------
