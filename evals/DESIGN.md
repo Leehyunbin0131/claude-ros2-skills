@@ -69,7 +69,14 @@ keeping a small number of pointers, not for deleting them.
 > **Category 3, as illustrated, did not survive measurement.** The example
 > written here was: asked to "set up Nav2", the agent writes a parameter file
 > instead of first asking for footprint and drive type. Round 1's `t3` measured
-> baseline asking unprompted **4/5**, so that is not a gap.
+> baseline asking unprompted **4/5**.
+>
+> **That figure is unreliable, found by a later audit.** 2 of the 5 baseline
+> cells had read the repository — one read 200 lines of `TASKS.md`, which
+> states T3's grader verbatim — and both passed. The clean subset is **2/3
+> (67%)**, not 4/5. Weaker evidence either way, and T3 has never been re-run
+> under isolation to settle it. See the correction in
+> [`RESULTS.md`](./RESULTS.md), round 1.
 >
 > Round 3 then found a real instance — the agent verifying against the install
 > instead of answering from memory, 3/10 vs 10/10 — and round 4 showed that

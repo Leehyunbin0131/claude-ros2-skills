@@ -187,6 +187,18 @@ Two things were learned standing these up, both recorded in the scripts:
 discriminates, so the grader can compare what the agent told the user to publish
 against what the running controller actually subscribes to.
 
+> **AUDIT CORRECTION.** This never happened. `grade_v2.t1()` only computes
+> `t1_command_runs` when called with `live=True`; `analyze_v2.py` hardcodes
+> `live=False` for every T1 analysis, so this check has been `None` in every
+> T1 round (1, 3, and 4) — zero data points, ever. Every published T1 result
+> rests on the two transcript-tier checks alone. Separately, even with
+> `live=True` the implementation does not execute the command against the
+> scenario — it regex-matches the transcript for a `ros2 topic pub` call
+> containing the right type name, which is a weaker claim than "run verbatim"
+> above. See [`RESULTS.md`](./RESULTS.md), round 1, for the full note. Left
+> open rather than fixed here: wiring `live=True` into `analyze_v2.py` and
+> re-running T1 is a measurement decision, not a doc fix.
+
 
 ---
 

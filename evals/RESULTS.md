@@ -69,8 +69,23 @@ scripts rather than any skill text.**
 | :--- | :--- | :--- |
 | T1 | version-specific breakage | baseline names `TwistStamped` **5/5 with zero searches** — it knows. It also volunteers the nonexistent `use_stamped_vel` 5/5, so it has the right fact and a wrong one side by side and no habit of checking. Both skill effects point the right way, neither clears the bar |
 | T2 | content that exists nowhere else | `scripts-only` vs `baseline` **+1.00** on "ran the script" and "reported its verdict" (q=0.063). `skills` vs `scripts-only` **+0.00 on every check** |
-| T3 | asking before writing | **null.** Baseline asks for footprint and drive type before writing config 4/5 on its own |
+| T3 | asking before writing | reported **null** at the time: baseline asks for footprint and drive type before writing config 4/5 on its own. **Corrected by a later audit — see below.** |
 | T4 | null control | 5/5 vs 5/5. Gate passed |
+
+> **AUDIT CORRECTION, added after the round was closed.** This round predates
+> `isolate_cell.sh`, and unlike every round after it, this write-up never carried
+> an Isolation section. A full-project leak scan found **2 of the 5 `t3-baseline`
+> cells had read the repository** — `r2` read 200 lines of `TASKS.md`, which
+> states T3's grader verbatim ("a question mentions footprint / inscribed
+> radius / robot radius", "differential / omni / ackermann"); `r3` listed the
+> repo directory. **Both leaked cells passed all three T3 checks.** Excluding
+> them: `t3_asked_before_writing`, `t3_asked_footprint`, and
+> `t3_asked_drive_type` each drop from the reported **4/5 (80%)** to a clean
+> **2/3 (67%)** — still not zero, but a materially weaker "asks unprompted"
+> story than what was published and than what fed into `DESIGN.md`'s original
+> category-3 discussion. T3 has never been re-run under isolation. Nothing
+> currently shipped rests on this number, but the figure above is unreliable
+> and should not be cited without this caveat.
 
 Two of the three predictions recorded in [`TASKS.md`](./TASKS.md) before the
 round held; T3 did not. In v1 that same behaviour measured 1/7 against 5/7 and
@@ -84,6 +99,25 @@ act. Category 2 (files the agent cannot reach) is the only category with support
 so far, and even there the prose describing the files adds nothing measurable on
 top of shipping them. The two lines v1 added to the skills are now expected to
 fail as well.
+
+> **AUDIT CORRECTION, added after the round was closed — a second, structural
+> gap.** `t1_command_runs` is `t1`'s only real-outcome check — TASKS.md
+> describes it as running the agent's command "verbatim against a live
+> `diff_drive_controller`" and reading actual wheel velocity. It has **never
+> graded a single cell, in this round or any later T1 round.** `grade_v2.t1()`
+> only computes it when called with `live=True`; `analyze_v2.py` hardcodes
+> `fn(c, live=False)` for every T1 analysis, so the field is `None` every time.
+> Every T1 conclusion in this project — including the `ros2-control` `/cmd_vel`
+> row deletion in round 4 — rests entirely on transcript-tier checks
+> (`t1_correct_type` is a regex for "TwistStamped" in the final answer text;
+> `t1_no_invented_param` and `t1_searched_or_read` read tool calls), never on
+> the real-outcome tier this project's own check-anchoring hierarchy calls
+> strongest. Separately, even with `live=True` the implementation does not
+> execute anything — it regex-matches the transcript for a `ros2 topic pub`
+> invocation containing the right type name, which is weaker than "runs
+> verbatim" as described. Not corrected here: wiring this up and re-running T1
+> is a real measurement decision, not a documentation fix, and is left as an
+> open item rather than done unprompted.
 
 ## v2 round 2 — the bundled scripts earn their place
 
