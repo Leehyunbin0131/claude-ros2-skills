@@ -98,3 +98,14 @@ because every one of them fails without an error.
   `AMENT_TRACE_SETUP_FILES: unbound variable`.
 - `ros2 topic echo` prints float arrays as YAML block sequences, not inline
   `[a, b, c]` — a naive parser reads 0 elements from a real lidar scan.
+- A URDF with **no acceleration limits** makes MoveIt's
+  `AddTimeOptimalParameterization` response adapter fail, and the whole plan is
+  reported `FAILURE` (99999) **even though the geometric path was computed and
+  returned**. Limits go in `joint_limits.yaml` under
+  `robot_description_planning`, or in the URDF. With them: `CODE 1`, 14 points.
+  Without: `CODE 99999`, 6 points — a result that looks partly right and is
+  labelled a total failure.
+- MoveIt planning-pipeline parameters are namespaced under the pipeline name
+  (`ompl.planning_plugins`, not `planning_plugins`), and `joint_limits.yaml`
+  under `robot_description_planning`. Both confirmed by reading
+  `moveit_configs_builder.py` on this install rather than by guessing.

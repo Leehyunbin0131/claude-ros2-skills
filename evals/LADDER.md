@@ -408,6 +408,23 @@ prompt can be reshaped once a result is visible.
 | `per` | `cv_bridge` round trip; BEST_EFFORT camera; republish | `CameraInfo` intrinsics; 3D→pixel projection; `vision_msgs` output | 16UC1 depth → `PointCloud2` in metres; invalid-pixel handling |
 | `mvt` | self-authored URDF + SRDF; `move_group` reaching a usable state | a real `GetMotionPlan` request returning a trajectory | a collision object applied to and respected by the planning scene |
 
+### Never edit the harness while a round is running
+
+`bash` reads a script incrementally as it executes it. Rewriting `run_ab.sh`
+while cells are running makes the still-executing copy jump to a wrong byte
+offset and die mid-cell.
+
+That happened here: registering `per2` and `mvt2` in `run_ab.sh` while `mvt1`'s
+reps were in flight truncated **8 of 10 cells**. They ended mid-tool-call, no
+checker ran, and no `check.json` was written — and a truncated cell is
+indistinguishable from a failing one, so the whole rung had to be discarded and
+re-run rather than reported. The discarded transcripts are kept as
+`mvt1-DISCARDED-mid-round-edit/`.
+
+`tst1`, `ctl1` and `per1` survived the same window because every one of their
+cells got far enough to write a verdict file; that is luck, not a margin to
+rely on. **Queue harness changes until the round finishes.**
+
 ### Real Jazzy facts found while validating these graders
 
 Each cost a debugging cycle on a reference that *should* have worked, which is

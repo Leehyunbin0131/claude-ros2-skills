@@ -63,6 +63,7 @@ COMPARISONS = {
     "per1": [],
     "per2": [],
     "mvt1": [],
+    "mvt2": [],
 }
 
 
@@ -138,7 +139,7 @@ def main() -> int:
         elif task == "t4":
             grade = fn(c, workdir=str(f.parent))
         elif task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3",
-                      "qos1", "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "mvt1"):
+                      "qos1", "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "mvt1", "mvt2"):
             # Real-outcome verdicts were written next to the transcript by
             # t5_check.sh at cell time, while the workspace still existed.
             grade = fn(c, check=f.parent / f"{stem}_check.json")
@@ -166,7 +167,7 @@ def main() -> int:
     # --- per-check table ---------------------------------------------------
     print("## Pass rate per check\n")
     order = [x for x in ("t4", "t1", "t2", "t3", "t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1",
-                 "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "mvt1")
+                 "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "mvt1", "mvt2")
                  if not only or x in only]
     cellnames = [c for c in ("baseline", "scripts-only", "claude-md-only",
                              "patch", "skills")

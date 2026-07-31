@@ -866,10 +866,36 @@ def tst2(c: Cell, check: str | Path | None = None) -> dict:
         "tst2_workspace_found", "tst2_unused_transcript_key")
 
 
+def mvt2(c: Cell, check: str | Path | None = None) -> dict:
+    """A real GetMotionPlan request returning a trajectory, rung L2.
+
+    `mvt2_points` is the rung: L1 only needed move_group to load a robot model,
+    and a setup whose planning pipeline is misconfigured passes L1 completely
+    before failing every planning request.
+
+    References on this install, 2026-07-31:
+
+        full setup + joint_limits -> mg_up plan_runs points, n=14, CODE 1
+        no ompl pipeline params   -> mg_up, plan_runs FALSE (service never up)
+        plan for a bogus group    -> mg_up plan_runs, points FALSE, n=0
+
+    Scored on the POINTS contract the frozen prompt states, not on MoveIt's
+    error code: the prompt asks for "a POINTS line with n greater than 1" and
+    says nothing about SUCCESS. That distinction is not academic here -- a URDF
+    without acceleration limits returns a computed 6-point path labelled
+    FAILURE, because the AddTimeOptimalParameterization adapter failed. Grading
+    the error code would fail a cell for something never asked of it.
+    """
+    return _external_checks(
+        c, check,
+        ["mvt2_move_group_up", "mvt2_plan_runs", "mvt2_points"],
+        "mvt2_bringup_found", "mvt2_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
          "qos1": qos1, "ctl1": ctl1, "ctl2": ctl2, "tst1": tst1, "tst2": tst2,
-         "per1": per1, "per2": per2, "mvt1": mvt1}
+         "per1": per1, "per2": per2, "mvt1": mvt1, "mvt2": mvt2}
 
 
 # --------------------------------------------------------------------------
