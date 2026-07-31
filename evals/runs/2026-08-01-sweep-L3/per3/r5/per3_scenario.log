@@ -1,0 +1,3 @@
+[INFO] [1785531702.765906472] [camera_publisher]: /depth/image_raw 16UC1 mm depth 160x120 @ 20 Hz BEST_EFFORT
+[WARN] [1785531771.548396882] [camera_publisher]: New subscription discovered on topic '/depth/camera_info', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785531771.548717546] [camera_publisher]: New subscription discovered on topic '/depth/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY

@@ -1,0 +1,53 @@
+[INFO] [launch]: All log files can be found below /home/hyunlee/.ros/log/2026-08-01-04-59-34-914720-DESKTOP-ENH3GRN-22948
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [robot_state_publisher-1]: process started with pid [22966]
+[INFO] [ros2_control_node-2]: process started with pid [22967]
+[INFO] [spawner-3]: process started with pid [22968]
+[robot_state_publisher-1] [WARN] [1785527974.983316203] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-1] [INFO] [1785527974.983371249] [robot_state_publisher]: Robot initialized
+[ros2_control_node-2] [INFO] [1785527974.986457540] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-2] [INFO] [1785527974.987960385] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-2] [INFO] [1785527974.989456208] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-2] [INFO] [1785527974.989475580] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-2] [INFO] [1785527974.989478242] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-2] [WARN] [1785527974.989518413] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[spawner-3] [INFO] [1785527975.198266008] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-2] [INFO] [1785527975.335889413] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [INFO] [1785527975.335937678] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-2] [INFO] [1785527975.336876045] [controller_manager]: Loading hardware 'MyHwSystem' 
+[ros2_control_node-2] [INFO] [1785527975.337235348] [controller_manager]: Loaded hardware 'MyHwSystem' from plugin 'my_hw/MyHwSystemHardware'
+[ros2_control_node-2] [INFO] [1785527975.337283488] [controller_manager]: Initialize hardware 'MyHwSystem' 
+[ros2_control_node-2] [INFO] [1785527975.342040001] [controller_manager]: Successful initialization of hardware 'MyHwSystem'
+[ros2_control_node-2] [INFO] [1785527975.342102133] [controller_manager]: Activating component 'MyHwSystem'.
+[ros2_control_node-2] [INFO] [1785527975.342106906] [resource_manager]: 'configure' hardware 'MyHwSystem' 
+[ros2_control_node-2] [INFO] [1785527975.342109059] [resource_manager]: Successful 'configure' of hardware 'MyHwSystem'
+[ros2_control_node-2] [INFO] [1785527975.342111264] [resource_manager]: 'activate' hardware 'MyHwSystem' 
+[ros2_control_node-2] [INFO] [1785527975.342142553] [MyHwSystemHardware]: Hardware activated.
+[ros2_control_node-2] [INFO] [1785527975.342144938] [resource_manager]: Successful 'activate' of hardware 'MyHwSystem'
+[ros2_control_node-2] [INFO] [1785527975.342173166] [controller_manager]: Registering statistics for : MyHwSystem
+[ros2_control_node-2] [INFO] [1785527975.342211822] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-2] [INFO] [1785527975.449991608] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-2] [INFO] [1785527975.450032059] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1785527975.451539816] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_f9xiz38e --params-file /tmp/eval-ctl3-baseline-f86P/ros2_ws/install/my_hw/share/my_hw/config/controllers.yaml 
+[spawner-3] [INFO] [1785527975.460505593] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-2] [INFO] [1785527975.461236263] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1785527975.461465647] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-2] [INFO] [1785527975.470734534] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-2] [INFO] [1785527975.479822123] [controller_manager]: Successfully switched controllers!
+[spawner-3] [INFO] [1785527975.490571137] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-3]: process has finished cleanly [pid 22968]
+[INFO] [spawner-4]: process started with pid [23071]
+[spawner-4] [INFO] [1785527975.836627300] [spawner_position_controller]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-2] [INFO] [1785527976.315281991] [controller_manager]: Loading controller : 'position_controller' of type 'position_controllers/JointGroupPositionController'
+[ros2_control_node-2] [INFO] [1785527976.315315730] [controller_manager]: Loading controller 'position_controller'
+[ros2_control_node-2] [INFO] [1785527976.315965351] [controller_manager]: Controller 'position_controller' node arguments: --ros-args --params-file /tmp/launch_params_f9xiz38e --params-file /tmp/eval-ctl3-baseline-f86P/ros2_ws/install/my_hw/share/my_hw/config/controllers.yaml 
+[spawner-4] [INFO] [1785527976.330703855] [spawner_position_controller]: Loaded position_controller
+[ros2_control_node-2] [INFO] [1785527976.331466597] [controller_manager]: Configuring controller: 'position_controller'
+[ros2_control_node-2] [INFO] [1785527976.331899723] [position_controller]: configure successful
+[ros2_control_node-2] [INFO] [1785527976.340614981] [controller_manager]: Activating controllers: [ position_controller ]
+[ros2_control_node-2] [INFO] [1785527976.349810073] [position_controller]: activate successful
+[ros2_control_node-2] [INFO] [1785527976.349853548] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1785527976.360577366] [spawner_position_controller]: Configured and activated position_controller
+[INFO] [spawner-4]: process has finished cleanly [pid 23071]
+[ERROR] [ros2_control_node-2]: process has died [pid 22967, exit code -9, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/launch_params_f9xiz38e --params-file /tmp/eval-ctl3-baseline-f86P/ros2_ws/install/my_hw/share/my_hw/config/controllers.yaml'].
+[ERROR] [robot_state_publisher-1]: process has died [pid 22966, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_13wtvd31'].

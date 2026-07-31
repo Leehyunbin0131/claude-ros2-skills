@@ -1,0 +1,15 @@
+{
+  "ctl3_bringup_found": true,
+  "bringup": "/tmp/eval-ctl3-baseline-vHW2/bringup.sh",
+  "ws": "/tmp/eval-ctl3-baseline-vHW2/ros2_ws",
+  "ctl3_builds": true,
+  "ctl3_custom_plugin": true,
+  "ctl3_component_active": true,
+  "ctl3_joint_states": true,
+  "plugin_name": "my_hw/MySystemInterface",
+  "build_rc": 0,
+  "bringup_rc": 0,
+  "hardware_components": "[INFO] [1785528184.571450877] [_ros2cli_24447]: waiting for service /controller_manager/list_hardware_components to become available...\nHardware Component 1\n\tname: MyHardware\n\ttype: system\n\tplugin name: my_hw/MySystemInterface\n\tstate: id=3 label=active\n\tread/write rate: 100 Hz\n\tis_async: False\n\tcommand interfaces\n\t\tjoint_a/position [available] [claimed]\n\t\tjoint_b/position [available] [claimed]",
+  "list_controllers": "position_controller     position_controllers/JointGroupPositionController  active\njoint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster      active",
+  "build_tail": "ardwareInfo&)\u2019:\n/tmp/eval-ctl3-baseline-vHW2/ros2_ws/src/my_hw/src/my_system_interface.cpp:17:49: warning: \u2018virtual rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn hardware_interface::HardwareComponentInterface::on_init(const hardware_interface::HardwareInfo&)\u2019 is deprecated: Use on_init(const HardwareComponentInterfaceParams & params) instead. [-Wdeprecated-declarations]\n   17 |     hardware_interface::SystemInterface::on_init(info) !=\n      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~\nIn file included from /opt/ros/jazzy/include/hardware_interface/hardware_interface/system_interface.hpp:18,\n                 from /tmp/eval-ctl3-baseline-vHW2/ros2_ws/src/my_hw/include/my_hw/my_system_interface.hpp:6,\n                 from /tmp/eval-ctl3-baseline-vHW2/ros2_ws/src/my_hw/src/my_system_interface.cpp:1:\n/opt/ros/jazzy/include/hardware_interface/hardware_interface/hardware_component_interface.hpp:140:26: note: declared here\n  140 |   virtual CallbackReturn on_init(const HardwareInfo & hardware_info);\n      |                          ^~~~~~~\n---\nFinished <<< my_hw [5.65s]\n\nSummary: 1 package finished [5.73s]\n  1 package had stderr output: my_hw\n"
+}

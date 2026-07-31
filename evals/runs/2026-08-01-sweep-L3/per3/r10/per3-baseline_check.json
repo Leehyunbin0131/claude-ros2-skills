@@ -1,0 +1,19 @@
+{
+  "per3_node_found": true,
+  "node": "/tmp/eval-per3-baseline-FvuM/node.py",
+  "per3_clouds": true,
+  "per3_fields_ok": true,
+  "per3_metres": true,
+  "per3_drops_invalid": true,
+  "n_clouds_seen": 40,
+  "n_fields_ok": 40,
+  "n_metres_ok": 40,
+  "n_drops_ok": 40,
+  "n_cloud_log_lines": 20,
+  "last_cloud": "n=15360 zmin=1.003 zmax=3.000",
+  "saw_incompat_warn": 0,
+  "exit_code": 0,
+  "elapsed_s": 1,
+  "attempts": 1,
+  "run_tail": "h_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.470827034] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.520780950] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.570921595] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.620863447] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.670878833] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.720799567] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.770954965] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.820769470] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.870715105] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.920986522] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532148.971229167] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.020939670] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.070720875] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.121365770] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.171009435] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.220874560] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.270761900] [depth_to_pointcloud]: CLOUD 15360\n[INFO] [1785532149.320864455] [depth_to_pointcloud]: CLOUD 15360\n"
+}

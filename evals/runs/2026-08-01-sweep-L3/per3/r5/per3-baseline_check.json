@@ -1,0 +1,19 @@
+{
+  "per3_node_found": true,
+  "node": "/tmp/eval-per3-baseline-plp4/node.py",
+  "per3_clouds": false,
+  "per3_fields_ok": false,
+  "per3_metres": false,
+  "per3_drops_invalid": false,
+  "n_clouds_seen": 0,
+  "n_fields_ok": 0,
+  "n_metres_ok": 0,
+  "n_drops_ok": 0,
+  "n_cloud_log_lines": 0,
+  "last_cloud": "-",
+  "saw_incompat_warn": 2,
+  "exit_code": 124,
+  "elapsed_s": 61,
+  "attempts": 1,
+  "run_tail": "[WARN] [1785531784.513675812] [depth_to_pointcloud]: New publisher discovered on topic '/depth/camera_info', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n[WARN] [1785531784.513926563] [depth_to_pointcloud]: New publisher discovered on topic '/depth/image_raw', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n"
+}

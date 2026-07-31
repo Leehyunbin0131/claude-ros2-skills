@@ -144,8 +144,8 @@ if $PS_UP; then
 fi
 
 SERVERS_LOAD=false
-if printf '%s' "$CS_STATE" | awk '/inactive/ {f=1} END {exit !f}' \
-   && printf '%s' "$PS_STATE" | awk '/inactive/ {f=1} END {exit !f}'; then
+if printf '%s' "$CS_STATE" | awk '$1=="inactive" {f=1} END {exit !f}' \
+   && printf '%s' "$PS_STATE" | awk '$1=="inactive" {f=1} END {exit !f}'; then
   SERVERS_LOAD=true
 fi
 kill_all

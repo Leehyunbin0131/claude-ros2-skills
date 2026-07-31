@@ -408,6 +408,39 @@ prompt can be reshaped once a result is visible.
 | `per` | `cv_bridge` round trip; BEST_EFFORT camera; republish | `CameraInfo` intrinsics; 3D→pixel projection; `vision_msgs` output | 16UC1 depth → `PointCloud2` in metres; invalid-pixel handling |
 | `mvt` | self-authored URDF + SRDF; `move_group` reaching a usable state | a real `GetMotionPlan` request returning a trajectory | a collision object applied to and respected by the planning scene |
 
+### A rung that was unachievable as written, caught before it ran
+
+`dev2` asks for a Nav2 stack driven through lifecycle to `active`. Building its
+reference showed that **Nav2's costmaps refuse to activate without a TF chain**:
+with no transforms the lifecycle manager logs
+
+    Activating controller_server
+    Failed to change state for node: controller_server
+    Failed to bring up all requested nodes. Aborting bringup.
+
+after 60 s, and the server sits at `inactive [2]` indefinitely. The frozen
+prompt says nothing about TF being available, so every cell would have failed
+for a reason the task never provided for — the round would have measured the
+scenario's design, not the model.
+
+**No cell of `dev2` had run**, so this is a pre-run fix, the same category as
+the `g2`/`g3` revision: *fixing a gradability flaw before running is allowed;
+changing a rung after seeing a result is not.* `dev2_check.sh` now brings up
+`dev3_scenario.sh` itself — on the checker's own domain, because a scenario
+started by `run_ab.sh` is on a different one and invisible to it — and the
+prompt is amended to say the TF chain is already published, mirroring `dev3`.
+
+Verified after the fix: full stack `active [3]` 3/3; lifecycle manager omitted
+`unconfigured [1]` 0/3.
+
+Two smaller grader bugs found in the same session, both mine:
+
+- **`/active/` matches `inactive`.** A server sitting at `inactive [2]` was
+  reported active. Compare the first field exactly (`$1=="active"`).
+- **Unbounded wait loops.** Scenario + bringup + a 40-iteration poll outran the
+  caller's timeout, so the checker was killed before writing any verdict —
+  which reads as "no result", not as a failure. Bounded.
+
 ### The L2 round's real finding: six grader defects, one root cause
 
 Every "failure" the L2 round produced was opened before it was counted, and
