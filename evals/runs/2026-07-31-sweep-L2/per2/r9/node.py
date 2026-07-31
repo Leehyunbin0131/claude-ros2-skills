@@ -3,71 +3,94 @@ import sys
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
+
 from sensor_msgs.msg import Image, CameraInfo
 from vision_msgs.msg import Detection2D, BoundingBox2D, Pose2D, Point2D
 
+# Fixed 3D point (camera optical frame): X, Y, Z in metres
 POINT_3D = (0.1, 0.05, 2.0)
-MAX_DETECTIONS = 20
+
+# Placeholder bounding box size in pixels (not specified by the task)
+BBOX_SIZE_X = 20.0
+BBOX_SIZE_Y = 20.0
+
+DETECTIONS_TARGET = 20
 
 
 class ProjectionNode(Node):
     def __init__(self):
         super().__init__('projection_node')
-        self.camera_info = None
-        self.detection_count = 0
+
+        self._k = None
+        self._count = 0
+
+        self._detection_pub = self.create_publisher(Detection2D, '/detection', 10)
 
         self.create_subscription(
-            CameraInfo, '/camera/camera_info', self.camera_info_callback, 10)
+            CameraInfo,
+            '/camera/camera_info',
+            self._camera_info_cb,
+            qos_profile_sensor_data,
+        )
         self.create_subscription(
-            Image, '/camera/image_raw', self.image_callback, 10)
-        self.detection_pub = self.create_publisher(Detection2D, '/detection', 10)
+            Image,
+            '/camera/image_raw',
+            self._image_cb,
+            qos_profile_sensor_data,
+        )
 
-    def camera_info_callback(self, msg):
-        self.camera_info = msg
+    def _camera_info_cb(self, msg: CameraInfo):
+        self._k = msg.k
 
-    def image_callback(self, msg):
-        if self.camera_info is None or self.detection_count >= MAX_DETECTIONS:
+    def _image_cb(self, msg: Image):
+        if self._k is None:
+            self.get_logger().warn('No CameraInfo received yet, skipping frame')
             return
 
-        k = self.camera_info.k
-        fx, fy, cx, cy = k[0], k[4], k[2], k[5]
+        fx = self._k[0]
+        cx = self._k[2]
+        fy = self._k[4]
+        cy = self._k[5]
 
         x, y, z = POINT_3D
-        u = fx * x / z + cx
-        v = fy * y / z + cy
+        u = fx * (x / z) + cx
+        v = fy * (y / z) + cy
 
         self.get_logger().info(f'PIXEL {u} {v}')
 
         detection = Detection2D()
         detection.header = msg.header
 
-        position = Point2D()
-        position.x = u
-        position.y = v
-
-        center = Pose2D()
-        center.position = position
-        center.theta = 0.0
-
         bbox = BoundingBox2D()
+        center = Pose2D()
+        center.position = Point2D(x=u, y=v)
+        center.theta = 0.0
         bbox.center = center
-        bbox.size_x = 20.0
-        bbox.size_y = 20.0
+        bbox.size_x = BBOX_SIZE_X
+        bbox.size_y = BBOX_SIZE_Y
         detection.bbox = bbox
 
-        self.detection_pub.publish(detection)
-        self.detection_count += 1
+        self._detection_pub.publish(detection)
+
+        self._count += 1
+        if self._count >= DETECTIONS_TARGET:
+            self.get_logger().info(f'Published {self._count} detections, shutting down')
+            rclpy.shutdown()
 
 
 def main():
     rclpy.init()
     node = ProjectionNode()
     try:
-        while rclpy.ok() and node.detection_count < MAX_DETECTIONS:
-            rclpy.spin_once(node, timeout_sec=1.0)
+        rclpy.spin(node)
+    except (KeyboardInterrupt, SystemExit):
+        pass
     finally:
         node.destroy_node()
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
+
     sys.exit(0)
 
 

@@ -1,0 +1,16 @@
+{
+  "per2_node_found": true,
+  "node": "/tmp/eval-per2-baseline-Gpff/node.py",
+  "per2_pixel_correct": true,
+  "per2_detection_published": true,
+  "per2_detection_correct": true,
+  "per2_exits_clean": true,
+  "n_pixel_lines": 20,
+  "n_pixel_correct": 20,
+  "n_detections": 40,
+  "n_detections_correct": 40,
+  "last_detection_centre": "85.00,62.50",
+  "exit_code": 0,
+  "elapsed_s": 2,
+  "run_tail": "ection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.376513268] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.376848992] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.377152898] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.377687417] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.382436126] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.432636144] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.482564794] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.532708236] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.582611977] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.632771934] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.682632163] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.732611354] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.782711798] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.832648726] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.882692089] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.932668327] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513639.982661883] [projection_node]: PIXEL 85.0 62.5\n[INFO] [1785513640.032669957] [projection_node]: PIXEL 85.0 62.5\n"
+}

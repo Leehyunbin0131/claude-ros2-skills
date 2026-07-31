@@ -1,6 +1,6 @@
 {
   "per2_node_found": true,
-  "node": "/tmp/eval-per2-baseline-MEUJ/node.py",
+  "node": "/tmp/eval-per2-baseline-BQvh/node.py",
   "per2_pixel_correct": false,
   "per2_detection_published": false,
   "per2_detection_correct": false,
@@ -12,5 +12,6 @@
   "last_detection_centre": "-",
   "exit_code": 124,
   "elapsed_s": 50,
-  "run_tail": "[WARN] [1785513459.500085648] [projector_node]: New publisher discovered on topic '/camera/image_raw', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n[WARN] [1785513459.500429275] [projector_node]: New publisher discovered on topic '/camera/camera_info', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n"
+  "attempts": 1,
+  "run_tail": "[WARN] [1785522104.363157670] [projection_node]: New publisher discovered on topic '/camera/camera_info', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n"
 }

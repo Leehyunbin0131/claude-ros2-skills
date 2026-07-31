@@ -1,16 +1,17 @@
 {
   "per2_node_found": true,
-  "node": "/tmp/eval-per2-baseline-YjWg/node.py",
+  "node": "/tmp/eval-per2-baseline-sx0N/node.py",
   "per2_pixel_correct": true,
-  "per2_detection_published": false,
-  "per2_detection_correct": false,
+  "per2_detection_published": true,
+  "per2_detection_correct": true,
   "per2_exits_clean": true,
   "n_pixel_lines": 20,
   "n_pixel_correct": 20,
-  "n_detections": 0,
-  "n_detections_correct": 0,
-  "last_detection_centre": "-",
+  "n_detections": 40,
+  "n_detections_correct": 40,
+  "last_detection_centre": "85.00,62.50",
   "exit_code": 0,
   "elapsed_s": 2,
-  "run_tail": "t_projector]: PIXEL 85.0 62.5\n[INFO] [1785513320.891800221] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513320.941806518] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513320.991867090] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.041787529] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.091718748] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.142021037] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.191818674] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.241748711] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.291984717] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.341905106] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.391793557] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.441866679] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.491769044] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.541767124] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.591778093] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.641760767] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.691749252] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785513321.741748202] [point_projector]: PIXEL 85.0 62.5\n"
+  "attempts": 1,
+  "run_tail": "12.757878842] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.758230053] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.758572479] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.758899480] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.783079263] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.832949012] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.883079786] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.932919132] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522012.983126405] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.032911782] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.082885023] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.132885175] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.182815845] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.232950717] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.282862309] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.332932862] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.382938974] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.433056713] [projector_node]: PIXEL 85.0 62.5\n[INFO] [1785522013.483010577] [projector_node]: PIXEL 85.0 62.5\n"
 }

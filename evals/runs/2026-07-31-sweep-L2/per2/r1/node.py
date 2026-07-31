@@ -3,65 +3,74 @@ import sys
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 
 from sensor_msgs.msg import Image, CameraInfo
-from vision_msgs.msg import Detection2D
+from vision_msgs.msg import Detection2D, BoundingBox2D
 
-# Fixed 3D point in the camera optical frame.
-POINT_3D = (0.1, 0.05, 2.0)
-
+POINT_CAM = (0.1, 0.05, 2.0)
 MAX_DETECTIONS = 20
 
 
-class ProjectorNode(Node):
+class ProjectionNode(Node):
     def __init__(self):
-        super().__init__('point_projector')
+        super().__init__('projection_node')
 
-        self._camera_info = None
-        self._detection_count = 0
+        self.camera_info = None
+        self.detection_count = 0
 
         self.detection_pub = self.create_publisher(Detection2D, '/detection', 10)
 
         self.create_subscription(
-            CameraInfo, '/camera/camera_info', self._camera_info_cb, 10)
+            CameraInfo,
+            '/camera/camera_info',
+            self.camera_info_callback,
+            qos_profile_sensor_data,
+        )
         self.create_subscription(
-            Image, '/camera/image_raw', self._image_cb, 10)
+            Image,
+            '/camera/image_raw',
+            self.image_callback,
+            qos_profile_sensor_data,
+        )
 
-    def _camera_info_cb(self, msg: CameraInfo):
-        self._camera_info = msg
+    def camera_info_callback(self, msg: CameraInfo):
+        self.camera_info = msg
 
-    def _image_cb(self, msg: Image):
-        if self._camera_info is None:
+    def image_callback(self, msg: Image):
+        if self.camera_info is None:
             return
 
-        k = self._camera_info.k
-        fx, cx = k[0], k[2]
-        fy, cy = k[4], k[5]
+        k = self.camera_info.k
+        fx, fy = k[0], k[4]
+        cx, cy = k[2], k[5]
 
-        x, y, z = POINT_3D
-        u = fx * x / z + cx
-        v = fy * y / z + cy
-
-        self.get_logger().info(f'PIXEL {u} {v}')
+        x, y, z = POINT_CAM
+        u = fx * (x / z) + cx
+        v = fy * (y / z) + cy
 
         detection = Detection2D()
         detection.header = msg.header
-        detection.bbox.center.position.x = u
-        detection.bbox.center.position.y = v
-        detection.bbox.center.theta = 0.0
-        detection.bbox.size_x = 0.0
-        detection.bbox.size_y = 0.0
+
+        bbox = BoundingBox2D()
+        bbox.center.position.x = u
+        bbox.center.position.y = v
+        bbox.center.theta = 0.0
+        bbox.size_x = 10.0
+        bbox.size_y = 10.0
+        detection.bbox = bbox
 
         self.detection_pub.publish(detection)
-        self._detection_count += 1
+        self.get_logger().info(f'PIXEL {u} {v}')
 
-        if self._detection_count >= MAX_DETECTIONS:
+        self.detection_count += 1
+        if self.detection_count >= MAX_DETECTIONS:
             rclpy.shutdown()
 
 
 def main():
     rclpy.init()
-    node = ProjectorNode()
+    node = ProjectionNode()
     try:
         rclpy.spin(node)
     except rclpy.executors.ExternalShutdownException:

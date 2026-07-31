@@ -49,28 +49,38 @@ stacked on top of `CLAUDE.md` moved **nothing** (10/10 vs 10/10, 6/10 vs 6/10).
 
 ---
 
-## 2026-07-31 coverage sweep — L1 complete, 126/130
+## 2026-07-31 coverage sweep — L1 and L2 complete, 254/270
 
 Four skills that had never been tested at all. Prompts frozen before any cell
 ran; graders validated against deliberately broken references first.
 
-**Every L1 rung passed.** 126 of 130 real-outcome checks, with the only failure
-a single perception cell that subscribed RELIABLE to a BEST_EFFORT camera. By
-rule 4 all four ladders climb to L2.
+**Every L1 and L2 rung passed.** 254 of 270 real-outcome checks. By rule 4 all
+four ladders climb to L3.
+
+The only failures anywhere are the QoS trap: one `per1` cell and one `per2`
+cell subscribed with rclpy's default RELIABLE QoS to a BEST_EFFORT camera,
+received nothing, and timed out. Everything else the model reached unaided.
+
+Six checker defects surfaced during L2 and every one of them was mine, not a
+cell's — five cells scored as total failures came back perfect when re-graded.
+They are listed in [`LADDER.md`](./LADDER.md); the short version is that a
+grader sampling a live distributed system kept assuming its own conditions were
+the only ones, and three of the defects punished *good* practice (isolating a
+DDS domain, guarding a bringup against double-launch).
 
 | Rung | Mechanisms added | Checks | Result |
 | :--- | :--- | :--- | ---: |
 | `ctl1` | URDF `<ros2_control>`, `mock_components/GenericSystem`, controller_manager params, `joint_state_broadcaster` spawned | cm_running, jsb_active, joint_states | **30/30 reached** |
-| `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | both_active, **command_lands** | grader validated, queued |
+| `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | both_active, **command_lands** | **20/20 reached** |
 | `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | — | not run |
 | `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
-| `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | grader validated, queued |
+| `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | **40/40 reached** |
 | `tst3` | + rosbag2 recorded programmatically and read back | — | not run |
 | `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | **36/40 reached** (1 cell lost to the QoS trap) |
-| `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | grader validated, queued |
+| `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | **38/40 reached** (1 cell lost to the QoS trap) |
 | `per3` | + 16UC1 depth → `PointCloud2` in metres | — | not run |
 | `mvt1` | self-authored URDF+SRDF, `move_group` reaching a usable state | move_group_up, plan_service, group_known | **30/30 reached** (re-run; see LADDER.md) |
-| `mvt2` | + a real `GetMotionPlan` returning a trajectory | move_group_up, plan_runs, **points** | grader validated, queued |
+| `mvt2` | + a real `GetMotionPlan` returning a trajectory | move_group_up, plan_runs, **points** | **30/30 reached** |
 | `mvt3` | + a collision object applied to and respected by the scene | — | not run |
 
 `ros2-core` and `ros2-dev` have no ladder yet. `ros2-microros` is out of scope:

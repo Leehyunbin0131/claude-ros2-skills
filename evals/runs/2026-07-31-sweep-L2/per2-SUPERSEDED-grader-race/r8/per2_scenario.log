@@ -1,0 +1,7 @@
+[INFO] [1785513380.877743030] [camera_publisher]: /camera/image_raw bgr8 160x120 @ 20 Hz BEST_EFFORT
+[WARN] [1785513417.035950979] [camera_publisher]: New subscription discovered on topic '/camera/camera_info', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785513417.036292607] [camera_publisher]: New subscription discovered on topic '/camera/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785513432.217499685] [camera_publisher]: New subscription discovered on topic '/camera/camera_info', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785513432.217903641] [camera_publisher]: New subscription discovered on topic '/camera/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785513447.438332568] [camera_publisher]: New subscription discovered on topic '/camera/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785513447.438579818] [camera_publisher]: New subscription discovered on topic '/camera/camera_info', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY

@@ -1,0 +1,16 @@
+{
+  "per2_node_found": true,
+  "node": "/tmp/eval-per2-baseline-HHjv/node.py",
+  "per2_pixel_correct": false,
+  "per2_detection_published": false,
+  "per2_detection_correct": false,
+  "per2_exits_clean": false,
+  "n_pixel_lines": 0,
+  "n_pixel_correct": 0,
+  "n_detections": 0,
+  "n_detections_correct": 0,
+  "last_detection_centre": "-",
+  "exit_code": 124,
+  "elapsed_s": 50,
+  "run_tail": "[WARN] [1785512935.932878855] [point_projector]: New publisher discovered on topic '/camera/image_raw', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n[WARN] [1785512935.933296678] [point_projector]: New publisher discovered on topic '/camera/camera_info', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n"
+}

@@ -1,0 +1,17 @@
+{
+  "per2_node_found": true,
+  "node": "/tmp/eval-per2-baseline-jyWK/node.py",
+  "per2_pixel_correct": true,
+  "per2_detection_published": true,
+  "per2_detection_correct": true,
+  "per2_exits_clean": true,
+  "n_pixel_lines": 20,
+  "n_pixel_correct": 20,
+  "n_detections": 40,
+  "n_detections_correct": 40,
+  "last_detection_centre": "85.00,62.50",
+  "exit_code": 0,
+  "elapsed_s": 1,
+  "attempts": 1,
+  "run_tail": "t_projector]: PIXEL 85.0 62.5\n[INFO] [1785522535.761195533] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522535.811267216] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522535.861169432] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522535.911189701] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522535.961153622] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.011146658] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.061225983] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.111314193] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.161350982] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.211112973] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.261175905] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.311382601] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.361189473] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.411279115] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.461109159] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.511152289] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.561305088] [point_projector]: PIXEL 85.0 62.5\n[INFO] [1785522536.611203928] [point_projector]: PIXEL 85.0 62.5\n"
+}
