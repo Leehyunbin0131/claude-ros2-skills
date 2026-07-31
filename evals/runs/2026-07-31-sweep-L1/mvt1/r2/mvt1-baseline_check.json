@@ -1,0 +1,10 @@
+{
+  "mvt1_bringup_found": true,
+  "bringup": "/tmp/eval-mvt1-baseline-4wgI/bringup.sh",
+  "mvt1_move_group_up": true,
+  "mvt1_plan_service": true,
+  "mvt1_group_known": true,
+  "bringup_rc": 0,
+  "groups_probe": "GROUPS arm",
+  "bringup_tail": "move_group is up (see /tmp/simple_arm_move_group.log for logs).\n"
+}

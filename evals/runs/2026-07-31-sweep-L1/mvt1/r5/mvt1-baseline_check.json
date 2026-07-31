@@ -1,0 +1,10 @@
+{
+  "mvt1_bringup_found": true,
+  "bringup": "/tmp/eval-mvt1-baseline-nF8F/bringup.sh",
+  "mvt1_move_group_up": true,
+  "mvt1_plan_service": true,
+  "mvt1_group_known": true,
+  "bringup_rc": 0,
+  "groups_probe": "GROUPS arm",
+  "bringup_tail": "Launched arm_moveit_config bringup (PID 9341), logging to /tmp/eval-mvt1-baseline-nF8F/bringup.log\nmove_group is up (after 0s).\n"
+}

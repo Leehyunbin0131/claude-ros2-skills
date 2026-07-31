@@ -1,0 +1,166 @@
+[INFO] [launch]: All log files can be found below /home/hyunlee/.ros/log/2026-07-31-21-49-43-784821-DESKTOP-ENH3GRN-9341
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+WARNING:root:[33;21mCannot infer URDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.urdf[0m
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+[INFO] [static_transform_publisher-1]: process started with pid [9363]
+[INFO] [robot_state_publisher-2]: process started with pid [9364]
+[INFO] [move_group-3]: process started with pid [9365]
+[INFO] [ros2_control_node-4]: process started with pid [9366]
+[INFO] [spawner-5]: process started with pid [9367]
+[INFO] [spawner-6]: process started with pid [9368]
+[static_transform_publisher-1] [INFO] [1785502183.951451696] [static_transform_publisher0]: Spinning until stopped - publishing transform
+[static_transform_publisher-1] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-1] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-1] from 'world' to 'base_link'
+[robot_state_publisher-2] [WARN] [1785502183.954904792] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1785502183.954969881] [robot_state_publisher]: Robot initialized
+[ros2_control_node-4] [INFO] [1785502183.958956525] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-4] [INFO] [1785502183.960764976] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-4] [INFO] [1785502183.962588760] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-4] [INFO] [1785502183.962614320] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-4] [INFO] [1785502183.962617014] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-4] [WARN] [1785502183.962675767] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-4] [INFO] [1785502183.971253839] [controller_manager]: Received robot description from topic.
+[ros2_control_node-4] [INFO] [1785502183.971290411] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-4] [INFO] [1785502183.972349756] [controller_manager]: Loading hardware 'arm_system' 
+[ros2_control_node-4] [INFO] [1785502183.972608568] [controller_manager]: Loaded hardware 'arm_system' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-4] [INFO] [1785502183.972661023] [controller_manager]: Initialize hardware 'arm_system' 
+[ros2_control_node-4] [INFO] [1785502183.978378472] [controller_manager]: Successful initialization of hardware 'arm_system'
+[ros2_control_node-4] [INFO] [1785502183.978458493] [controller_manager]: Activating component 'arm_system'.
+[ros2_control_node-4] [INFO] [1785502183.978463282] [resource_manager]: 'configure' hardware 'arm_system' 
+[ros2_control_node-4] [INFO] [1785502183.978468817] [resource_manager]: Successful 'configure' of hardware 'arm_system'
+[ros2_control_node-4] [INFO] [1785502183.978471343] [resource_manager]: 'activate' hardware 'arm_system' 
+[ros2_control_node-4] [INFO] [1785502183.978474795] [resource_manager]: Successful 'activate' of hardware 'arm_system'
+[ros2_control_node-4] [INFO] [1785502183.978508934] [controller_manager]: Registering statistics for : arm_system
+[ros2_control_node-4] [INFO] [1785502183.978549596] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[move_group-3] [INFO] [1785502183.979602815] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.00182887 seconds
+[move_group-3] [INFO] [1785502183.979687184] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'arm'...
+[move_group-3] [WARN] [1785502183.980812799] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[move_group-3] [INFO] [1785502183.980863600] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'arm': 1 1 1
+[move_group-3] [INFO] [1785502183.993871291] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-3] [INFO] [1785502183.993999736] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-3] [INFO] [1785502183.994465595] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-3] [INFO] [1785502183.994785730] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-3] [INFO] [1785502183.994804476] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-3] [INFO] [1785502183.994889077] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-3] [INFO] [1785502183.995133747] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-3] [INFO] [1785502183.995182695] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-3] [INFO] [1785502183.995609688] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-3] [INFO] [1785502183.995628248] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-3] [INFO] [1785502183.995849566] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-3] [INFO] [1785502183.996141628] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-3] [WARN] [1785502183.996279202] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-3] [ERROR] [1785502183.996296697] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[move_group-3] [INFO] [1785502184.005463272] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-3] [INFO] [1785502184.005843865] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1785502184.006388895] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-3] [INFO] [1785502184.006422451] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1785502184.006541107] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-3] [INFO] [1785502184.006544927] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1785502184.006556482] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-3] [INFO] [1785502184.006558321] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1785502184.006563084] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-3] [INFO] [1785502184.006958800] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-3] [INFO] [1785502184.008052996] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-3] [INFO] [1785502184.008073585] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1785502184.009544959] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-3] [INFO] [1785502184.009565632] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [INFO] [1785502184.010144024] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-3] [WARN] [1785502184.010802246] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Parameter '~moveit_controller_manager' is not specified but only one matching plugin was found: 'moveit_simple_controller_manager/MoveItSimpleControllerManager'. Using that one.
+[move_group-3] [INFO] [1785502184.026549175] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for arm_controller
+[move_group-3] [INFO] [1785502184.026689857] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 1 controllers in list
+[move_group-3] [INFO] [1785502184.026705602] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 1 controllers in list
+[move_group-3] [INFO] [1785502184.027059751] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is managing controllers
+[move_group-3] [INFO] [1785502184.027084426] [move_group]: MoveGroup debug mode is ON
+[move_group-3] [INFO] [1785502184.040742825] [move_group.moveit.moveit.ros.move_group.executable]: 
+[move_group-3] 
+[move_group-3] ********************************************************
+[move_group-3] * MoveGroup using: 
+[move_group-3] *     - apply_planning_scene_service
+[move_group-3] *     - clear_octomap_service
+[move_group-3] *     - get_group_urdf
+[move_group-3] *     - load_geometry_from_file
+[move_group-3] *     - CartesianPathService
+[move_group-3] *     - execute_trajectory_action
+[move_group-3] *     - get_planning_scene_service
+[move_group-3] *     - kinematics_service
+[move_group-3] *     - move_action
+[move_group-3] *     - motion_plan_service
+[move_group-3] *     - query_planners_service
+[move_group-3] *     - state_validation_service
+[move_group-3] *     - save_geometry_to_file
+[move_group-3] ********************************************************
+[move_group-3] 
+[move_group-3] [INFO] [1785502184.040789632] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-3] [INFO] [1785502184.040794810] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-3] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-3] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-3] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-3] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-3] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-3] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-3] 
+[move_group-3] [92mYou can start planning now![0m
+[move_group-3] 
+[spawner-6] [INFO] [1785502184.173151169] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-4] [INFO] [1785502184.424691674] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-4] [INFO] [1785502184.424729719] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-4] [INFO] [1785502184.426253004] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config/config/ros2_controllers.yaml 
+[spawner-6] [INFO] [1785502184.443965662] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-4] [INFO] [1785502184.444833077] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-4] [INFO] [1785502184.444945934] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-4] [INFO] [1785502184.454496414] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-4] [INFO] [1785502184.463239091] [controller_manager]: Successfully switched controllers!
+[spawner-6] [INFO] [1785502184.474050796] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[spawner-5] [INFO] [1785502184.526790165] [spawner_arm_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-6]: process has finished cleanly [pid 9368]
+[ros2_control_node-4] [INFO] [1785502184.778412451] [controller_manager]: Loading controller : 'arm_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-4] [INFO] [1785502184.778446208] [controller_manager]: Loading controller 'arm_controller'
+[ros2_control_node-4] [INFO] [1785502184.779606991] [controller_manager]: Controller 'arm_controller' node arguments: --ros-args --params-file /tmp/eval-mvt1-baseline-nF8F/install/arm_moveit_config/share/arm_moveit_config/config/ros2_controllers.yaml 
+[spawner-5] [INFO] [1785502184.793995774] [spawner_arm_controller]: Loaded arm_controller
+[ros2_control_node-4] [INFO] [1785502184.794861937] [controller_manager]: Configuring controller: 'arm_controller'
+[ros2_control_node-4] [INFO] [1785502184.794951156] [arm_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-4] [INFO] [1785502184.794972995] [arm_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-4] [INFO] [1785502184.794985760] [arm_controller]: Using 'splines' interpolation method.
+[ros2_control_node-4] [INFO] [1785502184.796413309] [arm_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-4] [INFO] [1785502184.800343204] [arm_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-4] [INFO] [1785502184.800387522] [arm_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-4] [INFO] [1785502184.804365741] [controller_manager]: Activating controllers: [ arm_controller ]
+[ros2_control_node-4] [INFO] [1785502184.813284094] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1785502184.823955110] [spawner_arm_controller]: Configured and activated arm_controller
+[INFO] [spawner-5]: process has finished cleanly [pid 9367]
+[ERROR] [move_group-3]: process has died [pid 9365, exit code -9, cmd '/opt/ros/jazzy/lib/moveit_ros_move_group/move_group --ros-args --params-file /tmp/launch_params_xkacrusy --params-file /tmp/launch_params_acg4ch9c'].
+[ERROR] [robot_state_publisher-2]: process has died [pid 9364, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_gu7c3p75 --params-file /tmp/launch_params_xed4ff0g'].
+[INFO] [robot_state_publisher-2]: process started with pid [9601]
+[ERROR] [static_transform_publisher-1]: process has died [pid 9363, exit code -9, cmd '/opt/ros/jazzy/lib/tf2_ros/static_transform_publisher --frame-id world --child-frame-id base_link --ros-args -r __node:=static_transform_publisher0'].
+[robot_state_publisher-2] [WARN] [1785502185.868960385] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1785502185.869025809] [robot_state_publisher]: Robot initialized
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    [ros2_control_node-4] [INFO] [1785502184.743748315] [controller_manager]: Received robot description from topic.
+[ros2_control_node-4] [WARN] [1785502184.743796102] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[ERROR] [robot_state_publisher-2]: process has died [pid 9294, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_7flqwl6c --params-file /tmp/launch_params_0xy_uh1q'].
+[INFO] [robot_state_publisher-2]: process started with pid [9600]
+[robot_state_publisher-2] [WARN] [1785502185.870443625] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1785502185.870501238] [robot_state_publisher]: Robot initialized

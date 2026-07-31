@@ -1,0 +1,61 @@
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-XNb7)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r1/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 1 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-4wgI)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r2/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 2 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-lGtz)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r3/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 3 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-6Dq8)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r4/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 4 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-nF8F)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r5/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 5 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-5GQy)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r6/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 6 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-Cu9V)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r7/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 7 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-5bck)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r8/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 8 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-cf1l)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r9/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 9 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-L2jS)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r10/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 10 done
+MVT1-RERUN FINISHED

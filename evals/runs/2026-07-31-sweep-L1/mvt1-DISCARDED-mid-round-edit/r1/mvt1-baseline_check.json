@@ -1,0 +1,10 @@
+{
+  "mvt1_bringup_found": true,
+  "bringup": "/tmp/eval-mvt1-baseline-L653/bringup.sh",
+  "mvt1_move_group_up": true,
+  "mvt1_plan_service": true,
+  "mvt1_group_known": true,
+  "bringup_rc": 0,
+  "groups_probe": "GROUPS arm",
+  "bringup_tail": "Launching mini_arm MoveIt 2 setup in the background (log: /tmp/eval-mvt1-baseline-L653/bringup.log)...\nmove_group is up and /plan_kinematic_path is available.\n"
+}

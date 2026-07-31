@@ -1,0 +1,10 @@
+{
+  "mvt1_bringup_found": true,
+  "bringup": "/tmp/eval-mvt1-baseline-Cu9V/bringup.sh",
+  "mvt1_move_group_up": true,
+  "mvt1_plan_service": true,
+  "mvt1_group_known": true,
+  "bringup_rc": 0,
+  "groups_probe": "GROUPS arm",
+  "bringup_tail": "move_group bringup launched in background (PID 13878). Logs: /tmp/eval-mvt1-baseline-Cu9V/bringup.log\n"
+}

@@ -1,0 +1,139 @@
+[INFO] [launch]: All log files can be found below /home/hyunlee/.ros/log/2026-07-31-20-55-59-459015-DESKTOP-ENH3GRN-20476
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt1-baseline-L653/install/mini_arm_moveit_config/share/mini_arm_moveit_config`. -- using config/mini_arm.srdf[0m
+[INFO] [static_transform_publisher-1]: process started with pid [20484]
+[INFO] [robot_state_publisher-2]: process started with pid [20485]
+[INFO] [ros2_control_node-3]: process started with pid [20486]
+[INFO] [spawner-4]: process started with pid [20487]
+[INFO] [spawner-5]: process started with pid [20488]
+[INFO] [move_group-6]: process started with pid [20489]
+[static_transform_publisher-1] [INFO] [1785498959.551239647] [static_transform_publisher_F5RZA76VHXBJqRgX]: Spinning until stopped - publishing transform
+[static_transform_publisher-1] translation: ('0.000000', '0.000000', '0.000000')
+[static_transform_publisher-1] rotation: ('0.000000', '0.000000', '0.000000', '1.000000')
+[static_transform_publisher-1] from 'world' to 'base_link'
+[robot_state_publisher-2] [WARN] [1785498959.551771319] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-2] [INFO] [1785498959.551817107] [robot_state_publisher]: Robot initialized
+[ros2_control_node-3] [INFO] [1785498959.553413479] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1785498959.554761832] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1785498959.555758310] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-3] [INFO] [1785498959.555776085] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1785498959.555778577] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1785498959.555818438] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[move_group-6] [INFO] [1785498959.579131326] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.00113466 seconds
+[move_group-6] [INFO] [1785498959.579220247] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'mini_arm'...
+[move_group-6] [WARN] [1785498959.580390078] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[move_group-6] [INFO] [1785498959.580441607] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'arm': 1 1 1
+[move_group-6] [INFO] [1785498959.593532783] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-6] [INFO] [1785498959.593641191] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-6] [INFO] [1785498959.594213529] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-6] [INFO] [1785498959.594576923] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-6] [INFO] [1785498959.594596586] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-6] [INFO] [1785498959.594705175] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-6] [INFO] [1785498959.594989996] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-6] [INFO] [1785498959.595038807] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-6] [INFO] [1785498959.595584654] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-6] [INFO] [1785498959.595604614] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-6] [INFO] [1785498959.595902592] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-6] [INFO] [1785498959.596195225] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-6] [WARN] [1785498959.596267032] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-6] [ERROR] [1785498959.596274204] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[move_group-6] [INFO] [1785498959.603870434] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-6] [INFO] [1785498959.604260042] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-6] [INFO] [1785498959.604717880] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-6] [INFO] [1785498959.604741247] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-6] [INFO] [1785498959.604834843] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-6] [INFO] [1785498959.604838478] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-6] [INFO] [1785498959.604848893] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-6] [INFO] [1785498959.604850873] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-6] [INFO] [1785498959.604855982] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-6] [INFO] [1785498959.605160138] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-6] [INFO] [1785498959.606188301] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-6] [INFO] [1785498959.606206599] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-6] [INFO] [1785498959.607462565] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-6] [INFO] [1785498959.607482015] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-6] [INFO] [1785498959.607911429] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-6] [INFO] [1785498959.624352692] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for arm_controller
+[move_group-6] [INFO] [1785498959.624484669] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 1 controllers in list
+[move_group-6] [INFO] [1785498959.624514427] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 1 controllers in list
+[move_group-6] [INFO] [1785498959.624866781] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is managing controllers
+[move_group-6] [INFO] [1785498959.624888324] [move_group]: MoveGroup debug mode is ON
+[move_group-6] [INFO] [1785498959.637151964] [move_group.moveit.moveit.ros.move_group.executable]: 
+[move_group-6] 
+[move_group-6] ********************************************************
+[move_group-6] * MoveGroup using: 
+[move_group-6] *     - apply_planning_scene_service
+[move_group-6] *     - clear_octomap_service
+[move_group-6] *     - get_group_urdf
+[move_group-6] *     - load_geometry_from_file
+[move_group-6] *     - CartesianPathService
+[move_group-6] *     - execute_trajectory_action
+[move_group-6] *     - get_planning_scene_service
+[move_group-6] *     - kinematics_service
+[move_group-6] *     - move_action
+[move_group-6] *     - motion_plan_service
+[move_group-6] *     - query_planners_service
+[move_group-6] *     - state_validation_service
+[move_group-6] *     - save_geometry_to_file
+[move_group-6] ********************************************************
+[move_group-6] 
+[move_group-6] [INFO] [1785498959.637196952] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-6] [INFO] [1785498959.637202365] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-6] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-6] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-6] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-6] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-6] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-6] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-6] 
+[move_group-6] [92mYou can start planning now![0m
+[move_group-6] 
+[spawner-5] [INFO] [1785498959.765029700] [spawner_arm_controller]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1785498959.901752217] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1785498959.901787489] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-3] [INFO] [1785498959.902774779] [controller_manager]: Loading hardware 'MiniArmSystem' 
+[ros2_control_node-3] [INFO] [1785498959.903024000] [controller_manager]: Loaded hardware 'MiniArmSystem' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-3] [INFO] [1785498959.903069208] [controller_manager]: Initialize hardware 'MiniArmSystem' 
+[ros2_control_node-3] [INFO] [1785498959.908906031] [controller_manager]: Successful initialization of hardware 'MiniArmSystem'
+[ros2_control_node-3] [INFO] [1785498959.908980675] [controller_manager]: Activating component 'MiniArmSystem'.
+[ros2_control_node-3] [INFO] [1785498959.908985598] [resource_manager]: 'configure' hardware 'MiniArmSystem' 
+[ros2_control_node-3] [INFO] [1785498959.908990816] [resource_manager]: Successful 'configure' of hardware 'MiniArmSystem'
+[ros2_control_node-3] [INFO] [1785498959.908993090] [resource_manager]: 'activate' hardware 'MiniArmSystem' 
+[ros2_control_node-3] [INFO] [1785498959.908996556] [resource_manager]: Successful 'activate' of hardware 'MiniArmSystem'
+[ros2_control_node-3] [INFO] [1785498959.909031179] [controller_manager]: Registering statistics for : MiniArmSystem
+[ros2_control_node-3] [INFO] [1785498959.909087319] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-3] [INFO] [1785498960.016773658] [controller_manager]: Loading controller : 'arm_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-3] [INFO] [1785498960.016815620] [controller_manager]: Loading controller 'arm_controller'
+[ros2_control_node-3] [INFO] [1785498960.018731726] [controller_manager]: Controller 'arm_controller' node arguments: --ros-args --params-file /tmp/launch_params_4zi3d46e --params-file /tmp/eval-mvt1-baseline-L653/install/mini_arm_moveit_config/share/mini_arm_moveit_config/config/ros2_controllers.yaml 
+[spawner-5] [INFO] [1785498960.036983328] [spawner_arm_controller]: Loaded arm_controller
+[ros2_control_node-3] [INFO] [1785498960.038132102] [controller_manager]: Configuring controller: 'arm_controller'
+[ros2_control_node-3] [INFO] [1785498960.038436740] [arm_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-3] [INFO] [1785498960.038513567] [arm_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-3] [INFO] [1785498960.038540616] [arm_controller]: Using 'splines' interpolation method.
+[ros2_control_node-3] [INFO] [1785498960.042069935] [arm_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-3] [INFO] [1785498960.047234666] [arm_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-3] [INFO] [1785498960.047260726] [arm_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-3] [INFO] [1785498960.057507471] [controller_manager]: Activating controllers: [ arm_controller ]
+[ros2_control_node-3] [INFO] [1785498960.066226625] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1785498960.076925344] [spawner_arm_controller]: Configured and activated arm_controller
+[spawner-4] [INFO] [1785498960.168365485] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-5]: process has finished cleanly [pid 20488]
+[ros2_control_node-3] [INFO] [1785498961.920793224] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-3] [INFO] [1785498961.920828171] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1785498961.921575929] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_4zi3d46e --params-file /tmp/eval-mvt1-baseline-L653/install/mini_arm_moveit_config/share/mini_arm_moveit_config/config/ros2_controllers.yaml 
+[spawner-4] [INFO] [1785498961.936835597] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-3] [INFO] [1785498961.937882156] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1785498961.937935298] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-3] [INFO] [1785498961.947357247] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-3] [INFO] [1785498961.956174218] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1785498961.966967510] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-4]: process has finished cleanly [pid 20487]
+[ERROR] [move_group-6]: process has died [pid 20489, exit code -9, cmd '/opt/ros/jazzy/lib/moveit_ros_move_group/move_group --ros-args --params-file /tmp/launch_params_x4p5830k'].
+[ERROR] [robot_state_publisher-2]: process has died [pid 20485, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_osluz24d'].
+[ERROR] [static_transform_publisher-1]: process has died [pid 20484, exit code -9, cmd '/opt/ros/jazzy/lib/tf2_ros/static_transform_publisher --frame-id world --child-frame-id base_link --ros-args'].

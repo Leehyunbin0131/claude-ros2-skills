@@ -1,0 +1,10 @@
+{
+  "mvt1_bringup_found": true,
+  "bringup": "/tmp/eval-mvt1-baseline-cf1l/bringup.sh",
+  "mvt1_move_group_up": true,
+  "mvt1_plan_service": true,
+  "mvt1_group_known": true,
+  "bringup_rc": 0,
+  "groups_probe": "GROUPS arm",
+  "bringup_tail": "Launched MoveIt bringup in background (PID 17750). Logs: /tmp/eval-mvt1-baseline-cf1l/log/bringup.log\nmove_group is up.\n"
+}

@@ -187,3 +187,45 @@ Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
 === per1 rep 10 done
 scenario for task mvt1 up (pids: )
 --- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-L653)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r1/mvt1-baseline_final.md
+evals/harness/run_ab.sh: line 337: syntax error near unexpected token `done'
+=== mvt1 rep 1 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-4kUe)
+    -> evals/runs/2026-07-31-sweep-L1/mvt1/r2/mvt1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt1 <result.jsonl>
+=== mvt1 rep 2 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-zzZO)
+evals/harness/run_ab.sh: line 263: 22385 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 3 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-P1Ew)
+evals/harness/run_ab.sh: line 263: 24233 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 4 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-XuxJ)
+evals/harness/run_ab.sh: line 263: 24512 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 5 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-cTb6)
+evals/harness/run_ab.sh: line 263: 25167 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 6 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-RFfm)
+evals/harness/run_ab.sh: line 263: 27145 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 7 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-qzUZ)
+evals/harness/run_ab.sh: line 263: 27396 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 8 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-cbdV)
+evals/harness/run_ab.sh: line 263: 28074 Killed                  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" claude -p "$PROMPT" --model "$MODEL" --output-format stream-json --verbose --permission-mode acceptEdits --allowedTools WebFetch WebSearch Read Glob Grep Write Bash > "$OUT/${TASK}-${cell}_result.jsonl"
+=== mvt1 rep 9 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-mUh0)
+evals/harness/run_ab.sh: line 312: evals/runs/2026-07-31-sweep-L1/mvt1/r10/mvt1-baseline_final.md: No such file or directory
+=== mvt1 rep 10 done
+SWEEP-L1 FINISHED

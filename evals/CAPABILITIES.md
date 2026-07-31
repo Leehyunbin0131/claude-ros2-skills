@@ -49,10 +49,14 @@ stacked on top of `CLAUDE.md` moved **nothing** (10/10 vs 10/10, 6/10 vs 6/10).
 
 ---
 
-## 2026-07-31 coverage sweep — running
+## 2026-07-31 coverage sweep — L1 complete, 126/130
 
 Four skills that had never been tested at all. Prompts frozen before any cell
 ran; graders validated against deliberately broken references first.
+
+**Every L1 rung passed.** 126 of 130 real-outcome checks, with the only failure
+a single perception cell that subscribed RELIABLE to a BEST_EFFORT camera. By
+rule 4 all four ladders climb to L2.
 
 | Rung | Mechanisms added | Checks | Result |
 | :--- | :--- | :--- | ---: |
@@ -65,8 +69,8 @@ ran; graders validated against deliberately broken references first.
 | `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | **36/40 reached** (1 cell lost to the QoS trap) |
 | `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | grader validated, queued |
 | `per3` | + 16UC1 depth → `PointCloud2` in metres | — | not run |
-| `mvt1` | self-authored URDF+SRDF, `move_group` reaching a usable state | move_group_up, plan_service, group_known | pending |
-| `mvt2` | + a real `GetMotionPlan` returning a trajectory | — | not run |
+| `mvt1` | self-authored URDF+SRDF, `move_group` reaching a usable state | move_group_up, plan_service, group_known | **30/30 reached** (re-run; see LADDER.md) |
+| `mvt2` | + a real `GetMotionPlan` returning a trajectory | move_group_up, plan_runs, **points** | grader validated, queued |
 | `mvt3` | + a collision object applied to and respected by the scene | — | not run |
 
 `ros2-core` and `ros2-dev` have no ladder yet. `ros2-microros` is out of scope:

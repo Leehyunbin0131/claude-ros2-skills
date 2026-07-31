@@ -1,0 +1,10 @@
+{
+  "mvt1_bringup_found": true,
+  "bringup": "/tmp/eval-mvt1-baseline-4kUe/bringup.sh",
+  "mvt1_move_group_up": true,
+  "mvt1_plan_service": true,
+  "mvt1_group_known": true,
+  "bringup_rc": 0,
+  "groups_probe": "GROUPS arm",
+  "bringup_tail": "Launched move_group stack in background (PID 22103), log at log/move_group_bringup.log\nWaiting for /move_group node and /plan_kinematic_path service...\nmove_group is up.\n"
+}
