@@ -1,0 +1,15 @@
+{
+  "tr2_node_found": true,
+  "node": "/tmp/eval-tr2-baseline-Idmr/node.py",
+  "tr2_logs_5": true,
+  "tr2_no_hang": true,
+  "tr2_exits_clean": true,
+  "tr2_heartbeat_steady": true,
+  "n_results": 5,
+  "hb_count": 49,
+  "hb_max_gap_s": 0.1,
+  "hb_avg_hz": 10.5,
+  "exit_code": 0,
+  "elapsed_s": 5,
+  "run_tail": "[INFO] [1785466873.993830983] [heartbeat_node]: RESULT 1 True\n[INFO] [1785466874.662867925] [heartbeat_node]: RESULT 2 True\n[INFO] [1785466875.662877142] [heartbeat_node]: RESULT 3 True\n[INFO] [1785466876.662645600] [heartbeat_node]: RESULT 4 True\n[INFO] [1785466877.662547000] [heartbeat_node]: RESULT 5 True\n"
+}

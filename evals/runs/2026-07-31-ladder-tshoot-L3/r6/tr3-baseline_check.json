@@ -1,0 +1,13 @@
+{
+  "tr3_node_found": true,
+  "node": "/tmp/eval-tr3-baseline-U85q/node.py",
+  "tr3_logs_5": true,
+  "tr3_exits_clean": true,
+  "tr3_total_line": true,
+  "tr3_batch_under_3s": true,
+  "n_results": 5,
+  "node_total_s": "2.005",
+  "wall_ms": 5405,
+  "exit_code": 0,
+  "run_tail": "[INFO] [1785487642.756932556] [slow_check_client]: waiting for /slow_check service...\n[INFO] [1785487643.757619591] [slow_check_client]: waiting for /slow_check service...\n[INFO] [1785487646.862593328] [slow_check_client]: RESULT 1 True\n[INFO] [1785487646.862769614] [slow_check_client]: RESULT 2 True\n[INFO] [1785487646.862914799] [slow_check_client]: RESULT 3 True\n[INFO] [1785487646.863029387] [slow_check_client]: RESULT 4 True\n[INFO] [1785487646.863136754] [slow_check_client]: RESULT 5 True\n[INFO] [1785487646.863254662] [slow_check_client]: TOTAL 2.005\n"
+}

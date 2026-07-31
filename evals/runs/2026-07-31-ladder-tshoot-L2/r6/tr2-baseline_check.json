@@ -1,0 +1,15 @@
+{
+  "tr2_node_found": true,
+  "node": "/tmp/eval-tr2-baseline-5WPW/node.py",
+  "tr2_logs_5": true,
+  "tr2_no_hang": true,
+  "tr2_exits_clean": true,
+  "tr2_heartbeat_steady": true,
+  "n_results": 5,
+  "hb_count": 43,
+  "hb_max_gap_s": 0.1,
+  "hb_avg_hz": 10.24,
+  "exit_code": 0,
+  "elapsed_s": 8,
+  "run_tail": "[INFO] [1785466515.497724235] [heartbeat_node]: RESULT 3 True\n[INFO] [1785466516.205546792] [heartbeat_node]: RESULT 4 True\n[INFO] [1785466517.206298130] [heartbeat_node]: RESULT 5 True\n[INFO] [1785466518.223732105] [heartbeat_node]: RESULT 6 True\n[INFO] [1785466519.224367891] [heartbeat_node]: RESULT 7 True\n"
+}

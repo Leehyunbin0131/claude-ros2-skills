@@ -1,0 +1,15 @@
+{
+  "tr2_node_found": true,
+  "node": "/tmp/eval-tr2-baseline-4RKO/node.py",
+  "tr2_logs_5": true,
+  "tr2_no_hang": true,
+  "tr2_exits_clean": true,
+  "tr2_heartbeat_steady": true,
+  "n_results": 5,
+  "hb_count": 56,
+  "hb_max_gap_s": 0.1,
+  "hb_avg_hz": 10.29,
+  "exit_code": 0,
+  "elapsed_s": 6,
+  "run_tail": "[INFO] [1785466299.948406637] [heartbeat_node]: Waiting for /slow_check service...\n[INFO] [1785466300.198816078] [heartbeat_node]: /slow_check service is available\n[INFO] [1785466301.710731400] [heartbeat_node]: RESULT 1 True\n[INFO] [1785466302.709660662] [heartbeat_node]: RESULT 2 True\n[INFO] [1785466303.697727298] [heartbeat_node]: RESULT 3 True\n[INFO] [1785466304.698285834] [heartbeat_node]: RESULT 4 True\n[INFO] [1785466305.701060321] [heartbeat_node]: RESULT 5 True\n"
+}

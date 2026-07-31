@@ -1,0 +1,13 @@
+{
+  "tr3_node_found": true,
+  "node": "/tmp/eval-tr3-baseline-eTKN/node.py",
+  "tr3_logs_5": true,
+  "tr3_exits_clean": true,
+  "tr3_total_line": true,
+  "tr3_batch_under_3s": true,
+  "n_results": 5,
+  "node_total_s": "2.002",
+  "wall_ms": 3300,
+  "exit_code": 0,
+  "run_tail": "[INFO] [1785486479.956541731] [slow_check_client]: RESULT 1 True\n[INFO] [1785486479.956951471] [slow_check_client]: RESULT 2 True\n[INFO] [1785486479.957176489] [slow_check_client]: RESULT 3 True\n[INFO] [1785486479.957370375] [slow_check_client]: RESULT 4 True\n[INFO] [1785486480.951827838] [slow_check_client]: RESULT 5 True\n[INFO] [1785486480.952078343] [slow_check_client]: TOTAL 2.002\n"
+}

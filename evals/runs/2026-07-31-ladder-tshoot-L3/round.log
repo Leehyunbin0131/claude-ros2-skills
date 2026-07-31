@@ -1,0 +1,60 @@
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-m2mw)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r1/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 1 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-JUnT)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r2/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 2 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-eTKN)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r3/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 3 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-NJHR)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r4/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 4 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-kKKb)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r5/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 5 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-U85q)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r6/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 6 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-MAeq)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r7/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 7 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-3vPC)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r8/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 8 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-5y0V)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r9/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 9 done
+scenario for task tr3 up (pids: )
+--- task tr3 / baseline  (model=sonnet, cwd=/tmp/eval-tr3-baseline-Ocg2)
+    -> evals/runs/2026-07-31-ladder-tshoot-L3/r10/tr3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tr3 <result.jsonl>
+=== rep 10 done

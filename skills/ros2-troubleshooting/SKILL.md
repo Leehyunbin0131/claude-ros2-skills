@@ -1,6 +1,6 @@
 ---
 name: ros2-troubleshooting
-description: "Troubleshooting: REP 103/105 ground-truth checks, TF/IMU/LiDAR misalignment, use_sim_time, lifecycle states, executor deadlocks, DDS domain conflicts."
+description: "Troubleshooting: REP 103/105 ground-truth checks, TF/IMU/LiDAR misalignment, use_sim_time, lifecycle states, DDS domain conflicts."
 ---
 
 # ROS 2 Troubleshooting & Physical Ground-Truth Verification Guide (Ubuntu 24.04 LTS & ROS 2 Jazzy)
@@ -69,17 +69,12 @@ Run these before manual diagnosis — they turn the physical checks below into p
 - **Root Cause**: Lifecycle nodes (`controller_server`, `planner_server`, `amcl`) are stuck in `unconfigured` or `inactive` state.
 - **Fix**: Check lifecycle states: `ros2 lifecycle get /controller_server`. Manually transition or configure `nav2_lifecycle_manager` to manage all lifecycle nodes.
 
-### C. Executor Deadlocks & Async Callback Freezes
-- **Symptom**: Calling `spin_until_future_complete` or `wait_for_service` inside a callback hangs the entire node.
-- **Root Cause**: A single-threaded executor cannot process service responses while executing a blocking callback on the same thread.
-- **Fix**: Use `MultiThreadedExecutor` and assign separate `ReentrantCallbackGroup` to async service clients / action calls.
-
-### D. URDF Self-Collision & MoveIt 2 Freeze
+### C. URDF Self-Collision & MoveIt 2 Freeze
 - **Symptom**: MoveIt 2 motion planner immediately fails with `No valid path found` or `State in collision`.
 - **Root Cause**: Collision geometries in URDF overlap (e.g. gripper colliding with wrist link) or SRDF Allowed Collision Matrix (ACM) is missing.
 - **Fix**: Regenerate SRDF ACM using MoveIt Setup Assistant to disable collision checking for adjacent fixed joints.
 
-### E. DDS Multicast & Domain ID Interference (`ROS_DOMAIN_ID`)
+### D. DDS Multicast & Domain ID Interference (`ROS_DOMAIN_ID`)
 - **Symptom**: Unrelated robots or PCs on the same Wi-Fi receive duplicate topics or experience high packet loss.
 - **Root Cause**: Default `ROS_DOMAIN_ID=0` shared across local network.
 - **Fix**: Set a unique `export ROS_DOMAIN_ID=N` (0-101 safe on Linux; higher IDs may collide with OS ephemeral ports) per developer/robot.
@@ -99,9 +94,6 @@ Run these before manual diagnosis — they turn the physical checks below into p
    │     ├── Step 1: Push robot forward 1 meter by hand  `ros2 topic echo /odom` (twist.twist.linear.x must be positive; position displacement along body heading must be positive)
    │     ├── Step 2: Turn robot left by hand  `ros2 topic echo /imu/data` (angular_velocity.z must be positive)
    │     └── Step 3: Check Static TF  `ros2 run tf2_ros tf2_echo base_link laser_frame`
-   │
-   └── Node freezes on async call / service?
-         └── Replace single-threaded blocking spin with `MultiThreadedExecutor` & `ReentrantCallbackGroup`
 ```
 
 ## 5. Common Anti-Patterns & Prevention Rules
@@ -111,7 +103,6 @@ Run these before manual diagnosis — they turn the physical checks below into p
 | Changing sign in application logic to fix inverted motor | Fix motor direction in `ros2_control` config or hardware interface, NOT in application code |
 | Hardcoding frame names without leading `/` inconsistencies | Standardize frame IDs (`map`, `odom`, `base_link`, `laser_frame`) without leading slashes |
 | Mismatch between publisher (`BestEffort`) & subscriber (`Reliable`) | Explicitly set `rclcpp::SensorDataQoS()` on sensor subscribers |
-| Blocking `spin_until_future_complete` inside a callback | Use `MultiThreadedExecutor` or async done callbacks |
 
 ## 6. Official References
 - **REP 103 Standard Units & Coordinate Conventions**: `https://www.ros.org/reps/rep-0103.html`

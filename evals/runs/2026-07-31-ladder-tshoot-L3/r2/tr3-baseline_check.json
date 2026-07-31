@@ -1,0 +1,13 @@
+{
+  "tr3_node_found": true,
+  "node": "/tmp/eval-tr3-baseline-JUnT/node.py",
+  "tr3_logs_5": true,
+  "tr3_exits_clean": true,
+  "tr3_total_line": true,
+  "tr3_batch_under_3s": true,
+  "n_results": 5,
+  "node_total_s": "2.001",
+  "wall_ms": 3559,
+  "exit_code": 0,
+  "run_tail": "[INFO] [1785486178.164111876] [concurrent_caller]: Waiting for /slow_check service...\n[INFO] [1785486181.416405930] [concurrent_caller]: RESULT 1 True\n[INFO] [1785486181.416580035] [concurrent_caller]: RESULT 2 True\n[INFO] [1785486181.416729596] [concurrent_caller]: RESULT 3 True\n[INFO] [1785486181.416855524] [concurrent_caller]: RESULT 4 True\n[INFO] [1785486181.416976480] [concurrent_caller]: RESULT 5 True\n[INFO] [1785486181.417187439] [concurrent_caller]: TOTAL 2.001\n"
+}

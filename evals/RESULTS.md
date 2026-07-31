@@ -382,6 +382,36 @@ failing check after seeing it fail is the manufacturing pattern in reverse. It
 never had a demonstrated failing case, that was recorded *before* the round, and
 its failures were provably false.
 
+## The ladder, third run — sub-topic laddering, `ros2-troubleshooting` §3C cut
+
+The first ladder run under the **sub-topic** rule: a skill covering several
+subjects gets one ladder per subject, so a 119-line file is measured piece by
+piece instead of a single 3-rung ladder touching one corner of it.
+
+| Rung | Mechanisms added | Result |
+| :--- | :--- | ---: |
+| L1 | a 1 s service called from a timer callback | 30/30 |
+| L2 | + call moves into a subscription callback; 10 Hz `/heartbeat` must hold | 40/40 |
+| L3 | + five calls concurrent, batch under 3 s | 40/40 |
+[L1](./runs/2026-07-31-ladder-tshoot-L1/NOTES.md) ·
+[L2](./runs/2026-07-31-ladder-tshoot-L2/NOTES.md) ·
+[L3](./runs/2026-07-31-ladder-tshoot-L3/NOTES.md)
+
+**110 of 110 cell-checks unaided.** At L2, 8 of 10 cells held a max heartbeat
+gap of exactly **0.1 s** — perfect 10 Hz while 1 s calls were in flight. At L3
+every cell landed at **2.00 s**, the floor for five 1 s calls against a 4-thread
+server; not one serialised.
+
+**Cut:** §3.C, its §5 anti-pattern row, the decision-tree branch, and "executor
+deadlocks" from the frontmatter. 119 → 110 lines. The rest of the skill stands —
+REP 103/105, lifecycle, DDS and the bundled scripts each need their own ladder.
+
+§3C was also **factually wrong** for Jazzy, recorded but not the reason for the
+cut: it warns about nested spin, which now raises
+`RuntimeError("Executor is already spinning")` in ~1 s, and omits the two cases
+that genuinely hang in silence. A correct paragraph would have been cut on the
+same number.
+
 ## Status
 
 | Skill | Status |
@@ -389,7 +419,8 @@ its failures were provably false.
 | `ros2-package` | **DELETED** — ladder exhausted at ceiling, 190 cell-checks across three rungs |
 | `gazebo-sim` | **DELETED** — ladder exhausted, 108/110 cell-checks across three rungs |
 | `ros2-control` | PARTIALLY VERIFIED — t1, n=10 across rounds 3 and 4. The `/cmd_vel` row is cut; the rest is unmeasured |
-| `ros2-core`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev` | NOT VERIFIED — no ladder written yet |
+| `ros2-troubleshooting` | PARTIALLY VERIFIED — §3C laddered (110/110) and cut; its other sub-topics unmeasured |
+| `ros2-core`, `ros2-testing`, `ros2-perception`, `ros2-moveit`, `ros2-dev` | NOT VERIFIED — no ladder written yet |
 | `ros2-microros` | OUT OF SCOPE — no `micro_ros_agent` or `micro_ros_setup` in apt for Jazzy; needs a multi-repository source build |
 
 `ros2-security` was deleted during the first round because the model reproduced

@@ -338,9 +338,51 @@ the obvious defect does not work: deleting `<inertial>` from the wheels leaves t
 robot driving 1.69 m, because SDF supplies a default mass and unit inertia. No
 constructible failing case means no grader, so that row stays unmeasured.
 
+### `ros2-troubleshooting` §3C (executor deadlocks) — **SUB-TOPIC EXHAUSTED, CUT**
+
+First ladder under the **sub-topic** rule: a multi-subject skill gets one ladder
+per sub-topic, not one per file. 110 of 110 cell-checks unaided.
+[L1](./runs/2026-07-31-ladder-tshoot-L1/NOTES.md) ·
+[L2](./runs/2026-07-31-ladder-tshoot-L2/NOTES.md) ·
+[L3](./runs/2026-07-31-ladder-tshoot-L3/NOTES.md)
+
+| Rung | Mechanisms added | Result |
+| :--- | :--- | ---: |
+| **L1** (`tr1`) | a 1 s service called from a timer callback | **30/30** |
+| **L2** (`tr2`) | + call moves into a subscription callback; a 10 Hz `/heartbeat` must hold while calls are in flight | **40/40** |
+| **L3** (`tr3`) | + five calls issued concurrently, batch under 3 s | **40/40** |
+
+At L2, 8 of 10 cells held a max heartbeat gap of exactly **0.1 s** — perfect
+10 Hz during 1 s calls. At L3 every cell landed at **2.00 s**, the floor for
+five 1 s calls against a 4-thread server. No cell serialised.
+
+Cut: §3.C, its §5 anti-pattern row, the decision-tree branch, and "executor
+deadlocks" from the description. 119 → 110 lines. **The rest of the skill is
+untouched** — REP 103/105, lifecycle, DDS, and the bundled scripts each need
+their own ladder.
+
+**§3C was also factually wrong**, recorded but not the reason for the cut: it
+warns about nested spin, which on Jazzy raises
+`RuntimeError("Executor is already spinning")` in ~1 s — loud and immediate —
+and omits the two cases that really do hang silently
+(`spin_until_future_complete` with no executor argument while the node is on a
+MultiThreadedExecutor; timer and subscription sharing rclpy's default
+MutuallyExclusive group). A correct paragraph would have been cut on the same
+110/110.
+
+#### A round lost to a lesson already paid for
+
+The first L3 attempt ran one cell then sat dead **4 h 48 m**. Teardown was
+`kill $SRV` then `wait $SRV`; rclpy inside `executor.spin()` does not reliably
+act on SIGTERM, so the child lived and `wait` never returned, and the `-9` in
+`kill_all` sat behind it. `gz sim` taught this exact thing in the gazebo rounds
+and it was written up there — it just was not carried across to the Python
+scenario servers. Caught only because the user asked whether the round was
+running, after two progress reports from me that said it was.
+
 | Skill | Ladder |
 | :--- | :--- |
-| `ros2-troubleshooting` | not yet written |
+| `ros2-troubleshooting` | §3C **done** (above). REP 103/105, lifecycle, DDS, bundled scripts: not yet written |
 | `ros2-perception` | not yet written |
 | `ros2-core` | not yet written |
 | `ros2-testing` | not yet written |
