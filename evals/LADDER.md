@@ -198,7 +198,19 @@ Ladders get written when each skill's turn comes, under the same six rules, and
 before any of its cells run. Recorded here as they are written so the order
 cannot be rearranged after the fact.
 
-### `gazebo-sim`
+### `gazebo-sim` — **LADDER EXHAUSTED, SKILL DELETED**
+
+**108 of 110 cell-checks unaided across three rungs.** Rule 5 fired. Every
+headline row of the symptom table was exercised and none was a thing a cell got
+wrong: bridge direction characters 0/10, rendering sensor without
+`gz-sim-sensors-system` 0/10, `/clock` and `use_sim_time` 0/10, IMU without
+`gz-sim-imu-system` 0/10, `<model>/<link>/<sensor>` frame composition 0/10. The
+only genuine cell failure was r3 at L3, which bridged `/imu` while its own sensor
+published on `/imu/raw` — a self-inconsistency in one cell, not a shared gap.
+[L1](./runs/2026-07-30-ladder-gz-L1/NOTES.md) ·
+[L2](./runs/2026-07-30-ladder-gz-L2/NOTES.md) ·
+[L3](./runs/2026-07-31-ladder-gz-L3/NOTES.md)
+
 
 All three prompts written and frozen 2026-07-30 in `run_ab.sh` before any cell
 ran. **`g2` and `g3` have no checker yet, deliberately** — rule 4 stops at the
@@ -209,7 +221,7 @@ Freezing the prompts now is what stops the ladder being reshaped after a result.
 | :--- | :--- | :--- |
 | **L1** (`g1`) | SDF world authoring; `gz-sim-physics-system`; a diff-drive robot with joints; `gz-sim-diff-drive-system` wired to those joints; headless `gz sim -s -r` | **run — 40/40**, every robot drove 1.65–1.69 m |
 | **L2** (`g2`) | + `ros_gz_bridge parameter_bridge` with correct direction characters; + a `gpu_lidar`, which needs `gz-sim-sensors-system` in the world; + `/clock` bridged | **run — 40/40** (after a grader fix; see below) |
-| **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | running |
+| **L3** (`g3`) | + URDF published on `/robot_description` and spawned with `ros_gz_sim`; + `gz-sim-imu-system`; + sensor `frame_id` matching the URDF link name rather than `<model>/<link>/<sensor>`; + `use_sim_time` actually following sim time | **run — 28/30** |
 
 **L1's graders, validated before the rung ran** (`g1_check.sh`). Every check has
 a demonstrated failing case — the standard, since a grader with no constructible

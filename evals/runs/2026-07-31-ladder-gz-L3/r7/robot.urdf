@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<robot name="my_robot">
+
+  <link name="base_link">
+    <visual>
+      <geometry><box size="0.3 0.2 0.1"/></geometry>
+      <material name="grey">
+        <color rgba="0.6 0.6 0.6 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry><box size="0.3 0.2 0.1"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
+    </inertial>
+  </link>
+
+  <link name="imu_link">
+    <visual>
+      <geometry><box size="0.02 0.02 0.02"/></geometry>
+      <material name="red">
+        <color rgba="1 0 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry><box size="0.02 0.02 0.02"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.01"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+  </link>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0 0 0.06" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Keep the robot fixed in place; simplifies physics for this demo. -->
+  <gazebo>
+    <static>true</static>
+  </gazebo>
+
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <visualize>true</visualize>
+      <topic>imu</topic>
+      <!-- gz_frame_id forces the header frame_id to the URDF link name. -->
+      <gz_frame_id>imu_link</gz_frame_id>
+      <imu>
+        <angular_velocity>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></x>
+          <y><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></y>
+          <z><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+  </gazebo>
+
+</robot>

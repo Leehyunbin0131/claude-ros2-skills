@@ -67,11 +67,29 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 
-# 1. the model reached the running simulation. `gz model --list` names every
-#    model in the world; the ground plane is always there, so require one more.
+# 1. the model reached the running simulation.
+#
+# NOT "at least 2 models". The first version assumed a ground plane plus the
+# robot and scored 5 of 10 cells as "never spawned" while their IMU was
+# publishing into ROS -- impossible for a robot that is not in the world. Those
+# five simply built a world with no ground plane, which **the g3 prompt never
+# asked for**. Identical mistake to hardcoding /odom at L2: the grader asserting
+# something the frozen prompt does not require.
+#
+# The robot's name comes from the cell's own URDF, and that exact name has to
+# appear in the model list.
+ROBOT_NAME="$(grep -ho '<robot[^>]*name="[^"]*"' "$WORK"/*.urdf "$WORK"/**/*.urdf \
+              "$WORK"/*.xacro "$WORK"/**/*.xacro 2>/dev/null \
+              | head -1 | sed 's/.*name="//;s/"//')"
 MODELS="$(timeout 10 gz model --list 2>/dev/null || true)"
 N_MODELS=$(grep -c '^ *- ' <<<"$MODELS" 2>/dev/null || echo 0)
-[ "${N_MODELS:-0}" -ge 2 ] && p_spawn=true
+if [ -n "$ROBOT_NAME" ]; then
+  case "$MODELS" in *"$ROBOT_NAME"*) p_spawn=true ;; esac
+else
+  # No URDF name to match on: fall back to "some model besides a ground plane".
+  NON_GROUND=$(grep '^ *- ' <<<"$MODELS" | grep -icv 'ground' || echo 0)
+  [ "${NON_GROUND:-0}" -ge 1 ] && p_spawn=true
+fi
 
 # 2/3. the IMU reaches ROS, and its frame_id is a link the URDF declares --
 #      not Gazebo's composed <model>/<link>/<sensor>.
@@ -127,6 +145,8 @@ sleep 1
   printf '  "frame_id": %s,\n'            "$(printf '%s' "$FRAME" | json_escape)"
   printf '  "urdf_links": %s,\n'          "$(printf '%s' "$LINKS" | json_escape)"
   printf '  "n_models": %d,\n'            "${N_MODELS:-0}"
+  printf '  "robot_name": %s,\n'          "$(printf '%s' "${ROBOT_NAME:-}" | json_escape)"
+  printf '  "models": %s,\n'              "$(printf '%s' "$MODELS" | json_escape)"
   printf '  "clock_probe": %s,\n'         "$(printf '%s' "$CLK_OUT" | json_escape)"
   printf '  "bringup_tail": %s\n'         "$(tail -c 1500 "$BR_LOG" | json_escape)"
   printf '}\n'

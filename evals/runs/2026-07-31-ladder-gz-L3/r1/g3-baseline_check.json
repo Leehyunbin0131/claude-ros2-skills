@@ -1,0 +1,15 @@
+{
+  "g3_bringup_found": true,
+  "bringup": "/tmp/eval-g3-baseline-mhEz/bringup.sh",
+  "g3_spawned": false,
+  "g3_imu_in_ros": true,
+  "g3_frame_id_is_link": true,
+  "g3_sim_time": true,
+  "frame_id": "imu_link",
+  "urdf_links": "base_link\nimu_link",
+  "n_models": 1,
+  "robot_name": "simple_bot",
+  "models": "\nRequesting state for world [default]...\n\nAvailable models:\n    - ground_plane",
+  "clock_probe": "SIMTIME 1138000000",
+  "bringup_tail": "bringup.sh: launched Gazebo, robot_state_publisher, spawn and bridge in the background.\nbringup.sh: logs in /tmp/eval-g3-baseline-mhEz/log\n"
+}

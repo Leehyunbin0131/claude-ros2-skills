@@ -79,7 +79,7 @@ measurement, and it is exactly what went wrong on the first attempt.
 | `ros2-testing` | none | **no** |
 | `ros2-perception` | none | **no** |
 | `ros2-dev` | round 1 T3 only, which was null | **no** |
-| `gazebo-sim` | none | **no** |
+| `gazebo-sim` | ladder L1+L2+L3, n=10 each — **108/110 cell-checks at ceiling** | **DELETED** |
 | `ros2-microros` | none — out of scope | **no** |
 
 Seven skills have no v2 measurement at all. They stay as shipped until one

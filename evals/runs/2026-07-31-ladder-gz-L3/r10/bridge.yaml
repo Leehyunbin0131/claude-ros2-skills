@@ -1,0 +1,19 @@
+# Gazebo -> ROS 2 bridge config.
+#
+# The IMU is bridged to an internal topic first because Gazebo's IMU sensor
+# always stamps its message with a frame_id scoped as "<model>/<link>/<sensor>"
+# (e.g. "simple_robot/imu_link/imu_sensor"), which SDF/URDF gives no way to
+# override. imu_frame_fix.py republishes it on /imu with frame_id set to
+# exactly the mounting link's name, as required.
+
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+- ros_topic_name: "/imu/raw"
+  gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS

@@ -1,0 +1,15 @@
+{
+  "g3_bringup_found": true,
+  "bringup": "/tmp/eval-g3-baseline-L4LM/bringup.sh",
+  "g3_spawned": false,
+  "g3_imu_in_ros": true,
+  "g3_frame_id_is_link": true,
+  "g3_sim_time": true,
+  "frame_id": "imu_link",
+  "urdf_links": "base_link\nimu_link",
+  "n_models": 1,
+  "robot_name": "my_robot",
+  "models": "\nRequesting state for world [default]...\n\nAvailable models:\n    - ground_plane",
+  "clock_probe": "SIMTIME 4534000000",
+  "bringup_tail": "bringup started in background (pid 2936); logs at /tmp/eval-g3-baseline-L4LM/bringup.log\n"
+}

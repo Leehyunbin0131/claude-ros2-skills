@@ -297,13 +297,65 @@ build rc=0, every file installed, and `ros2 run` says `Package not found`. And
 **`colcon test` exits 0 when there are no tests**, which is why `t7_tests_ran` is
 graded separately from `t7_tests_pass`.
 
+## The ladder, second run — `gazebo-sim` deleted
+
+Three rungs, `baseline` only, n=10 each. Design and rules in
+[`LADDER.md`](./LADDER.md).
+[L1](./runs/2026-07-30-ladder-gz-L1/NOTES.md) ·
+[L2](./runs/2026-07-30-ladder-gz-L2/NOTES.md) ·
+[L3](./runs/2026-07-31-ladder-gz-L3/NOTES.md)
+
+| Rung | Mechanisms added | Result |
+| :--- | :--- | ---: |
+| L1 | SDF world, physics system, diff-drive robot, headless run | 40/40 |
+| L2 | + `ros_gz_bridge` direction chars, `gpu_lidar` + `gz-sim-sensors-system`, `/clock` | 40/40 |
+| L3 | + URDF spawn via `ros_gz_sim`, `gz-sim-imu-system`, frame naming, `use_sim_time` | 28/30 |
+
+**108 of 110 cell-checks unaided.** Every headline row of the skill's symptom
+table was exercised, and none of them was a thing a cell got wrong:
+
+| Symptom row | Rung | Cells wrong |
+| :--- | :--- | ---: |
+| bridge direction char (`[` vs `]`) | L2 | 0/10 |
+| rendering sensor silent without `gz-sim-sensors-system` | L2 | 0/10 |
+| `/clock` unbridged, `use_sim_time` broken | L2, L3 | 0/10 |
+| IMU silent without `gz-sim-imu-system` | L3 | 0/10 |
+| frame composed as `<model>/<link>/<sensor>` | L3 | 0/10 |
+
+The only genuine cell failure was r3 at L3: its bridge line was correct and its
+world loaded the IMU system, but its own sensor published on `/imu/raw` while it
+bridged `/imu`. A self-inconsistency in one cell, not a shared gap — and one in
+ten is what the pre-registered threshold calls noise.
+
+**Rule 5 fired: `skills/gazebo-sim/` is deleted.**
+
+### This ladder was mostly a fight with the grader
+
+Nine grader defects, none model-side. The two worth carrying forward:
+
+- **`set -o pipefail` + `grep -q` reports a match as a failure.** `grep -q` exits
+  the instant it matches, the producer takes SIGPIPE, and `pipefail` propagates
+  it. Racy, so it passes standalone and fails inside a script.
+- **Every grader assertion must trace to a sentence in the frozen prompt.** Three
+  false gaps came from checks asserting things the prompt never required: that
+  the odometry topic is `/odom`, that a world has a ground plane, that the
+  Gazebo model name equals the URDF robot name. Two of them arrived at exactly
+  the threshold, in the shape the experimenter would find most interesting.
+
+`g3_spawned` was removed after the round — set out in full in
+[the L3 notes](./runs/2026-07-31-ladder-gz-L3/NOTES.md), because dropping a
+failing check after seeing it fail is the manufacturing pattern in reverse. It
+never had a demonstrated failing case, that was recorded *before* the round, and
+its failures were provably false.
+
 ## Status
 
 | Skill | Status |
 | :--- | :--- |
 | `ros2-package` | **DELETED** — ladder exhausted at ceiling, 190 cell-checks across three rungs |
+| `gazebo-sim` | **DELETED** — ladder exhausted, 108/110 cell-checks across three rungs |
 | `ros2-control` | PARTIALLY VERIFIED — t1, n=10 across rounds 3 and 4. The `/cmd_vel` row is cut; the rest is unmeasured |
-| `ros2-core`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev`, `gazebo-sim` | NOT VERIFIED — awaiting v2 |
+| `ros2-core`, `ros2-testing`, `ros2-perception`, `ros2-troubleshooting`, `ros2-moveit`, `ros2-dev` | NOT VERIFIED — no ladder written yet |
 | `ros2-microros` | OUT OF SCOPE — no `micro_ros_agent` or `micro_ros_setup` in apt for Jazzy; needs a multi-repository source build |
 
 `ros2-security` was deleted during the first round because the model reproduced

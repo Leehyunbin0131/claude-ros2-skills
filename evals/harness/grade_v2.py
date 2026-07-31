@@ -532,13 +532,32 @@ def g3(c: Cell, check: str | Path | None = None) -> dict:
                                 confirmed literally
         /clock not bridged   -> g3_sim_time FAIL, everything else fine
 
-    `g3_spawned` passed in all four; a bring-up that never publishes
-    /robot_description would fail it, but that variant was not run, so it is
-    validated by construction rather than by a reference.
+    **`g3_spawned` was REMOVED after the round, and that needs justifying,**
+    because dropping a failing check after seeing it fail is the manufacturing
+    pattern in reverse.
+
+    It never met the standard the other three met. Before the round it was
+    recorded as "validated by construction" -- no reference variant ever made it
+    fail. Three definitions were tried and each encoded something the frozen
+    prompt does not require:
+
+        >= 2 models          -- assumes a ground plane. 5/10 cells built a world
+                                without one; the prompt never asked for it.
+        URDF robot name in   -- assumes the Gazebo model name equals the URDF
+        the model list          robot name. `ros_gz_sim create -name` sets it.
+        `gz model --list`    -- queries world "default" unless told otherwise;
+                                cells naming their world anything else came back
+                                empty.
+
+    It is also redundant: an IMU publishing from a robot is proof that robot is
+    in the world, so every "not spawned" cell contradicted itself by passing
+    `g3_imu_in_ros`. Keeping a check whose failures are provably false would be
+    worse than removing it -- but this is the weakest link in the round's rigor
+    and is recorded as such rather than smoothed over.
     """
     return _external_checks(
         c, check,
-        ["g3_spawned", "g3_imu_in_ros", "g3_frame_id_is_link", "g3_sim_time"],
+        ["g3_imu_in_ros", "g3_frame_id_is_link", "g3_sim_time"],
         "g3_bringup_found", "g3_unused_transcript_key")
 
 
