@@ -59,8 +59,8 @@ ran; graders validated against deliberately broken references first.
 | `ctl1` | URDF `<ros2_control>`, `mock_components/GenericSystem`, controller_manager params, `joint_state_broadcaster` spawned | cm_running, jsb_active, joint_states | pending |
 | `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | — | not run |
 | `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | — | not run |
-| `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | pending |
-| `tst2` | + `launch_testing` against a live node | — | not run |
+| `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
+| `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | grader validated, queued |
 | `tst3` | + rosbag2 recorded programmatically and read back | — | not run |
 | `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | pending |
 | `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | — | not run |

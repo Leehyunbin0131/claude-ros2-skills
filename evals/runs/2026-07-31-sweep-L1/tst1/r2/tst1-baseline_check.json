@@ -1,0 +1,13 @@
+{
+  "tst1_workspace_found": true,
+  "ws": "/tmp/eval-tst1-baseline-4Rpn/ros2_ws",
+  "tst1_builds": true,
+  "tst1_test_ran": true,
+  "tst1_no_failures": true,
+  "n_tests": 4,
+  "n_failures": 0,
+  "n_errors": 0,
+  "build_rc": 0,
+  "test_result": "build/calc_pkg/pytest.xml: 4 tests, 0 errors, 0 failures, 1 skipped\n\nSummary: 4 tests, 0 errors, 0 failures, 1 skipped\n",
+  "build_tail": "ges/calc_pkg\nbyte-compiling /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/lib/python3.12/site-packages/calc_pkg/__init__.py to __init__.cpython-312.pyc\nbyte-compiling /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/lib/python3.12/site-packages/calc_pkg/calc.py to calc.cpython-312.pyc\nrunning install_data\ncreating /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/share/ament_index\ncreating /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/share/ament_index/resource_index\ncreating /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/share/ament_index/resource_index/packages\ncopying resource/calc_pkg -> /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/share/ament_index/resource_index/packages\ncopying package.xml -> /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/share/calc_pkg\nrunning install_egg_info\nCopying ../../build/calc_pkg/calc_pkg.egg-info to /tmp/eval-tst1-baseline-4Rpn/ros2_ws/install/calc_pkg/lib/python3.12/site-packages/calc_pkg-0.0.0-py3.12.egg-info\nrunning install_scripts\nwriting list of installed files to '/tmp/eval-tst1-baseline-4Rpn/ros2_ws/build/calc_pkg/install.log'\nFinished <<< calc_pkg [0.61s]\n\nSummary: 1 package finished [0.68s]\n"
+}

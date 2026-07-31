@@ -1,0 +1,54 @@
+[INFO] [launch]: All log files can be found below /home/hyunlee/.ros/log/2026-07-31-20-14-42-337289-DESKTOP-ENH3GRN-31486
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [robot_state_publisher-1]: process started with pid [31494]
+[INFO] [ros2_control_node-2]: process started with pid [31495]
+[robot_state_publisher-1] [INFO] [1785496482.391445582] [robot_state_publisher]: Robot initialized
+[ros2_control_node-2] [INFO] [1785496482.395609646] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-2] [INFO] [1785496482.397124653] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-2] [INFO] [1785496482.398546106] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-2] [INFO] [1785496482.398564077] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-2] [INFO] [1785496482.398566722] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-2] [WARN] [1785496482.398604777] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-2] [INFO] [1785496482.574997669] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [INFO] [1785496482.575033225] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-2] [INFO] [1785496482.575836147] [controller_manager]: Loading hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496482.576059715] [controller_manager]: Loaded hardware 'MockSystem' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1785496482.576111562] [controller_manager]: Initialize hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496482.580005483] [controller_manager]: Successful initialization of hardware 'MockSystem'
+[ros2_control_node-2] [INFO] [1785496482.580067739] [controller_manager]: Activating component 'MockSystem'.
+[ros2_control_node-2] [INFO] [1785496482.580072312] [resource_manager]: 'configure' hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496482.580076942] [resource_manager]: Successful 'configure' of hardware 'MockSystem'
+[ros2_control_node-2] [INFO] [1785496482.580079136] [resource_manager]: 'activate' hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496482.580082211] [resource_manager]: Successful 'activate' of hardware 'MockSystem'
+[ros2_control_node-2] [INFO] [1785496482.580112466] [controller_manager]: Registering statistics for : MockSystem
+[ros2_control_node-2] [INFO] [1785496482.580159684] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[INFO] [spawner-3]: process started with pid [31736]
+[ros2_control_node-2] [INFO] [1785496484.815118988] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-2] [INFO] [1785496484.815149861] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1785496484.816522616] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_kiv18l22 --params-file /tmp/eval-ctl1-baseline-ep56/controllers.yaml 
+[spawner-3] [INFO] [1785496484.835126688] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-2] [INFO] [1785496484.835849966] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1785496484.835933779] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-2] [INFO] [1785496484.849917149] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-2] [INFO] [1785496484.858990042] [controller_manager]: Successfully switched controllers!
+[spawner-3] [INFO] [1785496484.869770279] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-3]: process has finished cleanly [pid 31736]
+[INFO] [spawner-4]: process started with pid [31764]
+[spawner-4] [INFO] [1785496485.601316748] [spawner_joint_trajectory_controller]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-2] [INFO] [1785496485.852700453] [controller_manager]: Loading controller : 'joint_trajectory_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-2] [INFO] [1785496485.852745387] [controller_manager]: Loading controller 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1785496485.853933371] [controller_manager]: Controller 'joint_trajectory_controller' node arguments: --ros-args --params-file /tmp/launch_params_kiv18l22 --params-file /tmp/eval-ctl1-baseline-ep56/controllers.yaml 
+[spawner-4] [INFO] [1785496485.869581821] [spawner_joint_trajectory_controller]: Loaded joint_trajectory_controller
+[ros2_control_node-2] [INFO] [1785496485.870224975] [controller_manager]: Configuring controller: 'joint_trajectory_controller'
+[ros2_control_node-2] [INFO] [1785496485.870297820] [joint_trajectory_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-2] [INFO] [1785496485.870317450] [joint_trajectory_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-2] [INFO] [1785496485.870329812] [joint_trajectory_controller]: Using 'splines' interpolation method.
+[ros2_control_node-2] [INFO] [1785496485.871553798] [joint_trajectory_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-2] [INFO] [1785496485.874448811] [joint_trajectory_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-2] [INFO] [1785496485.874466370] [joint_trajectory_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-2] [INFO] [1785496485.879675001] [controller_manager]: Activating controllers: [ joint_trajectory_controller ]
+[ros2_control_node-2] [INFO] [1785496485.889028724] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1785496485.899651822] [spawner_joint_trajectory_controller]: Configured and activated joint_trajectory_controller
+[INFO] [spawner-4]: process has finished cleanly [pid 31764]
+[ERROR] [ros2_control_node-2]: process has died [pid 31495, exit code -9, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/launch_params_kiv18l22 --params-file /tmp/eval-ctl1-baseline-ep56/controllers.yaml'].
+[ERROR] [robot_state_publisher-1]: process has died [pid 31494, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_t331j98c'].

@@ -1,0 +1,13 @@
+{
+  "tst1_workspace_found": true,
+  "ws": "/tmp/eval-tst1-baseline-kAZn/ros2_ws",
+  "tst1_builds": true,
+  "tst1_test_ran": true,
+  "tst1_no_failures": true,
+  "n_tests": 3,
+  "n_failures": 0,
+  "n_errors": 0,
+  "build_rc": 0,
+  "test_result": "build/calc_pkg/pytest.xml: 3 tests, 0 errors, 0 failures, 0 skipped\n\nSummary: 3 tests, 0 errors, 0 failures, 0 skipped\n",
+  "build_tail": "_pkg/share/calc_pkg\nrunning install_egg_info\nCopying ../../build/calc_pkg/calc_pkg.egg-info to /tmp/eval-tst1-baseline-kAZn/ros2_ws/install/calc_pkg/lib/python3.12/site-packages/calc_pkg-0.0.1-py3.12.egg-info\nrunning install_scripts\nwriting list of installed files to '/tmp/eval-tst1-baseline-kAZn/ros2_ws/build/calc_pkg/install.log'\n--- stderr: calc_pkg\n/usr/lib/python3/dist-packages/setuptools/dist.py:744: SetuptoolsDeprecationWarning: Invalid dash-separated options\n!!\n\n        ********************************************************************************\n        Usage of dash-separated 'script-dir' will not be supported in future\n        versions. Please use the underscore name 'script_dir' instead.\n\n        This deprecation is overdue, please update your project and remove deprecated\n        calls to avoid build errors in the future.\n\n        See https://setuptools.pypa.io/en/latest/userguide/declarative_config.html for details.\n        ********************************************************************************\n\n!!\n  opt = self.warn_dash_deprecation(opt, section)\n---\nFinished <<< calc_pkg [0.63s]\n\nSummary: 1 package finished [0.70s]\n  1 package had stderr output: calc_pkg\n"
+}

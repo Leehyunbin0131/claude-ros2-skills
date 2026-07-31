@@ -788,9 +788,36 @@ def mvt1(c: Cell, check: str | Path | None = None) -> dict:
         "mvt1_bringup_found", "mvt1_unused_transcript_key")
 
 
+def tst2(c: Cell, check: str | Path | None = None) -> dict:
+    """`launch_testing` against a live node, rung L2.
+
+    `tst2_launch_testing` is what separates this rung from L1. A unit test that
+    imports the node class and calls its callback directly passes builds,
+    test_ran and no_failures while never launching anything.
+
+    Detected from what the build produced: the launch_testing pytest plugin
+    wraps the whole launch-test module into one case whose `name` equals the
+    last segment of its `classname`, where an ordinary pytest case carries the
+    function's own name. References on this install, 2026-07-31:
+
+        real launch_testing test -> builds ran no_fail launch_testing  (4/4)
+        plain unit test          -> builds ran no_fail, launch_testing FALSE
+
+    Grading the source for the string "launch_testing" was rejected: it would
+    pass a file that imports it and never launches anything, which is exactly
+    the failure this check exists for.
+    """
+    return _external_checks(
+        c, check,
+        ["tst2_builds", "tst2_test_ran", "tst2_no_failures",
+         "tst2_launch_testing"],
+        "tst2_workspace_found", "tst2_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
-         "qos1": qos1, "ctl1": ctl1, "tst1": tst1, "per1": per1, "mvt1": mvt1}
+         "qos1": qos1, "ctl1": ctl1, "tst1": tst1, "tst2": tst2,
+         "per1": per1, "mvt1": mvt1}
 
 
 # --------------------------------------------------------------------------

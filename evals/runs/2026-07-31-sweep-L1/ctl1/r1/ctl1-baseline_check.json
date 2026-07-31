@@ -1,0 +1,11 @@
+{
+  "ctl1_bringup_found": true,
+  "bringup": "/tmp/eval-ctl1-baseline-ep56/bringup.sh",
+  "ctl1_cm_running": true,
+  "ctl1_jsb_active": true,
+  "ctl1_joint_states": true,
+  "bringup_rc": 0,
+  "list_controllers": "[INFO] [1785496486.009804501] [_ros2cli_31761]: waiting for service /controller_manager/list_controllers to become available...\njoint_trajectory_controller joint_trajectory_controller/JointTrajectoryController  active\njoint_state_broadcaster     joint_state_broadcaster/JointStateBroadcaster          active",
+  "joint_states": "A message was lost!!!\n\ttotal count change:1\n\ttotal count: 1---\nheader:\n  stamp:\n    sec: 1785496487\n    nanosec: 498872929\n  frame_id: base_link\nname:\n- joint_a\n- joint_b\nposition:\n- 0.0\n- 0.0\nvelocity:\n- 0.0\n- 0.0\neffort:\n- .nan\n- .nan\n---",
+  "bringup_tail": "Launching ros2_control bringup (log: /tmp/eval-ctl1-baseline-ep56/bringup.log)...\njoint_state_broadcaster is active.\n"
+}

@@ -1,2 +1,67 @@
 scenario for task tst1 up (pids: )
 --- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-U3wv)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r1/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 1 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-4Rpn)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r2/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 2 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-hrla)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r3/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 3 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-pXtg)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r4/tst1-baseline_final.md
+evals/harness/run_ab.sh: line 328: tion: command not found
+=== tst1 rep 4 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-kAZn)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r5/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 5 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-nd5n)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r6/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 6 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-DvgM)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r7/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 7 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-6dlr)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r8/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 8 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-xCFg)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r9/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 9 done
+scenario for task tst1 up (pids: )
+--- task tst1 / baseline  (model=sonnet, cwd=/tmp/eval-tst1-baseline-ChoJ)
+    -> evals/runs/2026-07-31-sweep-L1/tst1/r10/tst1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst1 <result.jsonl>
+=== tst1 rep 10 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-ep56)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r1/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 1 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-ghky)
