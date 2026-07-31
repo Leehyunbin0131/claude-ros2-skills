@@ -408,6 +408,68 @@ prompt can be reshaped once a result is visible.
 | `per` | `cv_bridge` round trip; BEST_EFFORT camera; republish | `CameraInfo` intrinsics; 3D→pixel projection; `vision_msgs` output | 16UC1 depth → `PointCloud2` in metres; invalid-pixel handling |
 | `mvt` | self-authored URDF + SRDF; `move_group` reaching a usable state | a real `GetMotionPlan` request returning a trajectory | a collision object applied to and respected by the planning scene |
 
+### The L2 round's real finding: six grader defects, one root cause
+
+Every "failure" the L2 round produced was opened before it was counted, and
+**six of them were mine**. They are worth listing together because they are one
+mistake wearing six costumes: *a checker that samples a live distributed system
+and assumes its own conditions are the only ones.*
+
+| # | Rung | What the cell did | What my checker did |
+| :-- | :--- | :--- | :--- |
+| 1 | `tst2` | wrote a correct launch test whose plugin emitted `name="test.test_x"` | required `name` to *equal* `classname`'s last segment |
+| 2 | `ctl2` | set its own `ROS_DOMAIN_ID` to isolate from strays | kept querying its own domain and saw nothing |
+| 3 | `per2` | published 20 correct detections in ~1 s and exited | waited a fixed `sleep 2` for probe discovery, which is not enough under load |
+| 4 | `ctl2` | spawned the second controller a few seconds after `bringup.sh` returned | sampled `list_controllers` once, immediately |
+| 5 | `mvt2` | set its own domain; planning returned 21 points | reported `move_group_up=false` from `ros2 node list` on the wrong domain |
+| 6 | `mvt2` | wrote a `bringup.sh` with a re-entrancy guard | killed the processes, left the state files, re-ran it — the guard said "already running, skipping" |
+
+Defects 2, 5 and 6 all punish *good* practice: isolating a DDS domain and
+making a bringup script safe to run twice are things a careful engineer does.
+Defect 6 is the sharpest — `CLAUDE.md` tells the agent to run what it writes, so
+the cell had already brought its system up, and the checker's assumption of a
+clean slate is the thing that was wrong.
+
+**Fixes applied:** suffix match instead of equality; `adopt_domain_from()`
+reading `ROS_DOMAIN_ID` out of `/proc/<pid>/environ` of a process the bringup
+started; wait for the probe's own first report line plus one retry; poll
+`list_controllers` until settled. Defect 6 needs the checker to run `bringup.sh`
+against a fresh copy of the cell's directory, so a state-file guard sees a clean
+slate — queued, not yet applied.
+
+**What this cost, had it gone uncaught:** paragraphs about `launch_testing`,
+DDS domains, QoS probes and bringup idempotence, written into the pack as
+"gaps the model could not reach". The model reached all of them. This is
+exactly the manufactured-result failure mode the six rules exist to prevent,
+arriving through the grader instead of through the ladder.
+
+### A grader defect found by reading a failing cell instead of counting it
+
+`tst2` came back 39/40, and the single failure was mine, not the model's.
+
+`tst2_launch_testing` identified a launch test by testing whether `classname`'s
+last dot-segment **equalled** `name`. The launch_testing pytest plugin emits two
+spellings of the same thing on this install:
+
+    classname="echo_pkg.test.test_echo_launch"       name="test_echo_launch"
+    classname="echo_pkg.test.test_echo_integration"  name="test.test_echo_integration"
+
+The second is a correct launch test and failed the equality rule. The cell had
+written `@pytest.mark.launch_test`, `generate_test_description` and
+`ReadyToTest` — everything the rung asks for. `classname.endswith(name)` accepts
+both and still rejects the unit-test reference, re-verified against all three
+fixtures.
+
+Five of the ten `tst2` workspaces survived in `/tmp`; every one of them passes
+under the corrected rule, and the five that were cleaned up had already passed
+under the stricter one, which the looser rule cannot turn into failures. So the
+rung is **40/40**, not 39/40.
+
+The lesson is not "write a better regex". It is that a rung failing at 1/10 is
+worth opening before it is worth reporting: had this been counted, the pack
+would have gained a paragraph about `launch_testing` that the model did not
+need.
+
 ### Never edit the harness while a round is running
 
 `bash` reads a script incrementally as it executes it. Rewriting `run_ab.sh`

@@ -69,6 +69,22 @@ BRING_LOG="$(mktemp)"
 ( cd "$BDIR" && timeout 120 bash ./bringup.sh ) >"$BRING_LOG" 2>&1
 BRING_RC=$?
 
+# The cell's bringup may set its own ROS_DOMAIN_ID -- correct practice, and
+# invisible unless we ask. See ctl2_check.sh: two L2 cells that did this were
+# scored as total failures by a checker that kept querying its own domain.
+# Every ctl1 cell happened to inherit ours, so no ctl1 result changes; the fix
+# is here so the next one does not depend on that.
+adopt_domain_from() {
+  local pid d
+  pid="$(pgrep -f "$1" | head -1)"
+  [ -n "$pid" ] || return 0
+  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
+       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
+  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
+  return 0
+}
+adopt_domain_from 'ros2_control_node'
+
 # Give the system time to come up. The prompt says bringup starts things in the
 # background and returns, so the interesting state appears after it exits.
 CM_SEEN=false

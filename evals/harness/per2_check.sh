@@ -113,19 +113,44 @@ try:
 except SystemExit:
     pass
 PYEOF
-timeout 70 python3 /tmp/detection_probe.py >"$PROBE_LOG" 2>&1 &
-PROBE=$!
-sleep 2
-
 RUN_LOG="$(mktemp)"
-START=$(date +%s)
-timeout 50 python3 "$NODE" >"$RUN_LOG" 2>&1
-RC=$?
-ELAPSED=$(( $(date +%s) - START ))
 
-sleep 3
-kill -9 $PROBE 2>/dev/null || true
-read -r N_DET N_OK LAST <<<"$(awk '/^DET/ {d=$2; o=$4; l=$6} END {printf "%d %d %s", d+0, o+0, (l=="" ? "-" : l)}' "$PROBE_LOG" 2>/dev/null)"
+# The node publishes 20 detections in about a second and exits, so the probe
+# has to be spinning and announced BEFORE it starts. A fixed `sleep 2` was not
+# enough under round-time load: three L2 cells that published correctly were
+# scored 0 detections, and every one of them passed 4/4 when re-graded later on
+# an idle machine. Wait for the probe's own first report line instead, and
+# retry the run once if nothing arrives -- a discovery race should not decide a
+# rung.
+run_once() {
+  : > "$PROBE_LOG"
+  timeout 70 python3 /tmp/detection_probe.py >"$PROBE_LOG" 2>&1 &
+  PROBE=$!
+  for _ in $(seq 1 40); do
+    if awk '/^DET/ {found=1} END {exit !found}' "$PROBE_LOG" 2>/dev/null; then break; fi
+    sleep 0.5
+  done
+
+  START=$(date +%s)
+  timeout 50 python3 "$NODE" >"$RUN_LOG" 2>&1
+  RC=$?
+  ELAPSED=$(( $(date +%s) - START ))
+
+  sleep 3
+  kill -9 $PROBE 2>/dev/null || true
+  read -r N_DET N_OK LAST <<<"$(awk '/^DET/ {d=$2; o=$4; l=$6} END {printf "%d %d %s", d+0, o+0, (l=="" ? "-" : l)}' "$PROBE_LOG" 2>/dev/null)"
+}
+
+ATTEMPTS=1
+run_once
+# Retry only the ambiguous case: the node did its job but the probe saw nothing.
+# A node that failed on its own terms is not re-run.
+if [ "${N_DET:-0}" -eq 0 ] && [ "$RC" -eq 0 ]; then
+  ATTEMPTS=2
+  pkill -9 -f '^python3 .*/node\.py' 2>/dev/null || true
+  sleep 2
+  run_once
+fi
 kill_all
 
 # PIXEL <u> <v> lines from the node itself, checked against the one right answer.
@@ -159,6 +184,7 @@ p_clean=false;  [ "$RC" -eq 0 ] && p_clean=true
   printf '  "last_detection_centre": %s,\n'      "$(printf '%s' "${LAST:--}" | json_escape)"
   printf '  "exit_code": %d,\n'                  "$RC"
   printf '  "elapsed_s": %d,\n'                  "$ELAPSED"
+  printf '  "attempts": %d,\n'                   "${ATTEMPTS:-1}"
   printf '  "run_tail": %s\n'                    "$(tail -c 1200 "$RUN_LOG" | json_escape)"
   printf '}\n'
 } > "$OUT"

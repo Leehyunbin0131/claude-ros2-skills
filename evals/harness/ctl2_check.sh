@@ -67,14 +67,42 @@ BRING_LOG="$(mktemp)"
 ( cd "$BDIR" && timeout 150 bash ./bringup.sh ) >"$BRING_LOG" 2>&1
 BRING_RC=$?
 
+# The cell's bringup may set its own ROS_DOMAIN_ID. That is CORRECT practice --
+# it isolates the system from stray nodes left by other sessions -- and it is
+# invisible to us unless we ask. Two L2 cells did exactly that (one derived from
+# a directory hash, one a literal 77) and were the only two scored as total
+# failures, because this checker went on querying its own domain and saw
+# nothing. Read the domain back off a process the bringup actually started.
+adopt_domain_from() {
+  local pid d
+  pid="$(pgrep -f "$1" | head -1)"
+  [ -n "$pid" ] || return 0
+  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
+       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
+  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
+  return 0
+}
+adopt_domain_from 'ros2_control_node'
+
 for _ in $(seq 1 40); do
   NL="$(timeout 5 ros2 node list 2>/dev/null || true)"
   case "$NL" in *controller_manager*) break ;; esac
   sleep 1
 done
 
-LC_OUT="$(timeout 20 ros2 control list_controllers 2>&1)"
-N_ACTIVE=$(printf '%s' "$LC_OUT" | awk '/active/ {n++} END {print n+0}')
+# Poll rather than sample once. `bringup.sh` "starts everything in the
+# background and returns", so a spawner may still be working when it does --
+# and one L2 cell was scored 1 active controller here while its command landed
+# correctly a few seconds later, which is a contradiction produced entirely by
+# reading the list too early.
+LC_OUT=""
+N_ACTIVE=0
+for _ in $(seq 1 30); do
+  LC_OUT="$(timeout 20 ros2 control list_controllers 2>&1)"
+  N_ACTIVE=$(printf '%s' "$LC_OUT" | awk '/active/ {n++} END {print n+0}')
+  [ "${N_ACTIVE:-0}" -ge 2 ] && break
+  sleep 2
+done
 BOTH_ACTIVE=false
 [ "${N_ACTIVE:-0}" -ge 2 ] && BOTH_ACTIVE=true
 

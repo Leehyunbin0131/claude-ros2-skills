@@ -88,14 +88,23 @@ if [ $BUILD_RC -eq 0 ]; then
   # Did a launch test actually run?
   #
   # The launch_testing pytest plugin wraps the whole launch-test MODULE into a
-  # single case whose `name` equals the last segment of its `classname`, while
-  # an ordinary pytest case carries the test function's own name. Verified on
-  # this install against both references before the rung ran:
+  # single case whose `name` is the module path, so `classname` ENDS WITH
+  # `name`. An ordinary pytest case carries the test function's own name, which
+  # is not a suffix of its classname.
   #
   #   launch_testing  classname="echo_pkg.test.test_echo_launch"
-  #                   name="test_echo_launch"            -> equal
+  #                   name="test_echo_launch"                -> suffix
+  #   launch_testing  classname="echo_pkg.test.test_echo_integration"
+  #                   name="test.test_echo_integration"      -> suffix
   #   plain pytest    classname="echo_pkg.test.test_echo_unit"
-  #                   name="test_callback_republishes"   -> different
+  #                   name="test_callback_republishes"       -> not a suffix
+  #
+  # The first version of this check tested `classname`'s last segment for
+  # EQUALITY with `name`, and scored a correct launch test in the L2 round as a
+  # failure because that cell's plugin emitted the two-segment form. Both
+  # spellings appear in real output from the same plugin on this install; the
+  # suffix relation covers both and still excludes the unit test. Fixed after
+  # the round, with the miscounted cell re-graded rather than left standing.
   #
   # This reads what the build produced, not the cell's source, so any spelling
   # that genuinely launches the node counts. Its one limit, stated rather than
@@ -115,7 +124,7 @@ for p in sys.argv[1:]:
     for tc in root.iter("testcase"):
         cls = tc.get("classname") or ""
         name = tc.get("name") or ""
-        if cls and name and cls.rsplit(".", 1)[-1] == name:
+        if cls and name and cls.endswith(name):
             n += 1
 print(n)
 ' 2>/dev/null | awk '{s+=$1} END {print s+0}')
