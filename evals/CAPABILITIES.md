@@ -72,19 +72,40 @@ DDS domain, guarding a bringup against double-launch).
 | :--- | :--- | :--- | ---: |
 | `ctl1` | URDF `<ros2_control>`, `mock_components/GenericSystem`, controller_manager params, `joint_state_broadcaster` spawned | cm_running, jsb_active, joint_states | **30/30 reached** |
 | `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | both_active, **command_lands** | **20/20 reached** |
-| `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | — | not run |
+| `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | builds, **custom_plugin**, component_active, joint_states | running |
 | `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
 | `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | **40/40 reached** |
-| `tst3` | + rosbag2 recorded programmatically and read back | — | not run |
+| `tst3` | + rosbag2 recorded programmatically and read back | builds, test_ran, no_failures, **bag_written** | running |
 | `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | **36/40 reached** (1 cell lost to the QoS trap) |
 | `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | **38/40 reached** (1 cell lost to the QoS trap) |
-| `per3` | + 16UC1 depth → `PointCloud2` in metres | — | not run |
+| `per3` | + 16UC1 depth → `PointCloud2` in metres | clouds, fields_ok, **metres**, **drops_invalid** | running |
 | `mvt1` | self-authored URDF+SRDF, `move_group` reaching a usable state | move_group_up, plan_service, group_known | **30/30 reached** (re-run; see LADDER.md) |
 | `mvt2` | + a real `GetMotionPlan` returning a trajectory | move_group_up, plan_runs, **points** | **30/30 reached** |
-| `mvt3` | + a collision object applied to and respected by the scene | — | not run |
+| `mvt3` | + a collision object applied to and respected by the scene | move_group_up, plan_runs, points, **objects** | running |
 
-`ros2-core` and `ros2-dev` have no ladder yet. `ros2-microros` is out of scope:
-no MCU on this machine, and a standing instruction not to verify it.
+### `ros2-core` and `ros2-dev`
+
+Prompts frozen 2026-07-31 with the rest of the sweep; graders being built as
+the L3 round runs.
+
+| Rung | Mechanisms added | Checks | Result |
+| :--- | :--- | :--- | ---: |
+| `cor1` | static TF broadcast + lookup, values driven by ROS parameters | tf_logged, tf_correct, **params_used**, exits_clean | grader validated |
+| `cor2` | + a dynamic transform, lookup at a stamp, extrapolation handled not crashed | — | not run |
+| `cor3` | + a lifecycle node whose publication is gated on the active state | — | not run |
+| `dev1` | a Nav2 param file the servers accept as-is | yaml_valid, **servers_load**, mppi, footprint | grader validated |
+| `dev2` | + the stack driven through lifecycle to active | — | not run |
+| `dev3` | + a costmap that ingests live scan data and marks an obstacle | — | not run |
+
+`cor1`'s `params_used` re-runs the node with `-p tx:=0.7`: a node that
+hardcodes the translation prints the right default and ignores the override.
+`dev1`'s `servers_load` drives the lifecycle to `configure` rather than
+checking `ros2 node list`, because a Nav2 server starts `unconfigured` and does
+not resolve its plugin strings until then — a controller plugin missing its
+package namespace comes up looking identical either way.
+
+`ros2-microros` is out of scope: no MCU on this machine, and a standing
+instruction not to verify it.
 
 ---
 

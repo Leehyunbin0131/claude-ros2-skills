@@ -1,0 +1,15 @@
+{
+  "ctl3_bringup_found": true,
+  "bringup": "/tmp/eval-ctl3-baseline-ReK6/bringup.sh",
+  "ws": "/tmp/eval-ctl3-baseline-ReK6/ros2_ws",
+  "ctl3_builds": true,
+  "ctl3_custom_plugin": true,
+  "ctl3_component_active": true,
+  "ctl3_joint_states": true,
+  "plugin_name": "my_hw/MyHwSystem",
+  "build_rc": 0,
+  "bringup_rc": 0,
+  "hardware_components": "[INFO] [1785525942.298274612] [_ros2cli_9875]: waiting for service /controller_manager/list_hardware_components to become available...\nHardware Component 1\n\tname: my_hw_system\n\ttype: system\n\tplugin name: my_hw/MyHwSystem\n\tstate: id=3 label=active\n\tread/write rate: 100 Hz\n\tis_async: False\n\tcommand interfaces\n\t\tjoint_b/position [available] [claimed]\n\t\tjoint_a/position [available] [claimed]",
+  "list_controllers": "position_controller     position_controllers/JointGroupPositionController  active\njoint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster      active",
+  "build_tail": "h\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/local_setup.dsv\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/package.dsv\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/ament_index/resource_index/packages/my_hw\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/ament_index/resource_index/hardware_interface__pluginlib__plugin/my_hw\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/cmake/ament_cmake_export_include_directories-extras.cmake\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/cmake/ament_cmake_export_libraries-extras.cmake\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/cmake/ament_cmake_export_dependencies-extras.cmake\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/cmake/my_hwConfig.cmake\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/cmake/my_hwConfig-version.cmake\n-- Installing: /tmp/eval-ctl3-baseline-ReK6/ros2_ws/install/my_hw/share/my_hw/package.xml\nFinished <<< my_hw [5.68s]\n\nSummary: 1 package finished [5.76s]\n"
+}
