@@ -1,0 +1,12 @@
+{
+  "qos1_node_found": true,
+  "node": "/tmp/eval-qos1-baseline-oGOX/node.py",
+  "qos1_receives": false,
+  "qos1_no_hang": false,
+  "qos1_exits_clean": false,
+  "n_got": 0,
+  "saw_incompat_warn": 1,
+  "exit_code": 124,
+  "elapsed_s": 40,
+  "run_tail": "ensor_subscriber]: New publisher discovered on topic '/sensor', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\nTraceback (most recent call last):\n  File \"/tmp/eval-qos1-baseline-oGOX/node.py\", line 32, in <module>\n    main()\n  File \"/tmp/eval-qos1-baseline-oGOX/node.py\", line 27, in main\n    rclpy.spin(node)\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py\", line 247, in spin\n    executor.spin_once()\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py\", line 926, in spin_once\n    self._spin_once_impl(timeout_sec)\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py\", line 907, in _spin_once_impl\n    handler, entity, node = self.wait_for_ready_callbacks(\n                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py\", line 877, in wait_for_ready_callbacks\n    return next(self._cb_iter)\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py\", line 785, in _wait_for_ready_callbacks\n    raise ExternalShutdownException()\nrclpy.executors.ExternalShutdownException\n"
+}

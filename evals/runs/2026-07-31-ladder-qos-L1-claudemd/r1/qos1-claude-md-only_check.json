@@ -1,0 +1,12 @@
+{
+  "qos1_node_found": true,
+  "node": "/tmp/eval-qos1-claude-md-only-ETwB/node.py",
+  "qos1_receives": true,
+  "qos1_no_hang": true,
+  "qos1_exits_clean": true,
+  "n_got": 20,
+  "saw_incompat_warn": 0,
+  "exit_code": 0,
+  "elapsed_s": 1,
+  "run_tail": "[INFO] [1785492118.580494541] [sensor_logger]: GOT 6\n[INFO] [1785492118.625750028] [sensor_logger]: GOT 7\n[INFO] [1785492118.675799218] [sensor_logger]: GOT 8\n[INFO] [1785492118.725773368] [sensor_logger]: GOT 9\n[INFO] [1785492118.775799537] [sensor_logger]: GOT 10\n[INFO] [1785492118.825848573] [sensor_logger]: GOT 11\n[INFO] [1785492118.875692475] [sensor_logger]: GOT 12\n[INFO] [1785492118.925656805] [sensor_logger]: GOT 13\n[INFO] [1785492118.975628850] [sensor_logger]: GOT 14\n[INFO] [1785492119.025739204] [sensor_logger]: GOT 15\n[INFO] [1785492119.076065008] [sensor_logger]: GOT 16\n[INFO] [1785492119.125656011] [sensor_logger]: GOT 17\n[INFO] [1785492119.175829162] [sensor_logger]: GOT 18\n[INFO] [1785492119.225742350] [sensor_logger]: GOT 19\n[INFO] [1785492119.275951694] [sensor_logger]: GOT 20\n[INFO] [1785492119.325624556] [sensor_logger]: GOT 21\n[INFO] [1785492119.375895398] [sensor_logger]: GOT 22\n[INFO] [1785492119.425790694] [sensor_logger]: GOT 23\n[INFO] [1785492119.475674937] [sensor_logger]: GOT 24\n[INFO] [1785492119.525905230] [sensor_logger]: GOT 25\n"
+}

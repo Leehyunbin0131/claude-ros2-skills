@@ -1,0 +1,1 @@
+[INFO] [1785491628.570842268] [qos_publishers]: /sensor BEST_EFFORT 20Hz | /config TRANSIENT_LOCAL latched once | /paced deadline 200ms 10Hz

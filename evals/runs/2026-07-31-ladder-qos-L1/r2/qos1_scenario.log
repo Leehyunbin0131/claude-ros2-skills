@@ -1,0 +1,2 @@
+[INFO] [1785491384.476170306] [qos_publishers]: /sensor BEST_EFFORT 20Hz | /config TRANSIENT_LOCAL latched once | /paced deadline 200ms 10Hz
+[WARN] [1785491397.373600873] [qos_publishers]: New subscription discovered on topic '/sensor', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
