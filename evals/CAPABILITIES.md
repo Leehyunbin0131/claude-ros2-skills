@@ -62,8 +62,8 @@ ran; graders validated against deliberately broken references first.
 | `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
 | `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | grader validated, queued |
 | `tst3` | + rosbag2 recorded programmatically and read back | — | not run |
-| `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | pending |
-| `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | — | not run |
+| `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | **36/40 reached** (1 cell lost to the QoS trap) |
+| `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | grader validated, queued |
 | `per3` | + 16UC1 depth → `PointCloud2` in metres | — | not run |
 | `mvt1` | self-authored URDF+SRDF, `move_group` reaching a usable state | move_group_up, plan_service, group_known | pending |
 | `mvt2` | + a real `GetMotionPlan` returning a trajectory | — | not run |

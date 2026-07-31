@@ -770,6 +770,32 @@ def per1(c: Cell, check: str | Path | None = None) -> dict:
         "per1_node_found", "per1_unused_transcript_key")
 
 
+def per2(c: Cell, check: str | Path | None = None) -> dict:
+    """Projecting a known 3D point with live CameraInfo intrinsics, rung L2.
+
+    The scenario's intrinsics are a distortion-free pinhole model, so the answer
+    is unique: fx=fy=100, cx=80, cy=60, and (0.1, 0.05, 2.0) -> (85.0, 62.5).
+    K and P carry the same values deliberately, so a cell reading either is
+    correct and the check cannot punish a defensible choice.
+
+    References on this install, 2026-07-31 -- both publish 40 detections, so
+    only the VALUE separates them:
+
+        full pinhole projection -> pixel_correct=True  detection_correct=True
+                                   last centre 85.00,62.50
+        principal point omitted -> pixel_correct=False detection_correct=False
+                                   last centre 5.00,2.50   (0/20 in tolerance)
+
+    Tolerance is 1.0 px: it admits rounding to integer pixels and excludes
+    reading the wrong field, which lands tens of pixels away.
+    """
+    return _external_checks(
+        c, check,
+        ["per2_pixel_correct", "per2_detection_published",
+         "per2_detection_correct", "per2_exits_clean"],
+        "per2_node_found", "per2_unused_transcript_key")
+
+
 def mvt1(c: Cell, check: str | Path | None = None) -> dict:
     """A self-authored URDF+SRDF that move_group actually loads, rung L1.
 
@@ -843,7 +869,7 @@ def tst2(c: Cell, check: str | Path | None = None) -> dict:
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
          "qos1": qos1, "ctl1": ctl1, "ctl2": ctl2, "tst1": tst1, "tst2": tst2,
-         "per1": per1, "mvt1": mvt1}
+         "per1": per1, "per2": per2, "mvt1": mvt1}
 
 
 # --------------------------------------------------------------------------

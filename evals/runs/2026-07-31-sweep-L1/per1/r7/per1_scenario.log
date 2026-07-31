@@ -1,0 +1,2 @@
+[INFO] [1785498101.255436550] [camera_publisher]: /camera/image_raw bgr8 160x120 @ 20 Hz BEST_EFFORT
+[WARN] [1785498121.465683611] [camera_publisher]: New subscription discovered on topic '/camera/image_raw', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY

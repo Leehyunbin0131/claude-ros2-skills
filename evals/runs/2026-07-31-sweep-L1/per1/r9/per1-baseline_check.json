@@ -1,0 +1,14 @@
+{
+  "per1_node_found": true,
+  "node": "/tmp/eval-per1-baseline-yAHl/node.py",
+  "per1_frames": false,
+  "per1_publishes": false,
+  "per1_no_hang": false,
+  "per1_exits_clean": false,
+  "n_frame": 0,
+  "n_annotated": 0,
+  "saw_incompat_warn": 1,
+  "exit_code": 124,
+  "elapsed_s": 40,
+  "run_tail": "[WARN] [1785498363.547610213] [annotator_node]: New publisher discovered on topic '/camera/image_raw', offering incompatible QoS. No messages will be received from it. Last incompatible policy: RELIABILITY\n"
+}

@@ -118,3 +118,72 @@ Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
 === ctl1 rep 10 done
 scenario for task per1 up (pids: 10162)
 --- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-3C3Z)
+evals/harness/run_ab.sh: line 322: 10162 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r1/per1-baseline_final.md
+evals/harness/run_ab.sh: line 337: syntax error near unexpected token `done'
+=== per1 rep 1 done
+scenario for task per1 up (pids: 11417)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-OHLg)
+evals/harness/run_ab.sh: line 322: 11417 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r2/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 2 done
+scenario for task per1 up (pids: 12166)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-83F9)
+evals/harness/run_ab.sh: line 322: 12166 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r3/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 3 done
+scenario for task per1 up (pids: 12648)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-bO9W)
+evals/harness/run_ab.sh: line 322: 12648 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r4/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 4 done
+scenario for task per1 up (pids: 13450)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-15zF)
+evals/harness/run_ab.sh: line 322: 13450 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r5/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 5 done
+scenario for task per1 up (pids: 13906)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-cWpE)
+evals/harness/run_ab.sh: line 322: 13906 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r6/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 6 done
+scenario for task per1 up (pids: 14482)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-comJ)
+evals/harness/run_ab.sh: line 322: 14482 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r7/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 7 done
+scenario for task per1 up (pids: 15094)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-WOtd)
+evals/harness/run_ab.sh: line 322: 15094 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r8/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 8 done
+scenario for task per1 up (pids: 15682)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-yAHl)
+evals/harness/run_ab.sh: line 322: 15682 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r9/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 9 done
+scenario for task per1 up (pids: 15988)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-80a0)
+evals/harness/run_ab.sh: line 322: 15988 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L1/per1/r10/per1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per1 <result.jsonl>
+=== per1 rep 10 done
+scenario for task mvt1 up (pids: )
+--- task mvt1 / baseline  (model=sonnet, cwd=/tmp/eval-mvt1-baseline-L653)

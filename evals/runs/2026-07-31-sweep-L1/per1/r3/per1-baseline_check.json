@@ -1,0 +1,14 @@
+{
+  "per1_node_found": true,
+  "node": "/tmp/eval-per1-baseline-83F9/node.py",
+  "per1_frames": true,
+  "per1_publishes": true,
+  "per1_no_hang": true,
+  "per1_exits_clean": true,
+  "n_frame": 20,
+  "n_annotated": 40,
+  "saw_incompat_warn": 0,
+  "exit_code": 0,
+  "elapsed_s": 1,
+  "run_tail": "[INFO] [1785497755.627020328] [annotator_node]: FRAME 1\n[INFO] [1785497755.671637723] [annotator_node]: FRAME 2\n[INFO] [1785497755.721505108] [annotator_node]: FRAME 3\n[INFO] [1785497755.771396821] [annotator_node]: FRAME 4\n[INFO] [1785497755.821503495] [annotator_node]: FRAME 5\n[INFO] [1785497755.872234427] [annotator_node]: FRAME 6\n[INFO] [1785497755.921509002] [annotator_node]: FRAME 7\n[INFO] [1785497755.971477202] [annotator_node]: FRAME 8\n[INFO] [1785497756.021449354] [annotator_node]: FRAME 9\n[INFO] [1785497756.071426135] [annotator_node]: FRAME 10\n[INFO] [1785497756.121629282] [annotator_node]: FRAME 11\n[INFO] [1785497756.171636595] [annotator_node]: FRAME 12\n[INFO] [1785497756.221599807] [annotator_node]: FRAME 13\n[INFO] [1785497756.271345681] [annotator_node]: FRAME 14\n[INFO] [1785497756.321514403] [annotator_node]: FRAME 15\n[INFO] [1785497756.371619196] [annotator_node]: FRAME 16\n[INFO] [1785497756.421637208] [annotator_node]: FRAME 17\n[INFO] [1785497756.471394779] [annotator_node]: FRAME 18\n[INFO] [1785497756.521735790] [annotator_node]: FRAME 19\n[INFO] [1785497756.571552964] [annotator_node]: FRAME 20\n"
+}
