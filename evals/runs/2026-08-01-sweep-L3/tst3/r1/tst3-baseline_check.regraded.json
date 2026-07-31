@@ -1,0 +1,16 @@
+{
+  "tst3_workspace_found": true,
+  "ws": "/tmp/eval-tst3-baseline-fAPK/ros2_ws",
+  "tst3_builds": true,
+  "tst3_test_ran": true,
+  "tst3_no_failures": true,
+  "tst3_bag_written": true,
+  "n_tests": 4,
+  "n_failures": 0,
+  "n_errors": 0,
+  "n_bag_dirs_seen": 1,
+  "bag_path": "/tmp/tmp.wMexFgEkSJ/ticker_bag_test_ir_slwng/ticks_bag/ticks_bag_0.db3",
+  "build_rc": 0,
+  "test_result": "build/bag_pkg/pytest.xml: 4 tests, 0 errors, 0 failures, 1 skipped\n\nSummary: 4 tests, 0 errors, 0 failures, 1 skipped\n",
+  "build_tail": "/lib/python3.12/site-packages/bag_pkg/__init__.py to __init__.cpython-312.pyc\nbyte-compiling /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/lib/python3.12/site-packages/bag_pkg/ticker.py to ticker.cpython-312.pyc\nrunning install_data\ncreating /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/share/ament_index\ncreating /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/share/ament_index/resource_index\ncreating /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/share/ament_index/resource_index/packages\ncopying resource/bag_pkg -> /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/share/ament_index/resource_index/packages\ncopying package.xml -> /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/share/bag_pkg\nrunning install_egg_info\nCopying ../../build/bag_pkg/bag_pkg.egg-info to /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/lib/python3.12/site-packages/bag_pkg-0.0.0-py3.12.egg-info\nrunning install_scripts\nInstalling ticker script to /tmp/eval-tst3-baseline-fAPK/ros2_ws/install/bag_pkg/lib/bag_pkg\nwriting list of installed files to '/tmp/eval-tst3-baseline-fAPK/ros2_ws/build/bag_pkg/install.log'\nFinished <<< bag_pkg [0.61s]\n\nSummary: 1 package finished [0.69s]\n"
+}

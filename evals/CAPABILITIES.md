@@ -49,7 +49,7 @@ stacked on top of `CLAUDE.md` moved **nothing** (10/10 vs 10/10, 6/10 vs 6/10).
 
 ---
 
-## 2026-07-31 coverage sweep — L1 and L2 complete, 254/270
+## 2026-07-31 coverage sweep — L1, L2 and L3 complete
 
 Four skills that had never been tested at all. Prompts frozen before any cell
 ran; graders validated against deliberately broken references first.
@@ -75,7 +75,7 @@ DDS domain, guarding a bringup against double-launch).
 | `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | builds, **custom_plugin**, component_active, joint_states | **40/40 reached** |
 | `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
 | `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | **40/40 reached** |
-| `tst3` | + rosbag2 recorded programmatically and read back | builds, test_ran, no_failures, **bag_written** | re-grading (the first pass measured a grader defect) |
+| `tst3` | + rosbag2 recorded programmatically and read back | builds, test_ran, no_failures, **bag_written** | **40/40 reached** (re-graded; the first pass measured a grader defect) |
 | `per1` | `cv_bridge` round trip, BEST_EFFORT camera, republish | frames, publishes, no_hang, exits_clean | **36/40 reached** (1 cell lost to the QoS trap) |
 | `per2` | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` | pixel_correct, detection_published, **detection_correct**, exits_clean | **38/40 reached** (1 cell lost to the QoS trap) |
 | `per3` | + 16UC1 depth → `PointCloud2` in metres | clouds, fields_ok, **metres**, **drops_invalid** | **32/40 reached** (2 cells lost to the QoS trap) |
