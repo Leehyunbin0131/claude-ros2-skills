@@ -1,0 +1,11 @@
+{
+  "ctl2_bringup_found": true,
+  "bringup": "/tmp/eval-ctl2-baseline-MjWZ/bringup.sh",
+  "ctl2_both_active": false,
+  "ctl2_command_lands": false,
+  "n_active": 0,
+  "bringup_rc": 0,
+  "list_controllers": "[INFO] [1785510296.656927849] [_ros2cli_15466]: waiting for service /controller_manager/list_controllers to become available...\n[WARN] [1785510306.661907620] [_ros2cli_15466]: Could not contact service /controller_manager/list_controllers\n[INFO] [1785510306.662111603] [_ros2cli_15466]: waiting for service /controller_manager/list_controllers to become available...\nfailed to check service availability: rcl node's context is invalid, at ./src/rcl/node.c:404",
+  "probe": "NO_COMMAND_TOPIC",
+  "bringup_tail": "[INFO] [1785510245.079716877] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...\n[INFO] [1785510245.343211088] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster\n[INFO] [1785510245.453496278] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster\n[INFO] [1785510245.929389086] [spawner_position_controller]: waiting for service /controller_manager/list_controllers to become available...\n[INFO] [1785510246.193317206] [spawner_position_controller]: Loaded position_controller\n[INFO] [1785510246.223545809] [spawner_position_controller]: Configured and activated position_controller\n"
+}

@@ -1,0 +1,14 @@
+{
+  "tst2_workspace_found": true,
+  "ws": "/tmp/eval-tst2-baseline-kxfr",
+  "tst2_builds": true,
+  "tst2_test_ran": true,
+  "tst2_no_failures": true,
+  "tst2_launch_testing": true,
+  "n_tests": 1,
+  "n_failures": 0,
+  "n_errors": 0,
+  "build_rc": 0,
+  "test_result": "build/echo_pkg/pytest.xml: 1 test, 0 errors, 0 failures, 0 skipped\n\nSummary: 1 test, 0 errors, 0 failures, 0 skipped\n",
+  "build_tail": "echo_pkg.egg-info to /tmp/eval-tst2-baseline-kxfr/install/echo_pkg/lib/python3.12/site-packages/echo_pkg-0.0.1-py3.12.egg-info\nrunning install_scripts\nInstalling echo_node script to /tmp/eval-tst2-baseline-kxfr/install/echo_pkg/lib/echo_pkg\nwriting list of installed files to '/tmp/eval-tst2-baseline-kxfr/build/echo_pkg/install.log'\n--- stderr: echo_pkg\n/usr/lib/python3/dist-packages/setuptools/dist.py:744: SetuptoolsDeprecationWarning: Invalid dash-separated options\n!!\n\n        ********************************************************************************\n        Usage of dash-separated 'script-dir' will not be supported in future\n        versions. Please use the underscore name 'script_dir' instead.\n\n        This deprecation is overdue, please update your project and remove deprecated\n        calls to avoid build errors in the future.\n\n        See https://setuptools.pypa.io/en/latest/userguide/declarative_config.html for details.\n        ********************************************************************************\n\n!!\n  opt = self.warn_dash_deprecation(opt, section)\n---\nFinished <<< echo_pkg [0.64s]\n\nSummary: 1 package finished [0.72s]\n  1 package had stderr output: echo_pkg\n"
+}

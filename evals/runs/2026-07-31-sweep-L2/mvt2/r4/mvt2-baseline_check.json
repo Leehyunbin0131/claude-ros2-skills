@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-Jt6W/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-Jt6W/plan.py",
+  "mvt2_move_group_up": false,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 21,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 2,
+  "plan_tail": "POINTS 21\n",
+  "bringup_tail": "Started move_group bringup in background (launch pid 22429, ROS_DOMAIN_ID=39).\nLogs: /tmp/eval-mvt2-baseline-Jt6W/.bringup/move_group.log\nmove_group is up (/move_action action server available).\n"
+}

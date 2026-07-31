@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-6oCC/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-6oCC/plan.py",
+  "mvt2_move_group_up": false,
+  "mvt2_plan_runs": false,
+  "mvt2_points": false,
+  "n_points": 0,
+  "plan_rc": 1,
+  "bringup_rc": 0,
+  "elapsed_s": 31,
+  "plan_tail": "[ERROR] [1785518759.909243755] [plan_requester]: move_group action server not available\nPLAN FAILED: no result from move_group\n",
+  "bringup_tail": "bringup already running, skipping re-launch\nWaiting for move_group action server (/move_action) to come up...\nWARNING: timed out waiting for /move_action; check /tmp/eval-mvt2-baseline-6oCC/logs/bringup.log\n"
+}

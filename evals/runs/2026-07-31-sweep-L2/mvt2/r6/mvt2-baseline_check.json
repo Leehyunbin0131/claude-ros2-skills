@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-lpkT/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-lpkT/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 14,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 1,
+  "plan_tail": "POINTS 14\n",
+  "bringup_tail": "launched bringup (pid 26839), waiting for move_group action server...\nmove_group is up (action /move_action available).\n"
+}

@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-6oCC/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-6oCC/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 14,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 3,
+  "plan_tail": "POINTS 14\n",
+  "bringup_tail": "Waiting for move_group action server (/move_action) to come up...\nmove_group is ready.\n"
+}

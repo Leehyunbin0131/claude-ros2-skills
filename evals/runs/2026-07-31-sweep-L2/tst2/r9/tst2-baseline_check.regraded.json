@@ -1,0 +1,14 @@
+{
+  "tst2_workspace_found": true,
+  "ws": "/tmp/eval-tst2-baseline-vSYd",
+  "tst2_builds": true,
+  "tst2_test_ran": true,
+  "tst2_no_failures": true,
+  "tst2_launch_testing": true,
+  "n_tests": 1,
+  "n_failures": 0,
+  "n_errors": 0,
+  "build_rc": 0,
+  "test_result": "build/echo_pkg/pytest.xml: 1 test, 0 errors, 0 failures, 0 skipped\n\nSummary: 1 test, 0 errors, 0 failures, 0 skipped\n",
+  "build_tail": "/tmp/eval-tst2-baseline-vSYd/install/echo_pkg/lib/python3.12/site-packages/echo_pkg/__init__.py to __init__.cpython-312.pyc\nbyte-compiling /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/lib/python3.12/site-packages/echo_pkg/echo_node.py to echo_node.cpython-312.pyc\nrunning install_data\ncreating /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/share/ament_index\ncreating /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/share/ament_index/resource_index\ncreating /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/share/ament_index/resource_index/packages\ncopying resource/echo_pkg -> /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/share/ament_index/resource_index/packages\ncopying package.xml -> /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/share/echo_pkg\nrunning install_egg_info\nCopying ../../build/echo_pkg/echo_pkg.egg-info to /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/lib/python3.12/site-packages/echo_pkg-0.0.1-py3.12.egg-info\nrunning install_scripts\nInstalling echo_node script to /tmp/eval-tst2-baseline-vSYd/install/echo_pkg/lib/echo_pkg\nwriting list of installed files to '/tmp/eval-tst2-baseline-vSYd/build/echo_pkg/install.log'\nFinished <<< echo_pkg [0.63s]\n\nSummary: 1 package finished [0.70s]\n"
+}

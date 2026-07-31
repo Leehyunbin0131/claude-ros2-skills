@@ -1,0 +1,247 @@
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-M0Wo)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r1/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 1 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-kxfr)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r2/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 2 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-0Kbw)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r3/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 3 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-yQiD)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r4/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 4 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-NPH5)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r5/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 5 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-WjTd)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r6/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 6 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-eZhL)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r7/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 7 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-lW0w)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r8/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 8 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-vSYd)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r9/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 9 done
+scenario for task tst2 up (pids: )
+--- task tst2 / baseline  (model=sonnet, cwd=/tmp/eval-tst2-baseline-5gYp)
+    -> evals/runs/2026-07-31-sweep-L2/tst2/r10/tst2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py tst2 <result.jsonl>
+=== tst2 rep 10 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-NGOc)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r1/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 1 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-8tGy)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r2/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 2 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-1l9E)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r3/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 3 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-8fOy)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r4/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 4 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-xNfw)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r5/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 5 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-MjWZ)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r6/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 6 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-2XF8)
+Terminated
+=== ctl2 rep 7 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-0t8O)
+Terminated
+=== ctl2 rep 8 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-reMo)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r9/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 9 done
+scenario for task ctl2 up (pids: )
+--- task ctl2 / baseline  (model=sonnet, cwd=/tmp/eval-ctl2-baseline-ERaW)
+    -> evals/runs/2026-07-31-sweep-L2/ctl2/r10/ctl2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl2 <result.jsonl>
+=== ctl2 rep 10 done
+scenario for task per2 up (pids: 30956)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-Zg7G)
+evals/harness/run_ab.sh: line 322: 30956 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r1/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 1 done
+scenario for task per2 up (pids: 31293)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-IuYg)
+evals/harness/run_ab.sh: line 322: 31293 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r2/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 2 done
+scenario for task per2 up (pids: 32060)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-HHjv)
+evals/harness/run_ab.sh: line 322: 32060 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r3/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 3 done
+scenario for task per2 up (pids: 32335)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-Fixd)
+evals/harness/run_ab.sh: line 322: 32335 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r4/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 4 done
+scenario for task per2 up (pids: 663)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-6A8l)
+evals/harness/run_ab.sh: line 322:   663 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r5/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 5 done
+scenario for task per2 up (pids: 1514)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-YjWg)
+evals/harness/run_ab.sh: line 322:  1514 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r6/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 6 done
+scenario for task per2 up (pids: 1979)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-Xh8a)
+evals/harness/run_ab.sh: line 322:  1979 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r7/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 7 done
+scenario for task per2 up (pids: 2295)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-MEUJ)
+evals/harness/run_ab.sh: line 322:  2295 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r8/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 8 done
+scenario for task per2 up (pids: 3042)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-dq9Q)
+evals/harness/run_ab.sh: line 322:  3042 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r9/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 9 done
+scenario for task per2 up (pids: 3303)
+--- task per2 / baseline  (model=sonnet, cwd=/tmp/eval-per2-baseline-Gpff)
+evals/harness/run_ab.sh: line 322:  3303 Killed                  python3 "$REPO/evals/harness/camera_publisher.py" > "$OUT/${TASK}_scenario.log" 2>&1
+    -> evals/runs/2026-07-31-sweep-L2/per2/r10/per2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py per2 <result.jsonl>
+=== per2 rep 10 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-3iYl)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r1/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 1 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-CfO9)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r2/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 2 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-GNLQ)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r3/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 3 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-Jt6W)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r4/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 4 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-k0Lq)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r5/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 5 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-lpkT)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r6/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 6 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-6oCC)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r7/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 7 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-NNEy)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r8/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 8 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-Nf9k)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r9/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 9 done
+scenario for task mvt2 up (pids: )
+--- task mvt2 / baseline  (model=sonnet, cwd=/tmp/eval-mvt2-baseline-E9CB)
+    -> evals/runs/2026-07-31-sweep-L2/mvt2/r10/mvt2-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py mvt2 <result.jsonl>
+=== mvt2 rep 10 done
+SWEEP-L2 FINISHED

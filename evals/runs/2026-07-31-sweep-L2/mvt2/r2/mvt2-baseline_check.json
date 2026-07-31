@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-CfO9/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-CfO9/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 16,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 1,
+  "plan_tail": "POINTS 16\n",
+  "bringup_tail": "Launched ros2 launch (pid 11221), waiting for move_group action server...\nmove_group action server is up.\nbringup.sh: MoveIt bringup complete (move_group ready).\n"
+}

@@ -1,0 +1,3 @@
+[INFO] [1785508208.952044561] [spawner_position_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [1785508209.219299577] [spawner_position_controller]: Loaded position_controller
+[INFO] [1785508209.249438003] [spawner_position_controller]: Configured and activated position_controller

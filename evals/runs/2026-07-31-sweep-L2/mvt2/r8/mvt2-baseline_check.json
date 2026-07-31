@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-NNEy/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-NNEy/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 8,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 3,
+  "plan_tail": "POINTS 8\n",
+  "bringup_tail": "Starting MoveIt stack in the background (log: /tmp/eval-mvt2-baseline-NNEy/move_group.log)...\nWaiting for /move_action action server to come up...\nmove_group is ready.\n"
+}

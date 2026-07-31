@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-E9CB/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-E9CB/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 12,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 2,
+  "plan_tail": "POINTS 12\n",
+  "bringup_tail": "move_group launching in background (pid 9097), log: /tmp/arm_moveit_bringup.log\nmove_group is ready.\n"
+}

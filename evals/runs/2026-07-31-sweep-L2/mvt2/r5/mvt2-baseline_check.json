@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-k0Lq/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-k0Lq/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 17,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 2,
+  "plan_tail": "POINTS 17\n",
+  "bringup_tail": "move_group bringup started in background (pid 25044), logging to /tmp/eval-mvt2-baseline-k0Lq/bringup.log\n"
+}

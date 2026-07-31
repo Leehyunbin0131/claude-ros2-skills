@@ -52,6 +52,27 @@ kill_all() {
   pkill -9 -f 'robot_state_publisher' 2>/dev/null || true
   pkill -9 -f 'spawner' 2>/dev/null || true
   pkill -9 -f '^python3 .*ctl2_probe' 2>/dev/null || true
+  # Also kill anything still referencing the cell's own directory. The cell has
+  # already run its bringup once -- CLAUDE.md tells it to verify its work -- and
+  # killing only the nodes left the `ros2 launch` wrapper alive, so a bringup
+  # guarded by `pgrep -f bringup_launch.py` reported "already running, skipping"
+  # and started nothing. That scored a working cell as a total failure.
+  #
+  # Self-exclusion is not optional: this checker's own command line contains
+  # BDIR, so a bare `pkill -f "$BDIR"` kills the checker mid-run (rc 137, no
+  # verdict written). Skip this shell and every ancestor of it.
+  if [ -n "${BDIR:-}" ]; then
+    local skip=" $$ " p=$PPID
+    while [ -n "$p" ] && [ "$p" -gt 1 ] 2>/dev/null; do
+      skip="$skip$p "
+      p="$(awk '{print $4}' "/proc/$p/stat" 2>/dev/null)"
+    done
+    local pid
+    for pid in $(pgrep -f "$BDIR" 2>/dev/null || true); do
+      case "$skip" in *" $pid "*) continue ;; esac
+      kill -9 "$pid" 2>/dev/null || true
+    done
+  fi
 }
 kill_all
 sleep 1

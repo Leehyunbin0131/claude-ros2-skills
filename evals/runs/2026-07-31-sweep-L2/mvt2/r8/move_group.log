@@ -1,0 +1,162 @@
+[INFO] [launch]: All log files can be found below /home/hyunlee/.ros/log/2026-08-01-02-36-26-465752-DESKTOP-ENH3GRN-1794
+[INFO] [launch]: Default logging verbosity is set to INFO
+WARNING:root:[33;21mCannot infer SRDF from `/tmp/eval-mvt2-baseline-NNEy/ws/install/arm_moveit_config/share/arm_moveit_config`. -- using config/arm.srdf[0m
+[INFO] [robot_state_publisher-1]: process started with pid [1812]
+[INFO] [move_group-2]: process started with pid [1813]
+[INFO] [ros2_control_node-3]: process started with pid [1814]
+[INFO] [spawner-4]: process started with pid [1815]
+[INFO] [spawner-5]: process started with pid [1816]
+[robot_state_publisher-1] [WARN] [1785519386.559342991] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-1] [INFO] [1785519386.559408720] [robot_state_publisher]: Robot initialized
+[ros2_control_node-3] [INFO] [1785519386.561698843] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-3] [INFO] [1785519386.563243835] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-3] [INFO] [1785519386.564867429] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-3] [INFO] [1785519386.564886374] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-3] [INFO] [1785519386.564888949] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-3] [WARN] [1785519386.564926994] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[ros2_control_node-3] [INFO] [1785519386.573542428] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [INFO] [1785519386.573574450] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-3] [INFO] [1785519386.574444916] [controller_manager]: Loading hardware 'arm_system' 
+[ros2_control_node-3] [INFO] [1785519386.574673517] [controller_manager]: Loaded hardware 'arm_system' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-3] [INFO] [1785519386.574718945] [controller_manager]: Initialize hardware 'arm_system' 
+[move_group-2] [INFO] [1785519386.578280201] [move_group.moveit.moveit.ros.rdf_loader]: Loaded robot model in 0.0016554 seconds
+[move_group-2] [INFO] [1785519386.578365927] [move_group.moveit.moveit.core.robot_model]: Loading robot model 'arm'...
+[move_group-2] [INFO] [1785519386.578374157] [move_group.moveit.moveit.core.robot_model]: No root/virtual joint specified in SRDF. Assuming fixed joint
+[ros2_control_node-3] [INFO] [1785519386.578991633] [controller_manager]: Successful initialization of hardware 'arm_system'
+[ros2_control_node-3] [INFO] [1785519386.579057817] [controller_manager]: Activating component 'arm_system'.
+[ros2_control_node-3] [INFO] [1785519386.579062577] [resource_manager]: 'configure' hardware 'arm_system' 
+[ros2_control_node-3] [INFO] [1785519386.579067292] [resource_manager]: Successful 'configure' of hardware 'arm_system'
+[ros2_control_node-3] [INFO] [1785519386.579069676] [resource_manager]: 'activate' hardware 'arm_system' 
+[ros2_control_node-3] [INFO] [1785519386.579072741] [resource_manager]: Successful 'activate' of hardware 'arm_system'
+[ros2_control_node-3] [INFO] [1785519386.579101948] [controller_manager]: Registering statistics for : arm_system
+[ros2_control_node-3] [INFO] [1785519386.579142452] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[move_group-2] [WARN] [1785519386.579405907] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[move_group-2] [INFO] [1785519386.579455164] [move_group.moveit.moveit.kinematics.kdl_kinematics_plugin]: Joint weights for group 'arm': 1 1 1
+[move_group-2] [INFO] [1785519386.590598213] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-2] [INFO] [1785519386.590681399] [move_group.moveit.moveit.ros.moveit_cpp]: Listening to 'joint_states' for joint states
+[move_group-2] [INFO] [1785519386.591193257] [move_group.moveit.moveit.ros.current_state_monitor]: Listening to joint states on topic 'joint_states'
+[move_group-2] [INFO] [1785519386.591453217] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/attached_collision_object' for attached collision objects
+[move_group-2] [INFO] [1785519386.591470168] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopping existing planning scene publisher.
+[move_group-2] [INFO] [1785519386.591543862] [move_group.moveit.moveit.ros.planning_scene_monitor]: Stopped publishing maintained planning scene.
+[move_group-2] [INFO] [1785519386.591765617] [move_group.moveit.moveit.ros.planning_scene_monitor]: Publishing maintained planning scene on 'monitored_planning_scene'
+[move_group-2] [INFO] [1785519386.591811841] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting planning scene monitor
+[move_group-2] [INFO] [1785519386.592196275] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to '/planning_scene'
+[move_group-2] [INFO] [1785519386.592212995] [move_group.moveit.moveit.ros.planning_scene_monitor]: Starting world geometry update monitor for collision objects, attached objects, octomap updates.
+[move_group-2] [INFO] [1785519386.592422553] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'collision_object'
+[move_group-2] [INFO] [1785519386.592632404] [move_group.moveit.moveit.ros.planning_scene_monitor]: Listening to 'planning_scene_world' for planning scene world geometry
+[move_group-2] [WARN] [1785519386.592705219] [move_group.moveit.moveit.ros.occupancy_map_monitor]: Resolution not specified for Octomap. Assuming resolution = 0.1 instead
+[move_group-2] [ERROR] [1785519386.592712966] [move_group.moveit.moveit.ros.occupancy_map_monitor]: No 3D sensor plugin(s) defined for octomap updates
+[move_group-2] [INFO] [1785519386.599556020] [move_group.moveit.moveit.ros.planning_pipeline]: Successfully loaded planner 'OMPL'
+[move_group-2] [INFO] [1785519386.599912413] [move_group]: Try loading adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-2] [INFO] [1785519386.600349867] [move_group]: Loaded adapter 'default_planning_request_adapters/ResolveConstraintFrames'
+[move_group-2] [INFO] [1785519386.600369982] [move_group]: Try loading adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-2] [INFO] [1785519386.600449814] [move_group]: Loaded adapter 'default_planning_request_adapters/ValidateWorkspaceBounds'
+[move_group-2] [INFO] [1785519386.600453491] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-2] [INFO] [1785519386.600464017] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateBounds'
+[move_group-2] [INFO] [1785519386.600465570] [move_group]: Try loading adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-2] [INFO] [1785519386.600470123] [move_group]: Loaded adapter 'default_planning_request_adapters/CheckStartStateCollision'
+[move_group-2] [INFO] [1785519386.600775125] [move_group]: Try loading adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-2] [INFO] [1785519386.601760518] [move_group]: Loaded adapter 'default_planning_response_adapters/AddTimeOptimalParameterization'
+[move_group-2] [INFO] [1785519386.601778005] [move_group]: Try loading adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-2] [INFO] [1785519386.602832722] [move_group]: Loaded adapter 'default_planning_response_adapters/ValidateSolution'
+[move_group-2] [INFO] [1785519386.602851313] [move_group]: Try loading adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-2] [INFO] [1785519386.603154271] [move_group]: Loaded adapter 'default_planning_response_adapters/DisplayMotionPath'
+[move_group-2] [INFO] [1785519386.618202346] [move_group.moveit.moveit.plugins.simple_controller_manager]: Added FollowJointTrajectory controller for arm_controller
+[move_group-2] [INFO] [1785519386.618314674] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 1 controllers in list
+[move_group-2] [INFO] [1785519386.618327839] [move_group.moveit.moveit.plugins.simple_controller_manager]: Returned 1 controllers in list
+[move_group-2] [INFO] [1785519386.618565709] [move_group.moveit.moveit.ros.trajectory_execution_manager]: Trajectory execution is managing controllers
+[move_group-2] [INFO] [1785519386.618584362] [move_group]: MoveGroup debug mode is ON
+[move_group-2] [INFO] [1785519386.628576283] [move_group.moveit.moveit.ros.move_group.executable]: 
+[move_group-2] 
+[move_group-2] ********************************************************
+[move_group-2] * MoveGroup using: 
+[move_group-2] *     - apply_planning_scene_service
+[move_group-2] *     - clear_octomap_service
+[move_group-2] *     - get_group_urdf
+[move_group-2] *     - load_geometry_from_file
+[move_group-2] *     - CartesianPathService
+[move_group-2] *     - execute_trajectory_action
+[move_group-2] *     - get_planning_scene_service
+[move_group-2] *     - kinematics_service
+[move_group-2] *     - move_action
+[move_group-2] *     - motion_plan_service
+[move_group-2] *     - query_planners_service
+[move_group-2] *     - state_validation_service
+[move_group-2] *     - save_geometry_to_file
+[move_group-2] ********************************************************
+[move_group-2] 
+[move_group-2] [INFO] [1785519386.628614832] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context using pipeline ompl
+[move_group-2] [INFO] [1785519386.628619922] [move_group.moveit.moveit.ros.move_group.context]: MoveGroup context initialization complete
+[move_group-2] [96mLoading 'move_group/ApplyPlanningSceneService'...[0m
+[move_group-2] [96mLoading 'move_group/ClearOctomapService'...[0m
+[move_group-2] [96mLoading 'move_group/GetUrdfService'...[0m
+[move_group-2] [96mLoading 'move_group/LoadGeometryFromFileService'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupCartesianPathService'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupExecuteTrajectoryAction'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupGetPlanningSceneService'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupKinematicsService'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupMoveAction'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupPlanService'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupQueryPlannersService'...[0m
+[move_group-2] [96mLoading 'move_group/MoveGroupStateValidationService'...[0m
+[move_group-2] [96mLoading 'move_group/SaveGeometryToFileService'...[0m
+[move_group-2] 
+[move_group-2] [92mYou can start planning now![0m
+[move_group-2] 
+[ros2_control_node-3] [INFO] [1785519386.683675960] [controller_manager]: Received robot description from topic.
+[ros2_control_node-3] [WARN] [1785519386.683709313] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[spawner-5] [INFO] [1785519386.763156530] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-3] [INFO] [1785519387.765537255] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-3] [INFO] [1785519387.765570977] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1785519387.767022970] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/eval-mvt2-baseline-NNEy/ws/install/arm_moveit_config/share/arm_moveit_config/config/ros2_controllers.yaml 
+[spawner-5] [INFO] [1785519387.775878669] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-3] [INFO] [1785519387.776757938] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-3] [INFO] [1785519387.776864720] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-3] [INFO] [1785519387.786272916] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-3] [INFO] [1785519387.795238527] [controller_manager]: Successfully switched controllers!
+[spawner-5] [INFO] [1785519387.805969039] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[spawner-4] [INFO] [1785519387.869609138] [spawner_arm_controller]: waiting for service /controller_manager/list_controllers to become available...
+[INFO] [spawner-5]: process has finished cleanly [pid 1816]
+[ros2_control_node-3] [INFO] [1785519388.121097166] [controller_manager]: Loading controller : 'arm_controller' of type 'joint_trajectory_controller/JointTrajectoryController'
+[ros2_control_node-3] [INFO] [1785519388.121128254] [controller_manager]: Loading controller 'arm_controller'
+[ros2_control_node-3] [INFO] [1785519388.122486400] [controller_manager]: Controller 'arm_controller' node arguments: --ros-args --params-file /tmp/eval-mvt2-baseline-NNEy/ws/install/arm_moveit_config/share/arm_moveit_config/config/ros2_controllers.yaml 
+[spawner-4] [INFO] [1785519388.136157273] [spawner_arm_controller]: Loaded arm_controller
+[ros2_control_node-3] [INFO] [1785519388.137018467] [controller_manager]: Configuring controller: 'arm_controller'
+[ros2_control_node-3] [INFO] [1785519388.137112725] [arm_controller]: No specific joint names are used for command interfaces. Using 'joints' parameter.
+[ros2_control_node-3] [INFO] [1785519388.137147698] [arm_controller]: Command interfaces are [position] and state interfaces are [position velocity].
+[ros2_control_node-3] [INFO] [1785519388.137175173] [arm_controller]: Using 'splines' interpolation method.
+[ros2_control_node-3] [INFO] [1785519388.138573543] [arm_controller]: Action status changes will be monitored at 20.00 Hz.
+[ros2_control_node-3] [INFO] [1785519388.142313012] [arm_controller]: Setting initial scaling factor to 1.000000
+[ros2_control_node-3] [INFO] [1785519388.142334599] [arm_controller]: No scaling interface set. This controller will not read speed scaling from the hardware.
+[ros2_control_node-3] [INFO] [1785519388.146407642] [controller_manager]: Activating controllers: [ arm_controller ]
+[ros2_control_node-3] [INFO] [1785519388.155296263] [controller_manager]: Successfully switched controllers!
+[spawner-4] [INFO] [1785519388.165784633] [spawner_arm_controller]: Configured and activated arm_controller
+[INFO] [spawner-4]: process has finished cleanly [pid 1815]
+[move_group-2] [INFO] [1785519390.389867030] [move_group.moveit.moveit.ros.move_group.move_action]: MoveGroupMoveAction: Received request
+[move_group-2] [INFO] [1785519390.390088750] [move_group.moveit.moveit.ros.move_group.move_action]: executing..
+[move_group-2] [INFO] [1785519390.395361139] [move_group.moveit.moveit.ros.move_group.move_action]: Planning request received for MoveGroup action. Forwarding to planning pipeline.
+[move_group-2] [INFO] [1785519390.395570204] [move_group]: Calling PlanningRequestAdapter 'ResolveConstraintFrames'
+[move_group-2] [INFO] [1785519390.395601385] [move_group]: Calling PlanningRequestAdapter 'ValidateWorkspaceBounds'
+[move_group-2] [WARN] [1785519390.395604674] [move_group.moveit.moveit.ros.validate_workspace_bounds]: It looks like the planning volume was not specified. Using default values.
+[move_group-2] [INFO] [1785519390.395610005] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateBounds'
+[move_group-2] [ERROR] [1785519390.395630674] [move_group.moveit.moveit.core.conversions]: Found empty JointState message
+[move_group-2] [INFO] [1785519390.395641346] [move_group]: Calling PlanningRequestAdapter 'CheckStartStateCollision'
+[move_group-2] [ERROR] [1785519390.395644489] [move_group.moveit.moveit.core.conversions]: Found empty JointState message
+[move_group-2] [ERROR] [1785519390.395808475] [move_group.moveit.moveit.core.conversions]: Found empty JointState message
+[move_group-2] [INFO] [1785519390.396065672] [move_group.moveit.moveit.planners.ompl.model_based_planning_context]: Planner configuration 'arm' will use planner 'geometric::RRTConnect'. Additional configuration parameters will be set when the planner is constructed.
+[move_group-2] [INFO] [1785519390.396174446] [move_group]: Calling Planner 'OMPL'
+[move_group-2] [INFO] [1785519390.407502633] [move_group]: Calling PlanningResponseAdapter 'AddTimeOptimalParameterization'
+[move_group-2] [INFO] [1785519390.407767193] [move_group]: Calling PlanningResponseAdapter 'ValidateSolution'
+[move_group-2] [INFO] [1785519390.407807996] [move_group]: Calling PlanningResponseAdapter 'DisplayMotionPath'
+[move_group-2] [WARN] [1785519390.407824237] [move_group.moveit.moveit.ros.planning_pipeline]: The planner plugin did not fill out the 'planner_id' field of the MotionPlanResponse. Setting it to the planner ID name of the MotionPlanRequest assuming that the planner plugin does warn you if it does not use the requested planner.
+[move_group-2] [INFO] [1785519390.407843033] [move_group.moveit.moveit.ros.move_group.move_action]: Motion plan was computed successfully.
+[ERROR] [move_group-2]: process has died [pid 1813, exit code -9, cmd '/opt/ros/jazzy/lib/moveit_ros_move_group/move_group --ros-args --params-file /tmp/launch_params_5agv1mum --params-file /tmp/launch_params_ntxw6hr8'].
+[ERROR] [robot_state_publisher-1]: process has died [pid 1812, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_64k8w6u_ --params-file /tmp/launch_params_41q74het'].
+[INFO] [robot_state_publisher-1]: process started with pid [2004]
+[robot_state_publisher-1] [WARN] [1785519390.564476938] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-1] [INFO] [1785519390.564538695] [robot_state_publisher]: Robot initialized
+519386.372407852] [controller_manager]: ResourceManager has already loaded a urdf. Ignoring attempt to reload a robot description.
+[ERROR] [robot_state_publisher-1]: process has died [pid 1757, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_lig_puee --params-file /tmp/launch_params_0uhvmvkh'].
+[INFO] [robot_state_publisher-1]: process started with pid [2005]
+[robot_state_publisher-1] [WARN] [1785519390.564984127] [kdl_parser]: The root link base_link has an inertia specified in the URDF, but KDL does not support a root link with an inertia.  As a workaround, you can add an extra dummy link to your URDF.
+[robot_state_publisher-1] [INFO] [1785519390.565040598] [robot_state_publisher]: Robot initialized

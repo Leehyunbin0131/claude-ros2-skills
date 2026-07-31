@@ -1,0 +1,34 @@
+[INFO] [1785508208.064843766] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[INFO] [1785508208.066378089] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[INFO] [1785508208.067963608] [controller_manager]: update rate is 100 Hz
+[INFO] [1785508208.067975276] [controller_manager]: Overruns handling is : enabled
+[INFO] [1785508208.067977698] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[WARN] [1785508208.068017867] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[INFO] [1785508208.076731725] [controller_manager]: Received robot description from topic.
+[INFO] [1785508208.076765546] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[INFO] [1785508208.077552454] [controller_manager]: Loading hardware 'GenericSystem' 
+[INFO] [1785508208.077758351] [controller_manager]: Loaded hardware 'GenericSystem' from plugin 'mock_components/GenericSystem'
+[INFO] [1785508208.077791147] [controller_manager]: Initialize hardware 'GenericSystem' 
+[INFO] [1785508208.082097436] [controller_manager]: Successful initialization of hardware 'GenericSystem'
+[INFO] [1785508208.082182168] [controller_manager]: Activating component 'GenericSystem'.
+[INFO] [1785508208.082188857] [resource_manager]: 'configure' hardware 'GenericSystem' 
+[INFO] [1785508208.082193933] [resource_manager]: Successful 'configure' of hardware 'GenericSystem'
+[INFO] [1785508208.082196288] [resource_manager]: 'activate' hardware 'GenericSystem' 
+[INFO] [1785508208.082199896] [resource_manager]: Successful 'activate' of hardware 'GenericSystem'
+[INFO] [1785508208.082249211] [controller_manager]: Registering statistics for : GenericSystem
+[INFO] [1785508208.082310174] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[INFO] [1785508208.426113997] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[INFO] [1785508208.426146770] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[INFO] [1785508208.427535306] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/eval-ctl2-baseline-NGOc/controllers.yaml 
+[INFO] [1785508208.445391452] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[INFO] [1785508208.445472534] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[INFO] [1785508208.459632159] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[INFO] [1785508208.468394945] [controller_manager]: Successfully switched controllers!
+[INFO] [1785508209.203510278] [controller_manager]: Loading controller : 'position_controller' of type 'forward_command_controller/ForwardCommandController'
+[INFO] [1785508209.203545307] [controller_manager]: Loading controller 'position_controller'
+[INFO] [1785508209.204112442] [controller_manager]: Controller 'position_controller' node arguments: --ros-args --params-file /tmp/eval-ctl2-baseline-NGOc/controllers.yaml 
+[INFO] [1785508209.220123634] [controller_manager]: Configuring controller: 'position_controller'
+[INFO] [1785508209.220661850] [position_controller]: configure successful
+[INFO] [1785508209.229384335] [controller_manager]: Activating controllers: [ position_controller ]
+[INFO] [1785508209.238361520] [position_controller]: activate successful
+[INFO] [1785508209.238423184] [controller_manager]: Successfully switched controllers!

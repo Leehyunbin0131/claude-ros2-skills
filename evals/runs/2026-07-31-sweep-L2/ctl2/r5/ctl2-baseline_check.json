@@ -1,0 +1,11 @@
+{
+  "ctl2_bringup_found": true,
+  "bringup": "/tmp/eval-ctl2-baseline-xNfw/bringup.sh",
+  "ctl2_both_active": false,
+  "ctl2_command_lands": false,
+  "n_active": 0,
+  "bringup_rc": 0,
+  "list_controllers": "[INFO] [1785509740.001959094] [_ros2cli_12672]: waiting for service /controller_manager/list_controllers to become available...\n[WARN] [1785509750.006987762] [_ros2cli_12672]: Could not contact service /controller_manager/list_controllers\n[INFO] [1785509750.007192858] [_ros2cli_12672]: waiting for service /controller_manager/list_controllers to become available...\nfailed to check service availability: rcl node's context is invalid, at ./src/rcl/node.c:404",
+  "probe": "NO_COMMAND_TOPIC",
+  "bringup_tail": "ros2_control bringup started in the background.\nLogs: /tmp/ros2_control_bringup\n"
+}

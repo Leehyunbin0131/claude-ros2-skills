@@ -1,0 +1,11 @@
+{
+  "ctl2_bringup_found": true,
+  "bringup": "/tmp/eval-ctl2-baseline-8fOy/bringup.sh",
+  "ctl2_both_active": true,
+  "ctl2_command_lands": true,
+  "n_active": 2,
+  "bringup_rc": 0,
+  "list_controllers": "joint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster        active\nposition_controller     forward_command_controller/ForwardCommandController  active",
+  "probe": "COMMAND_TOPIC /position_controller/commands\nSTATE joint_a=0.500 joint_b=-0.500\nLANDED",
+  "bringup_tail": "Launched ros2_control stack in background (log: /tmp/eval-ctl2-baseline-8fOy/bringup.log)\nBoth controllers are active.\n"
+}

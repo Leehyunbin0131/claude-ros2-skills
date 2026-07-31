@@ -52,6 +52,27 @@ kill_all() {
   pkill -9 -f 'joint_state_publisher' 2>/dev/null || true
   pkill -9 -f 'static_transform_publisher' 2>/dev/null || true
   pkill -9 -f '^python3 .*bringup' 2>/dev/null || true
+  # Also kill anything still referencing the cell's own directory. The cell has
+  # already run its bringup once -- CLAUDE.md tells it to verify its work -- and
+  # killing only the nodes left the `ros2 launch` wrapper alive, so a bringup
+  # guarded by `pgrep -f bringup_launch.py` reported "already running, skipping"
+  # and started nothing. That scored a working cell as a total failure.
+  #
+  # Self-exclusion is not optional: this checker's own command line contains
+  # BDIR, so a bare `pkill -f "$BDIR"` kills the checker mid-run (rc 137, no
+  # verdict written). Skip this shell and every ancestor of it.
+  if [ -n "${BDIR:-}" ]; then
+    local skip=" $$ " p=$PPID
+    while [ -n "$p" ] && [ "$p" -gt 1 ] 2>/dev/null; do
+      skip="$skip$p "
+      p="$(awk '{print $4}' "/proc/$p/stat" 2>/dev/null)"
+    done
+    local pid
+    for pid in $(pgrep -f "$BDIR" 2>/dev/null || true); do
+      case "$skip" in *" $pid "*) continue ;; esac
+      kill -9 "$pid" 2>/dev/null || true
+    done
+  fi
 }
 kill_all
 sleep 1
@@ -66,6 +87,21 @@ fi
 BRING_LOG="$(mktemp)"
 ( cd "$BDIR" && timeout 180 bash ./bringup.sh ) >"$BRING_LOG" 2>&1
 BRING_RC=$?
+
+# The cell's bringup may set its own ROS_DOMAIN_ID -- correct practice, and
+# invisible unless we ask. An L2 cell that did this planned 21 points while
+# this checker reported move_group_up=false, because `ros2 node list` was
+# querying a different domain.
+adopt_domain_from() {
+  local pid d
+  pid="$(pgrep -f "$1" | head -1)"
+  [ -n "$pid" ] || return 0
+  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
+       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
+  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
+  return 0
+}
+adopt_domain_from 'move_group'
 
 MG_UP=false
 for _ in $(seq 1 60); do

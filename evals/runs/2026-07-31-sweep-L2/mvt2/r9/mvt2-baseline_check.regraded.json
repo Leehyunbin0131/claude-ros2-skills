@@ -1,0 +1,14 @@
+{
+  "mvt2_bringup_found": true,
+  "bringup": "/tmp/eval-mvt2-baseline-Nf9k/bringup.sh",
+  "plan": "/tmp/eval-mvt2-baseline-Nf9k/plan.py",
+  "mvt2_move_group_up": true,
+  "mvt2_plan_runs": true,
+  "mvt2_points": true,
+  "n_points": 12,
+  "plan_rc": 0,
+  "bringup_rc": 0,
+  "elapsed_s": 3,
+  "plan_tail": "POINTS 12\n",
+  "bringup_tail": "Using ROS_DOMAIN_ID=91 (isolates this stack from other ROS graphs on the host)\nStarting move_group stack in the background, logging to /tmp/eval-mvt2-baseline-Nf9k/bringup.log\nWaiting for /move_action action server to come up...\nmove_group is up (waited 1s).\nbringup complete.\n"
+}

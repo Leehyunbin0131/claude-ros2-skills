@@ -1,0 +1,11 @@
+{
+  "ctl2_bringup_found": true,
+  "bringup": "/tmp/eval-ctl2-baseline-reMo/bringup.sh",
+  "ctl2_both_active": true,
+  "ctl2_command_lands": true,
+  "n_active": 2,
+  "bringup_rc": 0,
+  "list_controllers": "position_controller     forward_command_controller/ForwardCommandController  active\njoint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster        active",
+  "probe": "COMMAND_TOPIC /position_controller/commands\nSTATE joint_a=0.500 joint_b=-0.500\nLANDED",
+  "bringup_tail": "[INFO] [1785511383.312870892] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...\n[INFO] [1785511383.824520075] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster\n[INFO] [1785511383.854649260] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster\n[INFO] [1785511384.334629553] [spawner_position_controller]: waiting for service /controller_manager/list_controllers to become available...\n[INFO] [1785511385.094644636] [spawner_position_controller]: Loaded position_controller\n[INFO] [1785511385.124510186] [spawner_position_controller]: Configured and activated position_controller\nBringup complete. Controllers:\n[INFO] [1785511386.056495588] [_ros2cli_22549]: waiting for service /controller_manager/list_controllers to become available...\nposition_controller     forward_command_controller/ForwardCommandController  active\njoint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster        active\n"
+}
