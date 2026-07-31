@@ -49,6 +49,13 @@ set +u
 # shellcheck disable=SC1091
 source /opt/ros/jazzy/setup.bash
 set -u
+# Added after ten stray ros2_control_node processes from the t1 rounds were
+# found still alive on the default domain. This checker was the only one without
+# domain isolation. Its 120/120 result stands -- every t5 check is filesystem,
+# ament-index or process-launch and none depends on discovery, so a stray node
+# cannot make `ros2 run` report "No executable found" -- but it should not have
+# been the exception.
+export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
 
 # --- 1. clean rebuild --------------------------------------------------------
 # From scratch: a build that only succeeds incrementally is not a build.

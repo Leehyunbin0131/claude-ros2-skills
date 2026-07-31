@@ -108,7 +108,16 @@ start_scenario() {
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
 }
 stop_scenario() {
+  # SIGTERM, then SIGKILL. Ten `ros2_control_node` processes from the t1 rounds
+  # were found still running long afterwards because this sent only SIGTERM and
+  # controller_manager does not act on it. Third instance of the same lesson in
+  # this project: `gz sim` ignored SIGTERM in the gazebo rounds, and rclpy inside
+  # executor.spin() ignored it in the executor rounds -- where a bare `wait` on
+  # the survivor then hung a checker for 4 h 48 m.
   [ ${#SCENARIO_PIDS[@]} -eq 0 ] || kill "${SCENARIO_PIDS[@]}" 2>/dev/null || true
+  sleep 2
+  [ ${#SCENARIO_PIDS[@]} -eq 0 ] || kill -9 "${SCENARIO_PIDS[@]}" 2>/dev/null || true
+  pkill -9 -f '^/opt/ros/jazzy/lib/controller_manager/ros2_control_node' 2>/dev/null || true
   wait 2>/dev/null || true
 }
 trap stop_scenario EXIT INT TERM
