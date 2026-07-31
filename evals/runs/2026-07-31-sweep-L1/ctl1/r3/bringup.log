@@ -1,0 +1,41 @@
+[INFO] [launch]: All log files can be found below /home/hyunlee/.ros/log/2026-07-31-20-17-39-306800-DESKTOP-ENH3GRN-1562
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [robot_state_publisher-1]: process started with pid [1571]
+[INFO] [ros2_control_node-2]: process started with pid [1572]
+[INFO] [spawner-3]: process started with pid [1573]
+[robot_state_publisher-1] [INFO] [1785496659.362130553] [robot_state_publisher]: Robot initialized
+[ros2_control_node-2] [INFO] [1785496659.365249759] [controller_manager]: Using Steady (Monotonic) clock for triggering controller manager cycles.
+[ros2_control_node-2] [INFO] [1785496659.366665078] [controller_manager]: Subscribing to '/robot_description' topic for robot description.
+[ros2_control_node-2] [INFO] [1785496659.367865772] [controller_manager]: update rate is 100 Hz
+[ros2_control_node-2] [INFO] [1785496659.367886726] [controller_manager]: Overruns handling is : enabled
+[ros2_control_node-2] [INFO] [1785496659.367889313] [controller_manager]: Spawning controller_manager RT thread with scheduler priority: 50
+[ros2_control_node-2] [WARN] [1785496659.367936742] [controller_manager]: Could not enable FIFO RT scheduling policy: with error number <1>(Operation not permitted). See [https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html] for details on how to enable realtime scheduling.
+[spawner-3] [INFO] [1785496659.568031820] [spawner_joint_state_broadcaster]: waiting for service /controller_manager/list_controllers to become available...
+[ros2_control_node-2] [INFO] [1785496659.713861764] [controller_manager]: Received robot description from topic.
+[ros2_control_node-2] [INFO] [1785496659.713899956] [controller_manager]: Enforcing command limits is disabled. Command limits from URDF will be ignored.
+[ros2_control_node-2] [INFO] [1785496659.714783394] [controller_manager]: Loading hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496659.714992789] [controller_manager]: Loaded hardware 'MockSystem' from plugin 'mock_components/GenericSystem'
+[ros2_control_node-2] [INFO] [1785496659.715024409] [controller_manager]: Initialize hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496659.717870795] [controller_manager]: Successful initialization of hardware 'MockSystem'
+[ros2_control_node-2] [INFO] [1785496659.717929466] [controller_manager]: Activating component 'MockSystem'.
+[ros2_control_node-2] [INFO] [1785496659.717933741] [resource_manager]: 'configure' hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496659.717938443] [resource_manager]: Successful 'configure' of hardware 'MockSystem'
+[ros2_control_node-2] [INFO] [1785496659.717940570] [resource_manager]: 'activate' hardware 'MockSystem' 
+[ros2_control_node-2] [INFO] [1785496659.717943641] [resource_manager]: Successful 'activate' of hardware 'MockSystem'
+[ros2_control_node-2] [INFO] [1785496659.717972723] [controller_manager]: Registering statistics for : MockSystem
+[ros2_control_node-2] [INFO] [1785496659.718010701] [controller_manager]: Resource Manager has been successfully initialized. Starting Controller Manager services...
+[ros2_control_node-2] [INFO] [1785496660.069764718] [controller_manager]: Loading controller : 'joint_state_broadcaster' of type 'joint_state_broadcaster/JointStateBroadcaster'
+[ros2_control_node-2] [INFO] [1785496660.069799137] [controller_manager]: Loading controller 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1785496660.071193940] [controller_manager]: Controller 'joint_state_broadcaster' node arguments: --ros-args --params-file /tmp/launch_params_25thjm8r --params-file /tmp/eval-ctl1-baseline-ZbSa/config/controllers.yaml 
+[spawner-3] [INFO] [1785496660.079130853] [spawner_joint_state_broadcaster]: Loaded joint_state_broadcaster
+[ros2_control_node-2] [INFO] [1785496660.079692219] [controller_manager]: Configuring controller: 'joint_state_broadcaster'
+[ros2_control_node-2] [INFO] [1785496660.079744513] [joint_state_broadcaster]: 'joints' or 'interfaces' parameter is empty. All available state interfaces will be published
+[ros2_control_node-2] [INFO] [1785496660.089063762] [controller_manager]: Activating controllers: [ joint_state_broadcaster ]
+[ros2_control_node-2] [INFO] [1785496660.098299420] [controller_manager]: Successfully switched controllers!
+[spawner-3] [INFO] [1785496660.109059257] [spawner_joint_state_broadcaster]: Configured and activated joint_state_broadcaster
+[INFO] [spawner-3]: process has finished cleanly [pid 1573]
+[INFO] [spawner-4]: process started with pid [1649]
+[spawner-4] [INFO] [1785496660.459122236] [spawner_forward_position_controller]: waiting for service /controller_manager/list_controllers to become available...
+[ERROR] [ros2_control_node-2]: process has died [pid 1572, exit code -9, cmd '/opt/ros/jazzy/lib/controller_manager/ros2_control_node --ros-args --params-file /tmp/launch_params_25thjm8r --params-file /tmp/eval-ctl1-baseline-ZbSa/config/controllers.yaml'].
+[ERROR] [robot_state_publisher-1]: process has died [pid 1571, exit code -9, cmd '/opt/ros/jazzy/lib/robot_state_publisher/robot_state_publisher --ros-args --params-file /tmp/launch_params_g3gib7rg'].
+[ERROR] [spawner-4]: process has died [pid 1649, exit code -9, cmd '/opt/ros/jazzy/lib/controller_manager/spawner forward_position_controller --ros-args'].

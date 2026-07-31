@@ -56,8 +56,8 @@ ran; graders validated against deliberately broken references first.
 
 | Rung | Mechanisms added | Checks | Result |
 | :--- | :--- | :--- | ---: |
-| `ctl1` | URDF `<ros2_control>`, `mock_components/GenericSystem`, controller_manager params, `joint_state_broadcaster` spawned | cm_running, jsb_active, joint_states | pending |
-| `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | — | not run |
+| `ctl1` | URDF `<ros2_control>`, `mock_components/GenericSystem`, controller_manager params, `joint_state_broadcaster` spawned | cm_running, jsb_active, joint_states | **30/30 reached** |
+| `ctl2` | + a second controller claiming interfaces, commands reaching mocked state | both_active, **command_lands** | grader validated, queued |
 | `ctl3` | + a custom C++ `SystemInterface` pluginlib plugin | — | not run |
 | `tst1` | a pytest registered with the build that `colcon test` actually runs | builds, test_ran, no_failures | **30/30 reached** |
 | `tst2` | + `launch_testing` against a live node | builds, test_ran, no_failures, **launch_testing** | grader validated, queued |

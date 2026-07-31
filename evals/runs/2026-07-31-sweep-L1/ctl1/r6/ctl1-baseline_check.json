@@ -1,0 +1,11 @@
+{
+  "ctl1_bringup_found": true,
+  "bringup": "/tmp/eval-ctl1-baseline-yPqk/bringup.sh",
+  "ctl1_cm_running": true,
+  "ctl1_jsb_active": true,
+  "ctl1_joint_states": true,
+  "bringup_rc": 0,
+  "list_controllers": "position_controller     position_controllers/JointGroupPositionController  active\njoint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster      active",
+  "joint_states": "header:\n  stamp:\n    sec: 1785496990\n    nanosec: 131210204\n  frame_id: base_link\nname:\n- joint_a\n- joint_b\nposition:\n- 0.0\n- 0.0\nvelocity:\n- 0.0\n- 0.0\neffort:\n- .nan\n- .nan\n---",
+  "bringup_tail": ""
+}

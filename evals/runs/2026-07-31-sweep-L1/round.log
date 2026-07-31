@@ -65,3 +65,56 @@ Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
 === ctl1 rep 1 done
 scenario for task ctl1 up (pids: )
 --- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-ghky)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r2/ctl1-baseline_final.md
+evals/harness/run_ab.sh: line 337: syntax error near unexpected token `done'
+=== ctl1 rep 2 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-ZbSa)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r3/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 3 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-Fzmj)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r4/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 4 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-Gpot)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r5/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 5 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-yPqk)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r6/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 6 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-by7P)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r7/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 7 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-btz8)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r8/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 8 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-vV4b)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r9/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 9 done
+scenario for task ctl1 up (pids: )
+--- task ctl1 / baseline  (model=sonnet, cwd=/tmp/eval-ctl1-baseline-xkeL)
+    -> evals/runs/2026-07-31-sweep-L1/ctl1/r10/ctl1-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py ctl1 <result.jsonl>
+=== ctl1 rep 10 done
+scenario for task per1 up (pids: 10162)
+--- task per1 / baseline  (model=sonnet, cwd=/tmp/eval-per1-baseline-3C3Z)

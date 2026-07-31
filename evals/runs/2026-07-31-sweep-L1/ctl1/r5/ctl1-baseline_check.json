@@ -1,0 +1,11 @@
+{
+  "ctl1_bringup_found": true,
+  "bringup": "/tmp/eval-ctl1-baseline-Gpot/bringup.sh",
+  "ctl1_cm_running": true,
+  "ctl1_jsb_active": true,
+  "ctl1_joint_states": true,
+  "bringup_rc": 0,
+  "list_controllers": "[INFO] [1785496837.678210538] [_ros2cli_3288]: waiting for service /controller_manager/list_controllers to become available...\nposition_controller     position_controllers/JointGroupPositionController  active\njoint_state_broadcaster joint_state_broadcaster/JointStateBroadcaster      active",
+  "joint_states": "A message was lost!!!\n\ttotal count change:1\n\ttotal count: 1---\nheader:\n  stamp:\n    sec: 1785496839\n    nanosec: 104095746\n  frame_id: base_link\nname:\n- joint_a\n- joint_b\nposition:\n- 0.0\n- 0.0\nvelocity:\n- 0.0\n- 0.0\neffort:\n- .nan\n- .nan\n---",
+  "bringup_tail": "Starting >>> minimal_control_demo\nFinished <<< minimal_control_demo [0.04s]\n\nSummary: 1 package finished [0.12s]\nbringup launched in background (PID 3162). Log: /tmp/minimal_control_demo_bringup.log\n"
+}

@@ -1,0 +1,11 @@
+{
+  "ctl1_bringup_found": true,
+  "bringup": "/tmp/eval-ctl1-baseline-Fzmj/bringup.sh",
+  "ctl1_cm_running": true,
+  "ctl1_jsb_active": true,
+  "ctl1_joint_states": true,
+  "bringup_rc": 0,
+  "list_controllers": "[INFO] [1785496753.608015754] [_ros2cli_2479]: waiting for service /controller_manager/list_controllers to become available...\njoint_state_broadcaster     joint_state_broadcaster/JointStateBroadcaster      active\nforward_position_controller position_controllers/JointGroupPositionController  active",
+  "joint_states": "A message was lost!!!\n\ttotal count change:1\n\ttotal count: 1---\nheader:\n  stamp:\n    sec: 1785496756\n    nanosec: 838778107\n  frame_id: base_link\nname:\n- joint_a\n- joint_b\nposition:\n- 0.0\n- 0.0\nvelocity:\n- 0.0\n- 0.0\neffort:\n- .nan\n- .nan\n---",
+  "bringup_tail": "bringup started in background (pid 2343), logs at /tmp/eval-ctl1-baseline-Fzmj/bringup.log\n"
+}

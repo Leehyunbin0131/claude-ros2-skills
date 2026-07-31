@@ -788,6 +788,32 @@ def mvt1(c: Cell, check: str | Path | None = None) -> dict:
         "mvt1_bringup_found", "mvt1_unused_transcript_key")
 
 
+def ctl2(c: Cell, check: str | Path | None = None) -> dict:
+    """A second controller whose commands reach the mocked hardware, rung L2.
+
+    `ctl2_command_lands` is the rung. A `forward_command_controller` can be
+    active with wrong `joints` / `interface_name` parameters: everything reports
+    healthy, `list_controllers` shows two active controllers, and the commanded
+    position never appears in `/joint_states`.
+
+    References on this install, 2026-07-31 -- note both reach TWO active
+    controllers, so the controller list cannot tell them apart:
+
+        joints: [joint_a, joint_b] -> both_active=True  command_lands=True
+                                      STATE joint_a=0.500 joint_b=-0.500
+        joints: [joint_a]          -> both_active=True  command_lands=False
+                                      STATE joint_a=0.000 joint_b=0.000
+
+    The command topic is discovered by message TYPE rather than assumed: the
+    frozen prompt fixes neither the namespace nor the controller's topic, so a
+    hardcoded name would fail correct work.
+    """
+    return _external_checks(
+        c, check,
+        ["ctl2_both_active", "ctl2_command_lands"],
+        "ctl2_bringup_found", "ctl2_unused_transcript_key")
+
+
 def tst2(c: Cell, check: str | Path | None = None) -> dict:
     """`launch_testing` against a live node, rung L2.
 
@@ -816,7 +842,7 @@ def tst2(c: Cell, check: str | Path | None = None) -> dict:
 
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3,
-         "qos1": qos1, "ctl1": ctl1, "tst1": tst1, "tst2": tst2,
+         "qos1": qos1, "ctl1": ctl1, "ctl2": ctl2, "tst1": tst1, "tst2": tst2,
          "per1": per1, "mvt1": mvt1}
 
 
