@@ -80,9 +80,13 @@ timeout 60 python3 "$NODE" >"$RUN_LOG" 2>&1
 RC=$?
 ELAPSED=$(( $(date +%s) - START ))
 
-wait $MON 2>/dev/null || true
-kill $SRV $TICK 2>/dev/null || true
+# kill_all sends -9, and it goes FIRST. Waiting before killing hung the L3
+# checker for 4.8 hours on a live round: rclpy inside executor.spin() does not
+# reliably act on SIGTERM, and `wait` on a still-live child never returns.
 kill_all
+wait $MON 2>/dev/null || true
+wait $SRV 2>/dev/null || true
+wait $TICK 2>/dev/null || true
 
 N_RESULTS=$(awk '/RESULT/ {n++} END {print n+0}' "$RUN_LOG" 2>/dev/null)
 read -r HB_COUNT HB_MAXGAP HB_HZ <<<"$(python3 -c '

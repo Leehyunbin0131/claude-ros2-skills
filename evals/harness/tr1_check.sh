@@ -83,9 +83,11 @@ timeout 45 python3 "$NODE" >"$RUN_LOG" 2>&1
 RC=$?
 ELAPSED=$(( $(date +%s) - START ))
 
-kill $SRV 2>/dev/null || true
-wait $SRV 2>/dev/null || true
+# kill_all sends -9, and it goes FIRST. `kill $SRV` then `wait $SRV` hung the
+# L3 checker for 4.8 hours on a live round: rclpy inside executor.spin() does
+# not reliably act on SIGTERM, and `wait` on a still-live child never returns.
 kill_all
+wait $SRV 2>/dev/null || true
 
 # `grep -c` prints 0 AND exits non-zero on no match, so `|| echo 0` appends a
 # SECOND zero and printf %d then chokes on "0\n0". Count with awk instead.

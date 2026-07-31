@@ -619,8 +619,35 @@ def tr2(c: Cell, check: str | Path | None = None) -> dict:
         "tr2_node_found", "tr2_unused_transcript_key")
 
 
+# --------------------------------------------------------------------------
+# TR3 — ros2-troubleshooting executor ladder, rung L3 (evals/LADDER.md)
+# --------------------------------------------------------------------------
+def tr3(c: Cell, check: str | Path | None = None) -> dict:
+    """Five service calls issued concurrently from one callback, batch under 3 s.
+
+    Wall time is the check that matters, and it is the one a merely-working node
+    cannot satisfy. Validated 2026-07-31 against two references, the second of
+    which ISOLATES it:
+
+        all five call_async before   -> batch 2.015 s. all four checks pass.
+        awaiting any, Reentrant on
+        a MultiThreadedExecutor
+        issue-and-await one at a     -> five correct results, exit 0, TOTAL
+        time                            printed -- and 5.029 s. Only
+                                        tr3_batch_under_3s fails.
+
+    The scenario server runs 4 threads, so a perfectly concurrent batch lands at
+    ~2 s rather than ~1 s -- inside the 3 s the frozen prompt allows, without
+    requiring unbounded server parallelism from the cell.
+    """
+    return _external_checks(
+        c, check,
+        ["tr3_logs_5", "tr3_exits_clean", "tr3_total_line", "tr3_batch_under_3s"],
+        "tr3_node_found", "tr3_unused_transcript_key")
+
+
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
-         "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2}
+         "g1": g1, "g2": g2, "g3": g3, "tr1": tr1, "tr2": tr2, "tr3": tr3}
 
 
 # --------------------------------------------------------------------------
@@ -795,7 +822,7 @@ def main() -> int:
         grade = fn(cell, live=a.live)
     elif a.task == "t4":
         grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2"):
+    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3"):
         chk = a.check
         if not chk:
             p = Path(a.transcript)
