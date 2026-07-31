@@ -16,11 +16,22 @@
 # touches rosbag2 passes the first three checks; a real one leaves a bag on
 # disk with a metadata file and a storage file in it.
 #
-# Graded from what the run left behind -- a `metadata.yaml` under the
-# workspace, plus at least one non-empty storage file beside it -- not from
-# reading the test source for the word "rosbag2". A source grep would pass a
-# test that imports rosbag2_py and records nothing, which is the failure this
+# Graded by OBSERVING rosbag2 being driven at runtime, not by finding a bag
+# left on disk and not by grepping the source.
+#
+# Leftover artifacts were the first design and they were wrong: every cell in
+# the first L3 round wrote its bag to `tempfile.mkdtemp()` and removed it in
+# tearDown -- correct practice, and nothing in the prompt asks for the bag to
+# survive. All six were scored 0 while their tests passed.
+#
+# A source grep is equally wrong in the other direction: it would pass a test
+# that imports rosbag2_py and records nothing, which is the exact failure this
 # check exists for.
+#
+# So a `sitecustomize.py` on PYTHONPATH wraps `SequentialWriter.open` and
+# `SequentialReader.open` to append to a marker file. The marker records that
+# the test actually opened a bag for writing, wherever it put it and however
+# soon it deleted it.
 #
 # Traps this file is written downstream of, each paid for in an earlier round:
 #   * no `cmd | grep -q X` -- `set -o pipefail` turns a match into a failure
@@ -72,8 +83,33 @@ RESULT_LOG="$(mktemp)"
 # Marker file: only bags created after this point count, so a bag left behind by
 # an earlier cell cannot be credited to this one.
 STAMP="$(mktemp)"
+
+# Runtime observation, independent of where the bag goes or whether it
+# survives. A background watcher polls for bag directories while the test runs.
+# A bag must exist between being written and being read back, so a 0.2 s poll
+# sees it even when the test removes it in tearDown.
+#
+# Monkey-patching rosbag2_py from a sitecustomize was tried first and rejected:
+# replacing a method on the pybind11 type aborts the interpreter (SIGABRT,
+# exit -6), and swapping the module attribute for a subclass did not take.
+TMPROOT="$(mktemp -d)"
+BAGWATCH="$(mktemp)"
+# Watch for the STORAGE file, not metadata.yaml: rosbag2 writes the metadata
+# only when the writer is closed, so a test that reads the bag back and deletes
+# it leaves a window of a fraction of a second. The .db3/.mcap exists from
+# writer.open onward -- the whole recording period -- which is comfortably
+# longer than the poll interval.
+( while :; do
+    find "$WS" "$TMPROOT" -maxdepth 6 \( -name '*.db3' -o -name '*.mcap' \) \
+      2>/dev/null >>"$BAGWATCH"
+    sleep 0.1
+  done ) &
+WATCH=$!
+
+N_READS=0
 if [ $BUILD_RC -eq 0 ]; then
-  ( cd "$WS" && timeout 600 colcon test --event-handlers console_direct+ ) >"$TEST_LOG" 2>&1
+  ( cd "$WS" && TMPDIR="$TMPROOT" \
+      timeout 600 colcon test --event-handlers console_direct+ ) >"$TEST_LOG" 2>&1
   ( cd "$WS" && timeout 60 colcon test-result --all ) >"$RESULT_LOG" 2>&1
 
   read -r N_TESTS N_ERR N_FAIL <<<"$(awk '
@@ -90,22 +126,12 @@ if [ $BUILD_RC -eq 0 ]; then
     pass_nofail=true
   fi
 
-  # A bag is a directory holding metadata.yaml plus at least one non-empty
-  # storage file. The prompt does not say where to put it, so searching only
-  # the workspace would fail a test that writes to a temp dir -- which is a
-  # perfectly reasonable choice. Search the workspace AND /tmp, restricted to
-  # bags created after this run started so an older one cannot be credited.
-  while IFS= read -r meta; do
-    dir="$(dirname "$meta")"
-    if find "$dir" -maxdepth 1 -type f \( -name '*.db3' -o -name '*.mcap' \) -size +0c \
-         -print -quit 2>/dev/null | grep -q . ; then
-      N_BAGS=$(( N_BAGS + 1 ))
-      [ "$BAG_PATH" = "-" ] && BAG_PATH="$dir"
-    fi
-  done < <( { find "$WS" -name 'metadata.yaml' -newer "$STAMP" 2>/dev/null
-              find /tmp -maxdepth 3 -name 'metadata.yaml' -newer "$STAMP" 2>/dev/null; } )
-
+  kill -9 $WATCH 2>/dev/null || true
+  N_BAGS=$(sort -u "$BAGWATCH" 2>/dev/null | awk 'END {print NR+0}')
+  BAG_PATH="$(sort -u "$BAGWATCH" 2>/dev/null | head -1)"
+  [ -n "$BAG_PATH" ] || BAG_PATH="-"
   [ "${N_BAGS:-0}" -ge 1 ] && pass_bag=true
+
 fi
 
 {
@@ -119,7 +145,7 @@ fi
   printf '  "n_tests": %d,\n'            "${N_TESTS:-0}"
   printf '  "n_failures": %d,\n'         "${N_FAIL:-0}"
   printf '  "n_errors": %d,\n'           "${N_ERR:-0}"
-  printf '  "n_bags": %d,\n'             "${N_BAGS:-0}"
+  printf '  "n_bag_dirs_seen": %d,\n'    "${N_BAGS:-0}"
   printf '  "bag_path": %s,\n'           "$(printf '%s' "$BAG_PATH" | json_escape)"
   printf '  "build_rc": %d,\n'           "$BUILD_RC"
   printf '  "test_result": %s,\n'        "$(tail -c 800 "$RESULT_LOG" | json_escape)"
@@ -127,4 +153,5 @@ fi
   printf '}\n'
 } > "$OUT"
 
-rm -f "$BUILD_LOG" "$TEST_LOG" "$RESULT_LOG" "$STAMP"
+kill -9 $WATCH 2>/dev/null || true
+rm -rf "$BUILD_LOG" "$TEST_LOG" "$RESULT_LOG" "$STAMP" "$BAGWATCH" "$TMPROOT"
