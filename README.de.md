@@ -13,11 +13,11 @@ Skills, die verändern, wie KI-Agenten ROS-2-Entwicklung angehen: unbekannte Par
 
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | **Deutsch**
 
-<sub>🌐 Dieses Dokument ist eine maschinelle Übersetzung. Das Original ist auf [English](README.md).</sub>
+<sub>🌐 Dieses Dokument ist die deutsche Übersetzung des Originals auf [English](README.md).</sub>
 
-| Skills | Immer geladenes Protokoll | Doku-Links (CI-geprüft) | Physikalische Roboter-Prüfungen |
+| Skills | Immer geladenes Protokoll | Doku-Links (CI-geprüft) | Skripte für physische & Laufzeit-Verifikation |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 Zeilen** | **6** | **4 Skripte** |
+| **2** | **30 Zeilen** | **6** | **4** |
 
 </div>
 
@@ -58,9 +58,9 @@ Vier Entwurfsregeln gelten für jeden Skill in diesem Repository:
 
 **2. Eine strukturierte Schleife mit klaren Abbruchkriterien ausführen.** Der Zyklus *prüfen → schreiben → nachweisen*: Standardwerte in der installierten Umgebung inspizieren, Änderungen schrittweise anwenden, Ausführung bestätigen. Eine Aufgabe gilt erst als abgeschlossen, wenn beobachtete Belege sie stützen — ein erfolgreicher Build, echte Daten auf `ros2 topic echo`, ein bestandenes Verifikationsskript — und nicht schon durch das bloße Erzeugen von Codedateien.
 
-**3. Nichts sagen, was das Modell bereits weiß oder `CLAUDE.md` bereits sagt.** Jede Symptom→Ursache→Maßnahme-Tabelle, die dieses Paket je ausgeliefert hat, wurde gegen einen Basis-Agenten ohne geladene Skills gemessen. **Keine einzige hat eine Prüfung bewegt** — entweder erreicht das Modell diese Mechanismen bereits ohne Hilfe, oder die Lösung war ein mitgeliefertes Skript bzw. ein Absatz in `CLAUDE.md`, niemals Prosa, die die Domäne beschreibt. Siehe [Evaluationen](#evaluationen).
+**3. Nichts sagen, was das Modell bereits weiß oder `CLAUDE.md` bereits festlegt.** Jede Symptom→Ursache→Maßnahme-Tabelle, die früher in diesem Paket enthalten war, wurde gegen einen Basis-Agenten ohne geladene Skills evaluiert. Beschreibende Prosa hat die Evaluationsergebnisse nie verbessert — das Modell erreicht die Lösung entweder eigenständig oder benötigt ein ausführbares Skript bzw. eine Protokoll-Bedingung in `CLAUDE.md`. Siehe [Evaluationen](#evaluationen).
 
-**4. Auf ein ausführbares Artefakt zeigen, es niemals beschreiben.** Der einzige Inhalt dieses Pakets, für den je nachgewiesen wurde, dass er ein Ergebnis verändert, ist ein Skript mit Exit-Code (`scripts/check_*.py`, mitgeliefert in `ros2-troubleshooting`). Ein Absatz, der *beschreibt*, was ein solches Skript Ihnen sagen würde, bewegte nichts — nur seine Ausführung tat es.
+**4. Auf ein ausführbares Artefakt zeigen, es niemals beschreiben.** Empirische Tests haben gezeigt, dass beschreibender Text darüber, was ein Skript prüfen würde, keine Verbesserung in den Evaluationen brachte. Nur ausführbare Skripte mit deterministischen Exit-Codes (`scripts/check_*.py` in `ros2-troubleshooting`) haben das Verhalten des Modells messbar verändert.
 
 ## Was es anders macht
 
@@ -105,9 +105,9 @@ Dieses Repository optimiert auf ein einziges Ergebnis: das Risiko zu minimieren,
 | Den geschriebenen QoS-Code vor der Übergabe ausführen | **5/10** | das „fertig heißt, es lief" aus `CLAUDE.md` | **9/10** (zu geringe Teststärke) |
 | Die geschriebene Nav2-Konfiguration vor der Übergabe ausführen | **0/10** | eine Aufgabe, die das Erreichen von `active` verlangt | **30/30** |
 
-Die letzte Zeile ist das sauberste Ergebnis hier. Auf die Aufforderung, eine Nav2-Parameterdatei zu schreiben, produzierten 10 von 10 Zellen eine, die **ihre eigenen Server nicht konfigurieren wollen**. Auf die Aufforderung, dieselbe Datei zu schreiben *und* den Stack bis `active` zu bringen, stieß jede Zelle auf genau denselben Fehler, diagnostizierte ihn aus dem Log, behob ihn und bestand. **Gleiches Modell, gleiche falsche Annahme, null Unterschied an Information** — nur die Forderung nach Ausführung unterscheidet sich.
+Die letzte Zeile verdeutlicht dieses Prinzip am klarsten. Auf die Aufforderung hin, nur eine Nav2-Parameterdatei zu erstellen, erzeugten alle 10 Durchläufe Konfigurationen, die ihre eigenen Nav2-Server zu laden verweigerten. Auf die Aufforderung hin, dieselbe Datei zu erstellen *und zusätzlich* den Stack in den Zustand `active` zu bringen, stieß jeder Durchlauf auf genau denselben Konfigurationsfehler, diagnostizierte ihn aus den Logs, behob ihn und bestand. **Gleiches Modell, gleiche Fehlvorstellung, null Unterschied an Information** — nur die Anforderung, auszuführen und zu verifizieren, unterschied sich.
 
-**Konsequenz für dieses Paket.** Sechs Domänen-Skills wurden vollständig entfernt, zusätzlich zu den beiden zuvor entfernten: Das Modell erreicht ihre Inhalte bereits selbst, und keine Prosa in diesem Repository hat je eine Prüfung bewegt. Übrig bleiben ein 30-zeiliges Protokoll, vier ausführbare Skripte und das Referenzmaterial dahinter. Methode, Ergebnisse je Domäne und jeder Rohdurchlauf: [`evals/`](./evals/).
+**Konsequenz für dieses Paket.** Sechs Domänen-Skills wurden vollständig entfernt, zusätzlich zu den beiden zuvor entfernten: Das Modell erreicht diese Inhalte bereits eigenständig, und keine beschreibende Prosa in diesem Repository hat je eine Evaluationsprüfung verbessert. Übrig bleiben ein 30-zeiliges Protokoll, vier ausführbare Skripte und das Referenzmaterial dahinter. Methode, Ergebnisse je Domäne und Rohdurchläufe: [`evals/`](./evals/).
 
 ## Schnellstart
 
@@ -172,7 +172,7 @@ flowchart LR
     R --> E
 ```
 
-`CLAUDE.md` enthält keine konkreten API-Details. Es legt allein das operative Protokoll fest — gegen die Installation prüfen, die Unbekannten zuerst klären, die keine Dokumentation liefern kann, und eine Aufgabe erst als erledigt betrachten, wenn etwas beim Laufen beobachtet wurde. Das Domänenwissen, das es sonst tragen würde, bleibt dem Modell und der Installation überlassen, denn dorthin hat die Messung es verwiesen. `ros2-troubleshooting` kommt nur ins Spiel, wenn ein System unauffällig loggt und trotzdem nicht funktioniert, und es antwortet mit einem Exit-Code statt mit einem Absatz. Einzelheiten in [`CLAUDE.md`](./CLAUDE.md).
+[`CLAUDE.md`](./CLAUDE.md) enthält keine konkreten API-Details. Stattdessen legt es das operative Protokoll fest: Konfigurationen gegen die lokale Umgebung verifizieren, betriebliche Unbekannte vorab klären und eine Aufgabe erst dann als abgeschlossen betrachten, wenn eine Ausführung beobachtet wurde. Das Domänenwissen bleibt dem Modell und der installierten Umgebung überlassen, da empirische Evaluationen zeigten, dass beschreibende Prosa keinen Mehrwert bot. Der `ros2-troubleshooting`-Skill wird nur aufgerufen, wenn ein System in den Logs unauffällig aussieht, aber zur Laufzeit fehlschlägt, und liefert handlungsfähige Exit-Codes statt beschreibenden Textes. Einzelheiten in [`CLAUDE.md`](./CLAUDE.md).
 
 ## Aktualisierung
 
@@ -184,7 +184,7 @@ cp -r skills/* ~/.claude/skills/   # oder das .claude/skills/ Ihres Projekts
 
 ## Mitwirken
 
-Kurzfassung: Neue Skill-Inhalte müssen sich ihren Platz gegen einen Basis-Agenten verdienen, der sie nicht hat — eine reale Aufgabe, zehn Durchläufe je Bedingung, bewertet durch Ausführen der Ausgabe. Inhalte, die der Agent ohne Hilfe produziert, werden nicht aufgenommen, so korrekt sie auch sein mögen. Verifikationsskripte müssen ihre Entscheidungslogik rein halten, damit sie ohne ROS unit-getestet werden kann. Messprotokoll, Checklisten und Issue-Vorlagen finden Sie in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+**Zusammenfassung:** Neue Skill-Inhalte müssen ihren Wert gegenüber einem Basis-Agenten ohne Hilfe durch empirische Tests nachweisen (eine reale Aufgabe, 10 Durchläufe je Bedingung, bewertet durch Ausführen der Ausgabe). Inhalte, die das Modell ohne Hilfe erzeugt, werden nicht aufgenommen, unabhängig von ihrer Korrektheit. Verifikationsskripte müssen ihre Entscheidungslogik rein halten, damit sie unabhängig von ROS unit-getestet werden können. Für das Evaluationsprotokoll, Checklisten und Issue-Vorlagen siehe [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Lizenz
 

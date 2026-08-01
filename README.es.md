@@ -13,11 +13,11 @@ Skills que transforman la manera en que los agentes de IA abordan el desarrollo 
 
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | **Español** | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-<sub>🌐 Este documento es una traducción automática. El original está en [English](README.md).</sub>
+<sub>🌐 Este documento es la traducción al español del original en [English](README.md).</sub>
 
-| Skills | Protocolo siempre cargado | Enlaces a documentación (verificados por CI) | Verificaciones en robot físico |
+| Skills | Protocolo siempre cargado | Enlaces a documentación (verificados por CI) | Scripts de verificación física y en ejecución |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 líneas** | **6** | **4 scripts** |
+| **2** | **30 líneas** | **6** | **4** |
 
 </div>
 
@@ -58,9 +58,9 @@ Cuatro reglas de diseño rigen cada skill de este repositorio:
 
 **2. Ejecutar un bucle estructurado con criterios de salida claros.** El ciclo *verificar → escribir → demostrar*: inspeccionar los valores por defecto en el entorno instalado, aplicar cambios incrementales y confirmar la ejecución. Una tarea solo se completa cuando la respalda evidencia observada — una compilación exitosa, datos reales en `ros2 topic echo`, un script de verificación que pasa — y no por el mero hecho de producir archivos de código.
 
-**3. No decir nada que el modelo ya sepa o que `CLAUDE.md` ya diga.** Cada tabla síntoma→causa→acción que este paquete llegó a distribuir fue medida contra un agente de referencia sin ningún skill cargado. **Ninguna movió una sola verificación**: o bien el modelo ya alcanza esos mecanismos por sí solo, o bien la solución era un script incluido o un párrafo de `CLAUDE.md`, nunca prosa describiendo el dominio. Véase [Evaluaciones](#evaluaciones).
+**3. No decir nada que el modelo ya sepa o que `CLAUDE.md` ya especifique.** Cada tabla síntoma→causa→acción incluida anteriormente en este paquete se evaluó comparándola con un agente de referencia sin skills cargados. La prosa descriptiva nunca mejoró los resultados de las pruebas: el modelo alcanza la solución de forma autónoma o bien requiere un script ejecutable o una restricción de protocolo en `CLAUDE.md`. Véase [Evaluaciones](#evaluaciones).
 
-**4. Señalar un artefacto ejecutable, nunca describirlo.** El único contenido de este paquete que ha demostrado cambiar un resultado es un script con código de salida (`scripts/check_*.py`, incluido en `ros2-troubleshooting`). Un párrafo que *describe* lo que ese script te diría no movió nada; solo ejecutarlo lo hizo.
+**4. Señalar un artefacto ejecutable, nunca describirlo.** Las pruebas empíricas demostraron que el texto descriptivo que explica lo que verificaría un script no produjo ninguna mejora en las evaluaciones. Solo los scripts ejecutables con códigos de salida deterministas (`scripts/check_*.py` en `ros2-troubleshooting`) modificaron de manera medible el comportamiento del modelo.
 
 ## Qué lo hace diferente
 
@@ -105,9 +105,9 @@ Este repositorio optimiza un único resultado: minimizar el riesgo de generar c�
 | Ejecutar el código QoS que escribe antes de entregarlo | **5/10** | el "hecho significa que se ejecutó" de `CLAUDE.md` | **9/10** (potencia insuficiente) |
 | Ejecutar la configuración Nav2 que escribe antes de entregarla | **0/10** | una tarea que exige llegar a `active` | **30/30** |
 
-La última fila es el resultado más limpio aquí. Al pedir un archivo de parámetros de Nav2, 10 de 10 celdas escribieron uno que **sus propios servidores se niegan a configurar**. Al pedir el mismo archivo *y además* que la pila alcanzara `active`, todas las celdas se toparon con el mismo error, lo diagnosticaron desde el log, lo corrigieron y pasaron. **Mismo modelo, misma creencia equivocada, cero diferencia de información**: lo único que cambia es la exigencia de ejecutar.
+La última fila ilustra este principio de la forma más clara. Al solicitar únicamente un archivo de parámetros de Nav2, las 10 ejecuciones produjeron configuraciones que los propios servidores de Nav2 rechazaron cargar. Sin embargo, al solicitar el archivo de parámetros *y exigir además* que la pila alcanzara el estado `active`, todas las ejecuciones encontraron el mismo error de configuración, lo diagnosticaron a partir de los logs, lo corrigieron y aprobaron. **El mismo modelo, la misma concepción errónea, cero diferencia de información**: solo varió la exigencia de ejecutar y verificar.
 
-**Consecuencia para este paquete.** Se eliminaron por completo seis skills de dominio, además de los dos ya eliminados antes: el modelo alcanza su contenido por sí mismo y ninguna prosa de este repositorio ha movido nunca una verificación. Lo que queda es un protocolo de 30 líneas, cuatro scripts ejecutables y el material de referencia que los respalda. Método, resultados por dominio y cada ejecución en bruto: [`evals/`](./evals/).
+**Consecuencia para este paquete.** Se eliminaron por completo seis skills de dominio, además de los dos eliminados anteriormente: el modelo alcanza su contenido de forma independiente y ninguna prosa descriptiva en este repositorio mejoró nunca una prueba de evaluación. Lo que queda es un protocolo de 30 líneas, cuatro scripts ejecutables y el material de referencia que los respalda. Método, resultados por dominio y ejecuciones originales: [`evals/`](./evals/).
 
 ## Inicio rápido
 
@@ -172,7 +172,7 @@ flowchart LR
     R --> E
 ```
 
-`CLAUDE.md` no contiene detalles concretos de API. Establece el protocolo operativo: verificar contra la instalación, fijar primero las incógnitas que ninguna documentación puede aportar, y dar una tarea por terminada solo cuando se ha observado algo en ejecución. El conocimiento de dominio que de otro modo cargaría queda en manos del modelo y de la instalación, porque es ahí donde la medición lo situó. `ros2-troubleshooting` entra en juego únicamente cuando un sistema registra logs normales y no funciona, y responde con un código de salida en lugar de un párrafo. Véase [`CLAUDE.md`](./CLAUDE.md) para más detalles.
+[`CLAUDE.md`](./CLAUDE.md) no contiene detalles específicos de la API. En su lugar, establece el protocolo operativo: verificar la configuración con el entorno local, identificar las incógnitas operativas desde el principio y dar una tarea por terminada solo cuando se observe su ejecución. El conocimiento de dominio se deja en manos del modelo y del entorno instalado, ya que las evaluaciones empíricas demostraron que la prosa descriptiva no aportaba valor. El skill `ros2-troubleshooting` se invoca únicamente cuando un sistema parece correcto en los logs pero falla en tiempo de ejecución, proporcionando códigos de salida accionables en lugar de texto descriptivo. Véase [`CLAUDE.md`](./CLAUDE.md) para más detalles.
 
 ## Actualización
 
@@ -184,7 +184,7 @@ cp -r skills/* ~/.claude/skills/   # o el .claude/skills/ de tu proyecto
 
 ## Contribuir
 
-Resumen: el contenido nuevo de un skill tiene que ganarse su sitio frente a un agente de referencia que no lo tiene — una tarea real, diez ejecuciones por condición, evaluadas ejecutando la salida. El contenido que el agente produce por sí solo no se añade, por muy correcto que sea. Los scripts de verificación deben mantener su lógica de decisión pura para poder probarla unitariamente sin ROS. Para el protocolo de medición, las listas de comprobación y las plantillas de issues, véase [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+**Resumen:** El contenido nuevo de un skill debe demostrar su valor frente a un agente de referencia sin ayuda mediante pruebas empíricas (una tarea real, 10 ejecuciones por condición, evaluadas mediante la ejecución del resultado). El contenido que el modelo genera sin ayuda no se añadirá, independientemente de su exactitud. Los scripts de verificación deben mantener una lógica de decisión pura para poder probarse de forma unitaria independientemente de ROS. Para consultar el protocolo de evaluación, las listas de comprobación y las plantillas de issues, véase [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Licencia
 

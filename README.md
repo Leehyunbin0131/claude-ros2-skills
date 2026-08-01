@@ -56,9 +56,9 @@ Four design rules govern every skill in this repository:
 
 **2. Execute a structured loop with clear exit criteria.** Every skill follows a *verify → write → prove* cycle: inspect system defaults on the installed environment, apply incremental changes, and confirm execution. A task completes only when supported by observed evidence — such as a successful build, active data on `ros2 topic echo`, or a passing verification script — rather than simply producing code files.
 
-**3. Say nothing the model already knows or `CLAUDE.md` already says.** Every symptom→cause→action table this pack ever shipped was tested against a baseline agent with no skill loaded. None moved a single check — the model already reaches these mechanisms unaided, or the fix was a bundled script / a `CLAUDE.md` paragraph, never prose describing the domain. See [Evals](#evals).
+**3. Say nothing the model already knows or `CLAUDE.md` already says.** Every symptom→cause→action table previously included in this pack was benchmarked against an unassisted baseline agent. Descriptive prose never improved benchmark outcomes — the model either reaches the solution unaided, or requires a bundled executable script or a `CLAUDE.md` protocol constraint. See [Evals](#evals).
 
-**4. Point at a runnable artifact, never describe one.** The one piece of content in this pack ever shown to change an outcome is a script with an exit code (`scripts/check_*.py`, bundled in `ros2-troubleshooting`). A paragraph describing what such a script would tell you moved nothing — only running it did.
+**4. Point at a runnable artifact, never describe one.** Empirical testing showed that descriptive text explaining what a script would check produced no benchmark improvement. Only executable scripts with deterministic exit codes (`scripts/check_*.py` in `ros2-troubleshooting`) measurably changed model behavior.
 
 ## What makes this different
 
@@ -112,17 +112,9 @@ all behavioural:
 | Run the QoS code it writes before shipping it | **5/10** | `CLAUDE.md`'s "Done means it ran" | **9/10** (underpowered) |
 | Run the Nav2 config it writes before shipping it | **0/10** | a task that requires reaching `active` | **30/30** |
 
-The last row is the cleanest result here. Asked for a Nav2 parameter file, 10/10
-cells wrote one their own servers refuse to configure. Asked for the same file
-*plus* the stack reaching `active`, every cell hit the identical error,
-diagnosed it from the log, fixed it, and passed. **Same model, same wrong
-belief, zero difference in information** — only the demand to run differs.
+The last row illustrates this principle most clearly. When asked only for a Nav2 parameter file, all 10 evaluation runs produced configurations that Nav2 servers refused to load. However, when asked for the parameter file *and* required to bring the stack to an `active` state, every run encountered the exact same configuration error, diagnosed it from logs, fixed it, and passed. **Same model, same misconception, zero difference in information** — only the requirement to run and verify differed.
 
-**Consequence for this pack.** Six domain skills were deleted in full, on top of
-the two deleted earlier: the model already reaches their content, and no prose
-in this repository has ever moved a check. What remains is a 30-line protocol,
-four runnable scripts, and the reference material behind them. Method,
-per-domain results and every raw run: [`evals/`](./evals/).
+**Consequence for this pack.** Six domain skills were deleted in full, in addition to the two deleted earlier: the model already reaches their content independently, and no descriptive prose in this repository ever improved a benchmark check. What remains is a 30-line protocol, four runnable scripts, and the reference material behind them. Method, per-domain results, and raw runs: [`evals/`](./evals/).
 
 ## Quickstart
 
@@ -193,13 +185,7 @@ flowchart LR
     R --> E
 ```
 
-`CLAUDE.md` contains no specific API details. It establishes the operational
-protocol — verify against the install, establish the unknowns a doc cannot
-supply, and treat a task as done only when something has been observed running.
-The domain knowledge it would otherwise carry is left to the model and the
-install, because that is where measurement put it. `ros2-troubleshooting` enters
-only when a system logs healthy and does not work, and it answers with an exit
-code rather than a paragraph. See [`CLAUDE.md`](./CLAUDE.md) for details.
+[`CLAUDE.md`](./CLAUDE.md) contains no specific API details. Instead, it establishes the operational protocol: verify settings against the local environment, identify operational unknowns up front, and consider a task finished only when execution is observed. Domain knowledge is left to the model and the installed environment, as empirical evals showed descriptive prose added no value. The `ros2-troubleshooting` skill is invoked only when a system appears healthy in logs but fails at runtime, providing actionable exit codes rather than descriptive text. See [`CLAUDE.md`](./CLAUDE.md) for details.
 
 ## Updating
 
@@ -211,7 +197,7 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 
 ## Contributing
 
-Summary: new skill content has to earn its place against a baseline agent that does not have it — a real task, ten runs each way, graded by running the output. Content the agent produces unaided does not get added, however correct it is. Verification scripts must keep their decision logic pure so it can be unit-tested without ROS. For the measurement protocol, checklists and issue templates, see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+**Summary:** New skill content must prove its value against an unassisted baseline agent through empirical testing (a real task, 10 runs per condition, graded by executing the output). Content that the model generates unaided will not be included, regardless of correctness. Verification scripts must maintain pure decision logic so they can be unit-tested independently of ROS. For the evaluation protocol, checklists, and issue templates, see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## License
 
