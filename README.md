@@ -50,7 +50,7 @@ Neither compilers, linters, nor log analyses detect these hidden issues. Resolvi
 
 ## How these skills are built
 
-Four design rules govern every skill in this repository:
+Four design rules govern every skill in this repository. They follow Anthropic's [context-engineering guidance for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models) — which diagnoses **over-constraining** and **conflicting instructions** across a system prompt, `CLAUDE.md` and skills — and each one was then checked against this repository's own measurements. [`evals/AUTHORING.md`](./evals/AUTHORING.md) keeps those two sources of authority apart, including where the guidance is followed but *not* yet measured here.
 
 **1. Identify unknown variables upfront.** Key operational details often do not exist in documentation — such as whether the environment is real hardware or simulation, whether to extend an existing workspace or create a new one, which node already publishes a transform, or the robot's precise geometry. [`CLAUDE.md`](./CLAUDE.md) instructs the agent to clarify these unknowns before generating code.
 

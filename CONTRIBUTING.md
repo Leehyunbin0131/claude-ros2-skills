@@ -3,6 +3,14 @@
 Fixes for outdated links, wrong symbol names, and new skills are all welcome.
 The bar for everything: **verifiable over plausible**.
 
+Two things decide what ships here, and [`evals/AUTHORING.md`](./evals/AUTHORING.md)
+keeps them apart: a measurement in this repository, which licenses a change to
+*this* pack, and Anthropic's
+[context-engineering guidance for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models),
+which is a strong prior about *any* pack. Read that file before proposing a
+structural change — it also records which of the guidance's shifts this pack has
+actually tested and which it merely follows.
+
 ## What the pack is for
 
 Not teaching the model ROS 2 — it already knows a great deal, and eight domains
