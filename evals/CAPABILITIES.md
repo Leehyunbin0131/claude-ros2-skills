@@ -256,6 +256,7 @@ What survives is exactly what measured:
 | `CLAUDE.md`, 28 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
 | `ros2-troubleshooting` scripts | 0/10 → 10/10 on producing a checked verdict |
 | `references/frames.md` | physical mount vs REP 103 — no ladder can test it without hardware, and no doc contains the robot's real geometry |
+| `references/calibration.md` | same category, and nearly lost: `diff_drive_controller` wheel calibration was deleted with `ros2-control`, but `ctl1`–`ctl3` never tested it. Restored to the physical-verification skill that owns the script it cites. |
 | `references/runtime.md`, QoS only | the one trap that recurred in four rounds; the other four sections were cut against their ladders |
 | `ros2-microros` | no ladder is possible here; kept and **labelled unverified** in its own body |
 
@@ -263,3 +264,36 @@ The deletions are not a claim that the domains are unimportant. They are a claim
 that a file which tells the agent what it already does is a cost with no
 benefit — and that on this evidence, the way to improve a ROS 2 agent is to make
 it run what it wrote, not to tell it more.
+
+**One thing was nearly lost to that reasoning, and it is worth recording as a
+warning about it.** `ros2-control` carried a `diff_drive_controller` calibration
+procedure — drive a tape-measured line, correct the radius multipliers, then
+five turns in place for separation, in that order because separation does not
+affect straight-line driving. The `ctl` ladder never tested it and could not:
+no container has a floor. Deleting the skill deleted the procedure with it,
+which is a cut made on an argument rather than a number — the exact move this
+project reverted a whole reduction over. It is now
+`ros2-troubleshooting/references/calibration.md`.
+
+**Check a deleted file for unmeasured residue before deleting it.** An exhausted
+ladder licenses removing what the ladder tested, not everything that shares a
+file with it.
+
+The other five deleted skills were swept the same way. Their residue splits into
+two piles, and only the first was restored:
+
+| Residue | Category | Action |
+| :--- | :--- | :--- |
+| `diff_drive_controller` calibration | unmeasured **and unmeasurable here** — needs a floor | restored to `calibration.md` |
+| `LaserScan` valid-reading rule (finite and within `[range_min, range_max]`) | measurable in a container, never put on a rung | **recorded as a gap, not restored** |
+| MoveIt kinematics/OMPL tuning baselines; Nav2 AMCL/costmap/MPPI/slam_toolbox baselines | same | **recorded as a gap, not restored** |
+| `ros2-dev`'s "establish footprint, drive type, who publishes `map->odom`" | already in `CLAUDE.md`'s "Establish before writing" | correctly dropped, rule 2 |
+
+The second pile is the honest coverage limit of this sweep. Those lines were
+measured under the v1 method on **haiku**, which this project already found does
+not transfer (proven on `ros2-perception`), and no `sonnet` ladder rung covers
+them: `per1`–`per3` are camera, projection and depth; `cor1`–`cor3` are TF and
+lifecycle; `tr1`–`tr3` are executors. Restoring them on the strength of a
+haiku-era number would be the reverted reduction with a better bibliography —
+so they stay out, and this table is where that decision is written down instead
+of being invisible.

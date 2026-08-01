@@ -1,6 +1,6 @@
 ---
 name: ros2-troubleshooting
-description: "Diagnose ROS 2 Jazzy faults where every node logs healthy and nothing works: QoS mismatch, and frame/sensor-mount errors that no amount of reading the code can settle (REP 103/105). Ships four runnable pass/fail checks."
+description: "Diagnose ROS 2 Jazzy faults that reading the code cannot settle: QoS mismatch, sensor-mount and frame errors (REP 103/105), and odometry calibrated against CAD instead of the floor. Ships four runnable pass/fail checks."
 ---
 
 # ROS 2 troubleshooting
@@ -44,3 +44,6 @@ Load the one the symptom points at.
 - **`references/runtime.md`** — what a QoS mismatch actually looks like on
   Jazzy, the two other policies that fail the same way, and why `ros2 topic
   echo` cannot detect any of them.
+- **`references/calibration.md`** — correcting `diff_drive_controller` wheel
+  radius and separation against a tape measure, in the order that works. Read
+  when odometry is consistent but wrong by a ratio.
