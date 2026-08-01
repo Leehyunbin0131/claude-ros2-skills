@@ -5,6 +5,12 @@ description: "micro-ROS: agent, rclc client API, micro_ros_setup, custom transpo
 
 # micro-ROS Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
+> **Unverified.** Every other domain skill in this pack was measured against a
+> baseline agent and deleted when the agent reached the same result without it.
+> This one has no ladder — running it needs an MCU and an agent connection that
+> are not available here — so it survives untested, not because it earned a
+> place. Treat its contents as a starting point to check, not as ground truth.
+
 ## 1. Architecture
 
 micro-ROS connects constrained MCUs (STM32, ESP32, FreeRTOS, Zephyr) to the ROS 2 DDS graph via `micro_ros_agent` + the `rclc` client library over Micro XRCE-DDS. Static memory pools (`rmw_microxrcedds`) give zero steady-state heap allocation when `RMW_UXRCE_ALLOW_DYNAMIC_ALLOCATIONS=OFF`.

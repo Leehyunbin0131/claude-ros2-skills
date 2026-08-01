@@ -15,7 +15,7 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 | Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks |
 | :---: | :---: | :---: | :---: |
-| **8** | **28 lines** | **32** | **4 scripts** |
+| **2** | **28 lines** | **6** | **4 scripts** |
 
 </div>
 
@@ -52,15 +52,13 @@ Neither compilers, linters, nor log analyses detect these hidden issues. Resolvi
 
 Four design rules govern every skill in this repository:
 
-**1. Identify unknown variables upfront.** Key operational details often do not exist in documentation — such as whether the environment is real hardware or simulation, whether to extend an existing workspace or create a new one, which node already publishes a transform, or the robot's precise geometry. [`CLAUDE.md`](./CLAUDE.md) instructs the agent to clarify these unknowns before generating code. Domain-specific skills manage targeted parameters; for example, `ros2-dev` requests the robot footprint, drive kinematics, and localization source before configuring any Nav2 parameters.
+**1. Identify unknown variables upfront.** Key operational details often do not exist in documentation — such as whether the environment is real hardware or simulation, whether to extend an existing workspace or create a new one, which node already publishes a transform, or the robot's precise geometry. [`CLAUDE.md`](./CLAUDE.md) instructs the agent to clarify these unknowns before generating code.
 
 **2. Execute a structured loop with clear exit criteria.** Every skill follows a *verify → write → prove* cycle: inspect system defaults on the installed environment, apply incremental changes, and confirm execution. A task completes only when supported by observed evidence — such as a successful build, active data on `ros2 topic echo`, or a passing verification script — rather than simply producing code files.
 
-**3. Prioritize structured failure tables over long descriptions.** Structured tables mapping symptoms → root causes → corrective actions provide clear, durable guidance that official documentation often lacks and that remains reliable across release versions:
+**3. Say nothing the model already knows or `CLAUDE.md` already says.** Every symptom→cause→action table this pack ever shipped was tested against a baseline agent with no skill loaded. None moved a single check — the model already reaches these mechanisms unaided, or the fix was a bundled script / a `CLAUDE.md` paragraph, never prose describing the domain. See [Evals](#evals).
 
-> `16UC1` is millimeters, `32FC1` is meters · `joint_state_broadcaster` is not spawned automatically · `raytrace_max_range` ≤ `obstacle_max_range` means obstacles never clear · rclc does not auto-allocate unbounded message fields
-
-**4. Optimize context usage with a three-layer architecture.** Each skill balances context efficiency: skill descriptions remain in context, skill bodies load when invoked, and deep reference files in `references/` load only on demand. Large symbol catalogs and detailed parameter tuning tables reside in `references/`, ensuring context is preserved and debugging targeted components (like AMCL) does not load unnecessary documentation (like behavior-tree nodes).
+**4. Point at a runnable artifact, never describe one.** The one piece of content in this pack ever shown to change an outcome is a script with an exit code (`scripts/check_*.py`, bundled in `ros2-troubleshooting`). A paragraph describing what such a script would tell you moved nothing — only running it did.
 
 ## What makes this different
 
@@ -70,7 +68,7 @@ Most robotics skill packs embed static API knowledge directly inside skill files
 | :--- | :--- | :--- |
 | Knowledge location | Embedded in skill files (**400–1,800 lines/skill**) | Linked to official docs (**~60-line** skill bodies); detailed references read **only when needed** |
 | Always-loaded context | Full `SKILL.md` files | **28-line** core protocol |
-| Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **32 documentation links** verified weekly via CI |
+| Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **6 documentation links** verified weekly via CI |
 | Verification method | Static code analysis or log checking | **Physical & runtime verification**: IMU gravity checks, directional odometry tests, TF frame alignment, DDS QoS compatibility |
 | Distribution scope | Claims support for multiple ROS distros while targeting only one | **ROS 2 Jazzy only**, by design — no "works on Humble too" hedging |
 
@@ -88,20 +86,43 @@ under test and ten without, graded by *running* what came out — a build, a top
 carrying data, an exit code — never by reading it. Fisher exact test,
 Benjamini–Hochberg across the round.
 
-**What that has settled so far:**
+**What that settled.** Eight domains were put through a three-rung ladder — 24
+rungs, each rung adding a named mechanism, each graded by a check that runs the
+artifact. The baseline agent reached **every mechanism it was asked for**:
 
-| Under test | Without it | With it | Verdict |
-| :--- | :---: | :---: | :--- |
-| Bundled check scripts | **0/10** reported a checked pass/fail verdict | **10/10** | **kept** — the only content here with a measured effect (q<0.001) |
-| `CLAUDE.md` verify protocol | **2/10** verified against the install | **10/10** | **kept** (q=0.002) |
-| Prose describing the scripts | — | — | **cut** — +0.00 on every check |
-| `ros2-package` skill body | **190/190** checks already passed | — | **deleted** |
-| `gazebo-sim` skill body | **108/110** | — | **deleted** |
+| Domain | L1 → L2 → L3, mechanisms added per rung | Unaided |
+| :--- | :--- | ---: |
+| Packaging & build | `ament_python`/`ament_cmake` → cross-package `.srv` → composable node + `colcon test` | **190/190** |
+| Simulation | SDF world + diff-drive → `ros_gz_bridge` + `gpu_lidar` → URDF spawn + `use_sim_time` | **108/110** |
+| Executors | 1 s service from a timer → from a subscription + heartbeat → 5 concurrent calls | **110/110** |
+| `ros2_control` | mock hardware + broadcaster → 2nd controller claiming interfaces → **custom C++ `SystemInterface` plugin** | **90/90** |
+| Testing | pytest `colcon test` runs → `launch_testing` on a live node → rosbag2 written and read back | **110/110** |
+| MoveIt 2 | self-authored URDF+SRDF `move_group` loads → real `GetMotionPlan` → collision object in the scene | **100/100** |
+| Core | static TF from parameters → dynamic TF + `ExtrapolationException` → lifecycle node silent until activated | **110/110** |
+| Nav2 | parameter file the servers accept → stack driven to `active` → costmap marking live scan obstacles | see below |
+| Perception | `cv_bridge` round trip → `CameraInfo` projection → 16UC1 depth → `PointCloud2` | **106/120** |
 
-Two skills and roughly a quarter of the pack were removed for changing nothing
-measurable. The remaining skill bodies have not been through this yet and are not
-claimed as verified. Method, per-skill status and every raw run:
-[`evals/`](./evals/).
+**Not one failure was closed by supplying information.** Four gaps were found,
+all behavioural:
+
+| What the model does not do unaided | Baseline | What closed it | After |
+| :--- | ---: | :--- | ---: |
+| Verify against the install instead of answering from memory | **2/10** | one paragraph of `CLAUDE.md` | **10/10** (q=0.002) |
+| Produce an exit-coded verdict rather than "looks right" | **0/10** | a bundled runnable script | **10/10** (q<0.001) |
+| Run the QoS code it writes before shipping it | **5/10** | `CLAUDE.md`'s "Done means it ran" | **9/10** (underpowered) |
+| Run the Nav2 config it writes before shipping it | **0/10** | a task that requires reaching `active` | **30/30** |
+
+The last row is the cleanest result here. Asked for a Nav2 parameter file, 10/10
+cells wrote one their own servers refuse to configure. Asked for the same file
+*plus* the stack reaching `active`, every cell hit the identical error,
+diagnosed it from the log, fixed it, and passed. **Same model, same wrong
+belief, zero difference in information** — only the demand to run differs.
+
+**Consequence for this pack.** Six domain skills were deleted in full, on top of
+the two deleted earlier: the model already reaches their content, and no prose
+in this repository has ever moved a check. What remains is a 28-line protocol,
+four runnable scripts, and the reference material behind them. Method,
+per-domain results and every raw run: [`evals/`](./evals/).
 
 ## Quickstart
 
@@ -135,14 +156,16 @@ Restart Claude Code (or start a new session) to apply the installed skills.
 
 | Skill | Path | Coverage |
 | :--- | :--- | :--- |
-| **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, EKF odometry, QoS profiles, parameters |
-| **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2 (AMCL, costmaps, MPPI/Smac), SLAM Toolbox, RTAB-Map, Isaac ROS |
-| **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control hardware abstraction, controller manager, URDF tags |
-| **ros2-moveit** | `skills/ros2-moveit/SKILL.md` | MoveIt 2, MoveGroup C++/Python API, IK solvers, OMPL, MoveIt Servo |
-| **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
-| **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python APIs, ros2trace |
+| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | Four runnable pass/fail checks — QoS compatibility, TF tree, IMU mount, odometry direction — plus REP 103/105 frame conventions and Jazzy runtime behaviour behind them |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc client API, custom transports, static memory |
-| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 ground-truth TF tree, LiDAR/IMU alignment, physical verification |
+
+**Why only two.** Every other skill was measured against a baseline agent that
+had no skill loaded, and deleted when the agent produced the same result without
+it — `ros2-core`, `ros2-dev`, `ros2-control`, `ros2-moveit`, `ros2-perception`,
+`ros2-testing`, `ros2-package` and `gazebo-sim`, in that order of measurement.
+`ros2-microros` is the one domain with no ladder: the hardware to run one
+against is not available here, so it is kept and **not claimed as verified**.
+See [Evals](#evals).
 
 ## Verification scripts
 
@@ -162,14 +185,21 @@ The core decision logic is unit-tested independently of ROS (`python3 skills/ros
 ```mermaid
 flowchart LR
     A["your request"] --> B["CLAUDE.md<br/>protocol + gates,<br/>no API details"]
-    B --> C["skills/&lt;name&gt;/SKILL.md<br/>gates, loop,<br/>failure tables"]
-    C --> D["/opt/ros/jazzy/<br/>or official Jazzy docs"]
-    C -.only if needed.-> R["references/<br/>symbol catalogs,<br/>tuning tables"]
+    B --> D["/opt/ros/jazzy/<br/>or official Jazzy docs"]
+    B -.runtime fault.-> C["ros2-troubleshooting<br/>runnable checks"]
+    C -.only if needed.-> R["references/<br/>frames, runtime"]
     D --> E["code, then proof it ran"]
+    C --> E
     R --> E
 ```
 
-`CLAUDE.md` contains no specific API details. Instead, it establishes the operational protocol and requires clarifying questions to be answered before writing code. Each `SKILL.md` file manages domain-specific decisions: identifying unknown variables, executing the verify-write-prove loop, and referencing failure tables. Detailed reference materials are stored separately in the `references/` directory. See [`CLAUDE.md`](./CLAUDE.md) for details.
+`CLAUDE.md` contains no specific API details. It establishes the operational
+protocol — verify against the install, establish the unknowns a doc cannot
+supply, and treat a task as done only when something has been observed running.
+The domain knowledge it would otherwise carry is left to the model and the
+install, because that is where measurement put it. `ros2-troubleshooting` enters
+only when a system logs healthy and does not work, and it answers with an exit
+code rather than a paragraph. See [`CLAUDE.md`](./CLAUDE.md) for details.
 
 ## Updating
 
@@ -181,7 +211,7 @@ cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
 
 ## Contributing
 
-Summary: Skill files must focus on decision logic (validation gates, loop steps, and failure tables), while detailed documentation stays in `references/`. Every API symbol must be verified against official Jazzy documentation or `/opt/ros/jazzy/` installations. Verification scripts must maintain pure logic that can be unit-tested without ROS dependencies. For full guidelines, skill and script checklists, and issue templates, see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Summary: new skill content has to earn its place against a baseline agent that does not have it — a real task, ten runs each way, graded by running the output. Content the agent produces unaided does not get added, however correct it is. Verification scripts must keep their decision logic pure so it can be unit-tested without ROS. For the measurement protocol, checklists and issue templates, see [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## License
 

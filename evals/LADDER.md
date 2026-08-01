@@ -124,7 +124,8 @@ in the whole ladder was `t7_first_build_clean` at 8/10, and the two failures wer
 unrelated one-offs — a redundant `<depend>` that `catkin_pkg` rejects out loud,
 and a gtest target that did not link the library under test — both fixed on the
 next build. Diagnosis in
-[`runs/2026-07-30-ladder-pkg-L3/NOTES.md`](./runs/2026-07-30-ladder-pkg-L3/NOTES.md).
+`runs/2026-07-30-ladder-pkg-L3/NOTES.md`, since deleted with that round's
+transcripts.
 
 | Rung | Mechanisms added | Status |
 | :--- | :--- | :--- |
@@ -207,9 +208,8 @@ wrong: bridge direction characters 0/10, rendering sensor without
 `gz-sim-imu-system` 0/10, `<model>/<link>/<sensor>` frame composition 0/10. The
 only genuine cell failure was r3 at L3, which bridged `/imu` while its own sensor
 published on `/imu/raw` — a self-inconsistency in one cell, not a shared gap.
-[L1](./runs/2026-07-30-ladder-gz-L1/NOTES.md) ·
-[L2](./runs/2026-07-30-ladder-gz-L2/NOTES.md) ·
-[L3](./runs/2026-07-31-ladder-gz-L3/NOTES.md)
+Per-round notes lived under `runs/2026-07-3*-ladder-gz-L*/`, deleted with
+those transcripts; the numbers above are the surviving record.
 
 
 All three prompts written and frozen 2026-07-30 in `run_ab.sh` before any cell
@@ -342,9 +342,8 @@ constructible failing case means no grader, so that row stays unmeasured.
 
 First ladder under the **sub-topic** rule: a multi-subject skill gets one ladder
 per sub-topic, not one per file. 110 of 110 cell-checks unaided.
-[L1](./runs/2026-07-31-ladder-tshoot-L1/NOTES.md) ·
-[L2](./runs/2026-07-31-ladder-tshoot-L2/NOTES.md) ·
-[L3](./runs/2026-07-31-ladder-tshoot-L3/NOTES.md)
+Per-round notes lived under `runs/2026-07-31-ladder-tshoot-L*/`, deleted with
+those transcripts; the numbers above are the surviving record.
 
 | Rung | Mechanisms added | Result |
 | :--- | :--- | ---: |
@@ -380,16 +379,22 @@ and it was written up there — it just was not carried across to the Python
 scenario servers. Caught only because the user asked whether the round was
 running, after two progress reports from me that said it was.
 
-| Skill | Ladder |
-| :--- | :--- |
-| `ros2-troubleshooting` | §3C **done** (above). REP 103/105, lifecycle, DDS, bundled scripts: not yet written |
-| `ros2-control` | `ctl1`–`ctl3` **frozen 2026-07-31**; `ctl1_check.sh` validated |
-| `ros2-testing` | `tst1`–`tst3` **frozen 2026-07-31**; checker pending |
-| `ros2-perception` | `per1`–`per3` **frozen 2026-07-31**; `per1_check.sh` validated |
-| `ros2-moveit` | `mvt1`–`mvt3` **frozen 2026-07-31**; checker pending |
-| `ros2-core` | not yet written |
-| `ros2-dev` | not yet written |
-| `ros2-microros` | out of scope — no MCU on this machine, and a standing instruction not to verify it |
+| Skill | Ladder | Outcome |
+| :--- | :--- | :--- |
+| `ros2-package` | `t6`–`t7`, exhausted at ceiling | 190/190 → **deleted** |
+| `gazebo-sim` | `g1`–`g3`, exhausted | 108/110 → **deleted** |
+| `ros2-troubleshooting` | §3C exhausted; `qos1` failed | §3C **cut**; QoS gap is `CLAUDE.md`'s, scripts are the measured keeper → **kept, the exemplar** |
+| `ros2-control` | `ctl1`–`ctl3`, exhausted | 90/90 → **deleted** |
+| `ros2-testing` | `tst1`–`tst3`, exhausted | 110/110 → **deleted** |
+| `ros2-perception` | `per1`–`per3`, exhausted | 106/120, every miss the QoS trap → **deleted** |
+| `ros2-moveit` | `mvt1`–`mvt3`, exhausted | 100/100 → **deleted** |
+| `ros2-core` | `cor1`–`cor3`, exhausted | 110/110 → **deleted** |
+| `ros2-dev` | `dev1`–`dev3`, exhausted | `dev1` 0/10 on load, `dev2` 30/30, `dev3` 20/20 → **deleted**; the gap is behavioural, see `CAPABILITIES.md` |
+| `ros2-microros` | none | out of scope — no MCU on this machine, and a standing instruction not to verify it. **Kept, labelled unverified.** |
+
+All 24 rungs are measured. The list they produced is
+[`CAPABILITIES.md`](./CAPABILITIES.md); the pack that survived them is two
+skills, one of which has no ladder.
 
 ## The 2026-07-31 coverage sweep
 

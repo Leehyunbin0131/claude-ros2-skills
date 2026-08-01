@@ -239,3 +239,27 @@ about `launch_testing`, DDS domains, QoS probes, bag persistence, bringup
 idempotence and Nav2 server topology — content for gaps the model does not have.
 Opening every failing cell before counting it is the only reason that did not
 happen.
+
+---
+
+## What was done about it
+
+Six skills were deleted in full on 2026-08-01 — `ros2-core`, `ros2-dev`,
+`ros2-control`, `ros2-moveit`, `ros2-perception`, `ros2-testing` — joining
+`ros2-package` and `gazebo-sim`, which had gone the same way earlier. Each had
+an exhausted ladder and no prose that ever moved a check.
+
+What survives is exactly what measured:
+
+| Kept | Why |
+| :--- | :--- |
+| `CLAUDE.md`, 28 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
+| `ros2-troubleshooting` scripts | 0/10 → 10/10 on producing a checked verdict |
+| `references/frames.md` | physical mount vs REP 103 — no ladder can test it without hardware, and no doc contains the robot's real geometry |
+| `references/runtime.md`, QoS only | the one trap that recurred in four rounds; the other four sections were cut against their ladders |
+| `ros2-microros` | no ladder is possible here; kept and **labelled unverified** in its own body |
+
+The deletions are not a claim that the domains are unimportant. They are a claim
+that a file which tells the agent what it already does is a cost with no
+benefit — and that on this evidence, the way to improve a ROS 2 agent is to make
+it run what it wrote, not to tell it more.

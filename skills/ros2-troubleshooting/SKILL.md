@@ -1,6 +1,6 @@
 ---
 name: ros2-troubleshooting
-description: "Diagnose ROS 2 Jazzy runtime faults where everything logs healthy and nothing works: QoS mismatch, frame/sensor-mount errors (REP 103/105), sim clock, lifecycle state, DDS domain. Ships runnable pass/fail checks."
+description: "Diagnose ROS 2 Jazzy faults where every node logs healthy and nothing works: QoS mismatch, and frame/sensor-mount errors that no amount of reading the code can settle (REP 103/105). Ships four runnable pass/fail checks."
 ---
 
 # ROS 2 troubleshooting
@@ -41,5 +41,6 @@ Load the one the symptom points at.
 - **`references/frames.md`** — REP 103/105 axis conventions, and the
   misalignment symptoms that follow from getting them wrong. `CLAUDE.md` treats
   this file as ground truth for any frame or TF question.
-- **`references/runtime.md`** — sim clock, lifecycle state, DDS domain, and
-  what a QoS mismatch actually looks like on Jazzy.
+- **`references/runtime.md`** — what a QoS mismatch actually looks like on
+  Jazzy, the two other policies that fail the same way, and why `ros2 topic
+  echo` cannot detect any of them.

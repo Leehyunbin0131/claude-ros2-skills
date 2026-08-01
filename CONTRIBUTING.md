@@ -48,34 +48,35 @@ Three kinds of line, three different treatments:
 
 | Prefer | Over |
 | :--- | :--- |
-| One entry point the agent navigates from (`https://docs.nav2.org/configuration/index.html`) | Twenty deep per-page URLs, each with a description restating its title |
+| A script with an exit code | A paragraph describing what that script would tell you |
 | Local ground-truth paths (`/opt/ros/jazzy/share/...`) | Anything reachable by a web search |
-| A symptom → root cause → action row | A paragraph of background |
-| Exact symbol names where the model's memory is demonstrably weak | A catalogue of symbols it already knows |
+| One entry point the agent navigates from | Twenty deep per-page URLs, each with a description restating its title |
+| A behaviour the agent measurably omits | A fact it recites correctly when asked cold |
 
-Symptom tables and calibration baselines are the highest-value content here: they
-are not in any single doc page, they don't rot on a release, and they map straight
-onto a failure someone actually hit. Grow those.
+**Symptom → root cause → action tables were the pack's central bet, and it
+lost.** They read as the highest-value content — not in any single doc page,
+release-stable, mapped to a real failure. Measured against a baseline agent
+across eight domains and 24 ladder rungs, not one of them changed an outcome.
+Every table in this repository has now been deleted. If you are about to add
+one, the burden is on the measurement, not on how useful it looks.
 
 ### Three layers, three price tags
 
 | Layer | Paid | Put here |
 | :--- | :--- | :--- |
 | `description` frontmatter | always, every session | trigger words only |
-| `SKILL.md` body | when the skill fires | what to establish first, the loop, symptom table, "done" criterion |
-| `references/*.md` in the skill dir | **only when read** | symbol catalogs, per-component detail, tuning tables |
+| `SKILL.md` body | when the skill fires | the script paths, and what only this repo knows |
+| `references/*.md` in the skill dir | **only when read** | the detail behind a check |
 
-Bulk reference material goes in `references/` and gets a one-line pointer from
-the body — see `skills/ros2-dev/`. This is what lets the repo add depth without
-taxing every user who loads the skill: a reader asking "why does AMCL diverge"
-should not pay for the behavior-tree node list.
-
-Keep bodies around 60–80 lines. If a body is growing past that, the new content
-is almost always reference material in disguise.
+A body that is growing past ~40 lines is almost always accumulating content the
+model already has. The two surviving skill bodies are 45 and 65 lines, and the
+larger of the two is the unverified one.
 
 Boilerplate that repeats what `CLAUDE.md` already says (target distro, "verify
 before writing") does not belong in a skill — it is paid for on every load, and
-twice over when a task loads two skills.
+twice over when a task loads two skills. This is measured, not stylistic:
+`CLAUDE.md` alone moved "verified against the install" from 2/10 to 10/10, and
+stacking ten skills on top of it moved nothing further.
 
 ### Two bars, and which one your line has to clear
 
@@ -115,13 +116,14 @@ not produce it. That rule and the shutdown pattern are the two smallest addition
 ever made here, and both appeared near-verbatim in generated code and turned a
 wrong answer into the right one.
 
-### What nine measured skills actually taught
+### What the measurement actually taught
 
-Every skill in this pack has now been swept per-claim against the model it ships
-against. `evals/RESULTS.md` has the numbers and
-[`evals/FINDINGS.md`](./evals/FINDINGS.md) has the full write-up including what
-the method got wrong; these are the parts that change how you should write a
-line.
+Every domain in this pack has now been through a three-rung ladder against the
+model it ships against. [`evals/CAPABILITIES.md`](./evals/CAPABILITIES.md) is
+the result — what the baseline reaches unaided and where it stops — and
+[`evals/LADDER.md`](./evals/LADDER.md) is the method, including the ten grader
+defects it had to survive. These are the parts that change how you should write
+a line.
 
 **Correct is not the same as useful, and it is not even close.** Most lines that
 get cut are true, well-written, and reproduce exactly what the model already
@@ -129,13 +131,13 @@ says unaided. Being right is not a reason to keep a line. Before you write one,
 ask the model the question cold and read what it gives you — if the answer is
 already there, so is the line's fate.
 
-**The failure a line targets can disappear.** `ros2-dev` opens by calling a
+**The failure a line targets can disappear.** `ros2-dev` opened by calling a
 dropped package prefix "the single most common startup-killing error"; measured,
-every plugin string the model emits unaided is one pluginlib really registers,
-9 times in 9. `ros2-package` had two lines added earlier because the model kept
-omitting a `package.xml` export tag and a `setup.cfg` path — it now supplies
-both without help. Content expires. A line that earned its place two releases
-ago has to re-earn it.
+every plugin string the model emits unaided is one pluginlib really registers.
+`ros2-package` had two lines added earlier because the model kept omitting a
+`package.xml` export tag and a `setup.cfg` path — it now supplies both without
+help. Content expires. A line that earned its place two releases ago has to
+re-earn it, and this pack has now deleted eight skills to that rule.
 
 **A skill can be a liability, not merely inert.** `ros2-moveit` told readers to
 call `/servo_node/start_servo`, an interface Jazzy removed; the model prescribes
@@ -173,12 +175,27 @@ and paths local to this repository, behaviours of scripts shipped beside the
 skill, project conventions. Those score near zero unaided and 1.00 with the file.
 Everything else competes with what the model already has.
 
-**And the strongest single result in the pack is not a fact at all.** `ros2-dev`
-asked cold to "set up Nav2 and tune it" produces a full parameter file
-immediately; with the skill loaded it stops and asks for footprint, drive type
-and who publishes `map -> odom` first — 5 times in 7 against 1 in 7. Prose whose
-whole job is to make the agent *stop and ask* is the highest-value content
-measured here, and it is the content most easily destroyed by compression.
+**Every gap found in eight domains was behavioural, not informational.** Four of
+them, and what closed each: verifying against the install rather than answering
+from memory (2/10 → 10/10, one `CLAUDE.md` paragraph); producing an exit-coded
+verdict rather than "looks right" (0/10 → 10/10, a bundled script); running the
+QoS code it writes (5/10 → 9/10, `CLAUDE.md`'s "done means it ran"); running the
+Nav2 config it writes (0/10 → 30/30, a task that requires reaching `active`).
+Nothing was fixed by supplying a fact.
+
+**The cleanest result in the project is a control, and it is worth internalising
+before you write anything.** Asked for a Nav2 parameter file, 10/10 cells wrote
+one their own servers refuse to configure — valid YAML, correct plugin strings,
+`robot_radius` in exactly the right place, and `consider_footprint: true` with
+no polygon to consider. Asked for the same file *plus* the stack reaching
+`active`, every cell hit the identical error, read it in the log, fixed it, and
+passed. **Same model, same wrong belief, zero difference in information.** A
+skill documenting `consider_footprint` would have looked like a triumph; what
+actually closed the gap was requiring the thing to run.
+
+So the question to ask about a proposed line is not "is the model wrong about
+this?" — it may well be — but **"would running the code have told it?"** If yes,
+the line is not the fix.
 
 ### Where a rule lives is a correctness decision
 
@@ -213,7 +230,13 @@ rules that are short, general, and cheap to state.
    make it list the concrete triggers (tools, file names, symbols) a user would
    mention. There is no master-router skill and no index table in `CLAUDE.md` —
    don't add one back.
-3. Add a row to the skills table in `README.md` (and ideally the translations).
+3. Add a row to the skills table in `README.md`.
+4. **Attach the measurement.** A new skill needs a ladder — three rungs, each
+   adding a named mechanism, graded by running the artifact rather than reading
+   it. [`evals/LADDER.md`](./evals/LADDER.md) has the rules, including the ones
+   that stop a ladder from being tuned until it produces a result. A skill with
+   no ladder can still be merged, but it ships labelled unverified, as
+   `ros2-microros` does.
 
 ## Adding a verification script
 
@@ -237,5 +260,7 @@ python3 skills/ros2-troubleshooting/scripts/test_checks.py
 CI additionally link-checks every URL in every `.md` (lychee, weekly cron) —
 a dead docs link fails the build.
 
-If your change claims to improve agent output, consider attaching a graded
-transcript per [`evals/README.md`](./evals/README.md).
+If your change claims to improve agent output, attach a graded transcript. The
+harness is in [`evals/harness/`](./evals/harness/) and its README covers running
+a round; [`evals/LADDER.md`](./evals/LADDER.md) covers designing one that cannot
+be tuned into agreeing with you.
