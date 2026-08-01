@@ -1,9 +1,8 @@
 __pycache__/
 *.pyc
 
-# Derived from skills/ by `python3 evals/harness/claims.py inventory`.
-# Committing it would go stale on every skill edit and invite grading against
-# line spans that no longer exist.
+# Left from the deleted v1 harness, which derived per-claim line spans from
+# skills/. Kept ignored so a stray regeneration never gets committed.
 evals/claims/
 
 # Runner scratch dir; cells.jsonl is committed gzipped alongside its analysis.
