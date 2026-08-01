@@ -168,3 +168,15 @@ Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
 === cor3 rep 8 done
 scenario for task cor3 up (pids: )
 --- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-2T5j)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r9/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 9 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-8Bek)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r10/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 10 done
+scenario for task dev1 up (pids: )
+--- task dev1 / baseline  (model=sonnet, cwd=/tmp/eval-dev1-baseline-FBFB)
