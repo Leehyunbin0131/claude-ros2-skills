@@ -120,3 +120,51 @@ Grade with: python3 evals/harness/grade_v2.py cor2 <result.jsonl>
 === cor2 rep 10 done
 scenario for task cor3 up (pids: )
 --- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-rTJa)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r1/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 1 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-RdtU)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r2/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 2 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-xp7l)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r3/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 3 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-FiTh)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r4/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 4 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-UOgx)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r5/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 5 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-ffQj)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r6/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 6 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-8wUa)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r7/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 7 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-Edx6)
+    -> evals/runs/2026-08-01-sweep-coredev/cor3/r8/cor3-baseline_final.md
+
+Grade with: python3 evals/harness/grade_v2.py cor3 <result.jsonl>
+=== cor3 rep 8 done
+scenario for task cor3 up (pids: )
+--- task cor3 / baseline  (model=sonnet, cwd=/tmp/eval-cor3-baseline-2T5j)

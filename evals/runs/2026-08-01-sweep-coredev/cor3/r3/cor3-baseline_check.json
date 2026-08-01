@@ -1,0 +1,14 @@
+{
+  "cor3_node_found": true,
+  "node": "/tmp/eval-cor3-baseline-xp7l/node.py",
+  "cor3_lifecycle_node": true,
+  "cor3_silent_when_inactive": true,
+  "cor3_publishes_when_active": true,
+  "lifecycle_name": "/counter",
+  "n_before": 0,
+  "n_after": 47,
+  "n_state_lines": 3,
+  "configure": "Transitioning successful",
+  "activate": "Transitioning successful",
+  "run_tail": "[INFO] [1785543361.424620897] [counter]: STATE unconfigured\n[INFO] [1785543367.854323355] [counter]: STATE inactive\n[INFO] [1785543369.063035673] [counter]: STATE active\n"
+}

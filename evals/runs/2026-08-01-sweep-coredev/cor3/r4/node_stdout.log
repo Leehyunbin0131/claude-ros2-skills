@@ -1,0 +1,40 @@
+[INFO] [1785543471.741408014] [counter]: STATE unconfigured
+[INFO] [1785543494.755075274] [counter]: STATE inactive
+[INFO] [1785543502.975595822] [counter]: STATE active
+[INFO] [1785543528.916559212] [counter]: STATE inactive
+[INFO] [1785543532.374978456] [counter]: STATE active
+[INFO] [1785543534.375584728] [counter]: STATE inactive
+[INFO] [1785543535.329841267] [counter]: STATE unconfigured
+[INFO] [1785543545.512789458] [counter]: STATE inactive
+[INFO] [1785543546.386167287] [counter]: STATE finalized
+Traceback (most recent call last):
+  File "/tmp/eval-cor3-baseline-FiTh/node.py", line 74, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/tmp/eval-cor3-baseline-FiTh/node.py", line 83, in <module>
+    main()
+  File "/tmp/eval-cor3-baseline-FiTh/node.py", line 79, in main
+    rclpy.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 134, in shutdown
+    _shutdown(context=context)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/utilities.py", line 82, in shutdown
+    context.shutdown()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/context.py", line 129, in shutdown
+    self.__context.shutdown()
+rclpy._rclpy_pybind11.RCLError: failed to shutdown: rcl_shutdown already called on the given context, at ./src/rcl/init.c:333

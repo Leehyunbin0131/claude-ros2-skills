@@ -1,0 +1,14 @@
+{
+  "cor3_node_found": true,
+  "node": "/tmp/eval-cor3-baseline-RdtU/node.py",
+  "cor3_lifecycle_node": true,
+  "cor3_silent_when_inactive": true,
+  "cor3_publishes_when_active": true,
+  "lifecycle_name": "/counter",
+  "n_before": 0,
+  "n_after": 50,
+  "n_state_lines": 3,
+  "configure": "Transitioning successful",
+  "activate": "Transitioning successful",
+  "run_tail": "[INFO] [1785543002.156635241] [counter]: STATE unconfigured\n[INFO] [1785543009.676664961] [counter]: STATE inactive\n[INFO] [1785543010.552994130] [counter]: STATE active\n"
+}
