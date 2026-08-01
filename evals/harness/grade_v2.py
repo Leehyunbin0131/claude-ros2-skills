@@ -991,7 +991,11 @@ dev1 = _simple("dev1", ["dev1_yaml_valid", "dev1_servers_load", "dev1_mppi",
                         "dev1_footprint"], "dev1_params_found")
 dev2 = _simple("dev2", ["dev2_servers_up", "dev2_controller_active",
                         "dev2_planner_active"], "dev2_bringup_found")
-dev3 = _simple("dev3", ["dev3_controller_active", "dev3_costmap_published",
+# `dev3_controller_active` was removed after the round: the frozen prompt asks
+# only that /local_costmap/costmap carry a cell above 250, and two cells reached
+# that with a standalone costmap node rather than a controller_server. Scoring
+# it failed work that did exactly what was asked.
+dev3 = _simple("dev3", ["dev3_costmap_published",
                         "dev3_obstacle_marked"], "dev3_bringup_found")
 
 TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,

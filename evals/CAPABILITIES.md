@@ -13,9 +13,9 @@ anti-manufacturing rules: [`LADDER.md`](./LADDER.md).
 
 ## The short answer
 
-Across **eight ladders and 24 rungs**, the model reached every mechanism it was
-asked for except one recurring trap — and **not a single failure was closed by
-supplying information**.
+Across **eight ladders and 24 rungs — every scenario this project set out to
+test — the model reached every mechanism it was asked for** except one recurring
+trap, and **not a single failure was closed by supplying information**.
 
 Four failure modes were found. All four are behavioural:
 
@@ -110,8 +110,8 @@ The four missing cells are all the same QoS trap, below.
 | Rung | Mechanisms | Result |
 | :--- | :--- | ---: |
 | L1 | a Nav2 parameter file the servers accept as-is | **0/10 on the load check** — see below |
-| L2 | + the stack driven through lifecycle to `active` | **18/18** |
-| L3 | + a costmap ingesting live scan data and marking obstacles | pending |
+| L2 | + the stack driven through lifecycle to `active` | **30/30** |
+| L3 | + a costmap ingesting live scan data and marking obstacles | **20/20** |
 
 ---
 
@@ -222,13 +222,20 @@ cleared them. Recorded because each fails without an error.
 
 ## What this measures about the graders, not the model
 
-Nine grader defects surfaced during these rounds. **Every one was mine.** Cells
+Ten grader defects surfaced during these rounds. **Every one was mine.** Cells
 scored as total failures came back perfect when re-graded, and four of the
 defects punished *good* engineering: isolating a DDS domain, guarding a bringup
 against double-launch, cleaning up a temp directory, parameterising a value.
 
+The tenth was the last to be caught, in the final rung: `dev3` also scored
+`controller_active`, which the frozen prompt never asks for. Two cells reached
+the costmap through a standalone `nav2_costmap_2d` node instead of a
+controller_server — marking 12 and 325 lethal cells — and were failed for it.
+The check was removed and the rung is 20/20.
+
 They are listed in [`LADDER.md`](./LADDER.md). The reason they matter here: had
 they been counted rather than opened, this pack would have gained paragraphs
-about `launch_testing`, DDS domains, QoS probes, bag persistence and bringup
-idempotence — content for gaps the model does not have. Opening every failing
-cell before counting it is the only reason that did not happen.
+about `launch_testing`, DDS domains, QoS probes, bag persistence, bringup
+idempotence and Nav2 server topology — content for gaps the model does not have.
+Opening every failing cell before counting it is the only reason that did not
+happen.

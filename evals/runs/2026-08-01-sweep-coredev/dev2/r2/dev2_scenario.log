@@ -1,1 +1,5 @@
 [INFO] [1785546566.045894134] [dev3_scenario]: /scan 5 Hz 360 samples in laser_frame | map->odom->base_link->laser_frame up
+[WARN] [1785550241.768978152] [dev3_scenario]: New subscription discovered on topic '/scan', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785551666.799721742] [dev3_scenario]: New subscription discovered on topic '/scan', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785552278.825285294] [dev3_scenario]: New subscription discovered on topic '/scan', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+[WARN] [1785554898.275570865] [dev3_scenario]: New subscription discovered on topic '/scan', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY

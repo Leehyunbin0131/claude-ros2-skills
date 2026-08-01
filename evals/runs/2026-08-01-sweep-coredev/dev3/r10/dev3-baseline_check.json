@@ -1,0 +1,13 @@
+{
+  "dev3_bringup_found": true,
+  "bringup": "/tmp/eval-dev3-baseline-cIze/bringup.sh",
+  "dev3_controller_active": false,
+  "dev3_costmap_published": true,
+  "dev3_obstacle_marked": true,
+  "cs_state": "Node not found",
+  "n_lethal": 325,
+  "max_cost": 100,
+  "costmap_probe": "COSTMAP_TOPIC /local_costmap/costmap_occupancy_grid\nLETHAL 325 MAXCOST 100",
+  "bringup_rc": 0,
+  "bringup_tail": "Nav2 local costmap stack launched in background (logs: /tmp/eval-dev3-baseline-cIze/local_costmap.log, /tmp/eval-dev3-baseline-cIze/lifecycle_manager.log)\n"
+}

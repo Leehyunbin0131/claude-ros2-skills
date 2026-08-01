@@ -1,0 +1,13 @@
+{
+  "dev3_bringup_found": true,
+  "bringup": "/tmp/eval-dev3-baseline-1eId/bringup.sh",
+  "dev3_controller_active": true,
+  "dev3_costmap_published": true,
+  "dev3_obstacle_marked": true,
+  "cs_state": "active [3]",
+  "n_lethal": 12,
+  "max_cost": 100,
+  "costmap_probe": "COSTMAP_TOPIC /global_costmap/costmap\nLETHAL 12 MAXCOST 100",
+  "bringup_rc": 0,
+  "bringup_tail": "Nav2 stack starting in the background. Logs: /tmp/eval-dev3-baseline-1eId/nav2_logs\n"
+}

@@ -1,0 +1,15 @@
+[INFO] [1785557087.771020751] [local_costmap.local_costmap]: 
+	local_costmap lifecycle node launched. 
+	Waiting on external lifecycle transitions to activate
+	See https://design.ros2.org/articles/node_lifecycle.html for more information.
+[INFO] [1785557087.771252409] [local_costmap.local_costmap]: Creating Costmap
+[INFO] [1785557087.771724754] [local_costmap.local_costmap]: Configuring
+[INFO] [1785557087.774094756] [local_costmap.local_costmap]: Using plugin "obstacle_layer"
+[INFO] [1785557087.775626668] [local_costmap.local_costmap]: Subscribed to Topics: scan
+[INFO] [1785557087.776926364] [local_costmap.local_costmap]: Initialized plugin "obstacle_layer"
+[INFO] [1785557087.776937284] [local_costmap.local_costmap]: Using plugin "inflation_layer"
+[INFO] [1785557087.777090633] [local_costmap.local_costmap]: Initialized plugin "inflation_layer"
+[INFO] [1785557087.784666043] [local_costmap.local_costmap]: Activating
+[INFO] [1785557087.784678719] [local_costmap.local_costmap]: Checking transform
+[INFO] [1785557087.784691360] [local_costmap.local_costmap]: Timed out waiting for transform from base_link to odom to become available, tf error: Invalid frame ID "odom" passed to canTransform argument target_frame - frame does not exist
+[INFO] [1785557088.284813006] [local_costmap.local_costmap]: start

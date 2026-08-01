@@ -5,9 +5,17 @@
 #
 # Mechanisms and the check that catches each:
 #
-#   the stack brought up and driven to active -> dev3_controller_active
 #   the local costmap actually published      -> dev3_costmap_published
 #   live scan data marked as obstacles in it  -> dev3_obstacle_marked
+#
+# There was a third check, `dev3_controller_active`, and it was WRONG: the
+# frozen prompt asks for `/local_costmap/costmap` to be published with a cell
+# above 250 and never mentions a controller_server. Two cells brought up a
+# standalone nav2_costmap_2d node instead of a controller -- which satisfies
+# everything the task asks -- and were scored as failures for it, marking 12 and
+# 325 lethal cells while doing so. Recorded rather than quietly dropped: this
+# checker asserted something the prompt does not require, which is the one rule
+# every header in this harness repeats.
 #
 # `dev3_obstacle_marked` is the rung. A costmap can be configured, active and
 # publishing while its obstacle layer has no observation source wired: the map
@@ -93,14 +101,14 @@ adopt_domain_from() {
 }
 adopt_domain_from 'controller_server'
 
+# Recorded for diagnosis only, never scored: a cell may reach the costmap
+# through a controller_server or through a standalone costmap node.
 CS_STATE="-"
-for _ in $(seq 1 20); do
+for _ in $(seq 1 10); do
   CS_STATE="$(timeout 5 ros2 lifecycle get /controller_server 2>&1 | head -1)"
   printf '%s' "$CS_STATE" | awk '$1=="active" {f=1} END {exit !f}' && break
   sleep 2
 done
-CS_ACTIVE=false
-printf '%s' "$CS_STATE" | awk '$1=="active" {f=1} END {exit !f}' && CS_ACTIVE=true
 
 # Read the costmap and look for lethal cells. Discovered by TYPE so the exact
 # topic name the cell chose is not asserted.
@@ -174,7 +182,6 @@ kill_all
 kill -9 $SCENARIO 2>/dev/null || true
 pkill -9 -f 'dev3_scenario' 2>/dev/null || true
 
-p_active=false;   $CS_ACTIVE && p_active=true
 p_costmap=false;  $COSTMAP_PUB && p_costmap=true
 p_obstacle=false; $OBSTACLE && p_obstacle=true
 
@@ -182,10 +189,9 @@ p_obstacle=false; $OBSTACLE && p_obstacle=true
   printf '{\n'
   printf '  "dev3_bringup_found": true,\n'
   printf '  "bringup": %s,\n'                  "$(printf '%s' "$BRINGUP" | json_escape)"
-  printf '  "dev3_controller_active": %s,\n'   "$p_active"
   printf '  "dev3_costmap_published": %s,\n'   "$p_costmap"
   printf '  "dev3_obstacle_marked": %s,\n'     "$p_obstacle"
-  printf '  "cs_state": %s,\n'                 "$(printf '%s' "$CS_STATE" | json_escape)"
+  printf '  "cs_state_unscored": %s,\n'        "$(printf '%s' "$CS_STATE" | json_escape)"
   printf '  "n_lethal": %d,\n'                 "${N_LETHAL:-0}"
   printf '  "max_cost": %d,\n'                 "${MAXCOST:-0}"
   printf '  "costmap_probe": %s,\n'            "$(printf '%s' "$COSTMAP_OUT" | head -c 500 | json_escape)"

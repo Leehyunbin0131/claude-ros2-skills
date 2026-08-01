@@ -1,0 +1,6 @@
+[INFO] [1785557087.766193592] [lifecycle_manager_costmap]: Creating
+[INFO] [1785557087.767897385] [lifecycle_manager_costmap]: [34m[1mCreating and initializing lifecycle service clients[0m[0m
+[INFO] [1785557087.770291358] [lifecycle_manager_costmap]: [34m[1mStarting managed nodes bringup...[0m[0m
+[INFO] [1785557087.770310000] [lifecycle_manager_costmap]: [34m[1mConfiguring /local_costmap/local_costmap[0m[0m
+[INFO] [1785557087.784553313] [lifecycle_manager_costmap]: [34m[1mActivating /local_costmap/local_costmap[0m[0m
+[INFO] [1785557088.485709267] [lifecycle_manager_costmap]: [34m[1mManaged nodes are active[0m[0m
