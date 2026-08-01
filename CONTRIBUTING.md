@@ -5,11 +5,12 @@ The bar for everything: **verifiable over plausible**.
 
 ## What the pack is for
 
-Not teaching the model ROS 2 — it already knows a great deal. The failures worth
-preventing are not gaps in knowledge, they are gaps in **protocol**: across every
-measured run, no baseline cell verified anything before writing, with WebFetch,
-Read and Bash allowed throughout. One of them reported a fully working build for a
-package `ros2 run` cannot find.
+Not teaching the model ROS 2 — it already knows a great deal, and eight domains
+of ladder measurement failed to find a single thing it did not. The failures
+worth preventing are not gaps in knowledge, they are gaps in **protocol**: with
+WebFetch, Read and Bash allowed throughout, only **2 of 10** baseline cells
+verified anything against the install before writing. One reported a fully
+working build for a package `ros2 run` cannot find.
 
 So the position is: **trust the training, supply the minimum direction.** Don't
 hand the agent answers — hand it the authoritative source and make it open one.
@@ -27,8 +28,10 @@ Three jobs, and nothing else earns space:
 
 - Target is **Ubuntu 24.04 / ROS 2 Jazzy** only. No Gazebo Classic, no
   pre-Jazzy APIs, no "works on Humble too" hedging inside a skill.
-- Skills are **entry-point links + exact symbol names + failure modes**, not
-  tutorials. If a section reads like a blog post, cut it to the symbols.
+- Skills are **runnable scripts + what only this repository knows**, not
+  tutorials and not symbol catalogues. The two that survived measurement are a
+  script bundle and one unverifiable-here domain; if a section reads like
+  documentation, the install already has it.
 - Every class, method, message, topic, and parameter name you write must be
   checked against the linked Jazzy docs or a local `/opt/ros/jazzy/`
   (`ros2 interface show`, `ros2 topic list -t`). Never from memory.
@@ -109,12 +112,17 @@ failing cell.
 
 **Facts belong behind pointers; rules belong stated.** Prefer naming where the
 answer lives (`/opt/ros/jazzy/share/<pkg>/`, one doc entry point) over copying the
-answer in — copied symbols rot silently on the next release. The exception is
-behaviour: "keep a `LaserScan` reading only when finite and within
-`[range_min, range_max]`" is not written as a rule on any doc page, and a link will
-not produce it. That rule and the shutdown pattern are the two smallest additions
-ever made here, and both appeared near-verbatim in generated code and turned a
-wrong answer into the right one.
+answer in — copied symbols rot silently on the next release.
+
+The apparent exception is behaviour, and it is worth knowing why it did not
+survive. "Keep a `LaserScan` reading only when finite and within
+`[range_min, range_max]`" is not written as a rule on any doc page, and it once
+measured as one of the two smallest effective additions ever made here — it
+appeared near-verbatim in generated code and turned a wrong answer into a right
+one. **Those numbers were graded on haiku**, which this project later found does
+not transfer, and no sonnet-era rung ever covered it. So it is not in the pack:
+a behavioural rule still has to clear the bar on the model that ships, and an old
+number is not a smaller version of a current one.
 
 ### What the measurement actually taught
 
@@ -148,8 +156,14 @@ install separates "this line is working" from "this line and the model are wrong
 together". **Every factual line needs a source you can point at in
 `/opt/ros/jazzy/`, not a memory.**
 
-**Keep the reason, not just the instruction.** This is the most expensive lesson
-here. A body that explains a cause and then gives a fix compresses very
+#### Craft lessons from the first-generation method
+
+The three below came from per-line ablation graded on **haiku**, under a method
+this project has since retired. They are about *how a line is written* rather
+than about any ROS 2 fact, which is why they are kept — but they have not been
+re-measured on the shipping model, so treat them as priors, not as results.
+
+**Keep the reason, not just the instruction.** A body that explains a cause and then gives a fix compresses very
 naturally into the fix alone — and measurably loses, because the model then
 reproduces the action without the diagnosis. "A single-threaded executor cannot
 process service responses while executing a blocking callback, so use
@@ -170,10 +184,14 @@ reference block. A worked example appears to act as a ceiling the model
 reproduces and stops at. This only holds when the prose names the specifics —
 the exact install path, the exact flag, the exact ordering constraint.
 
+#### What the current method measured
+
 **The lines that survive hardest are the ones the model cannot know.** Filenames
 and paths local to this repository, behaviours of scripts shipped beside the
-skill, project conventions. Those score near zero unaided and 1.00 with the file.
-Everything else competes with what the model already has.
+skill, project conventions, and the geometry of a physical robot. Those score
+near zero unaided and 1.00 with the file. Everything else competes with what the
+model already has — and after eight ladders, *everything else* turned out to be
+everything else.
 
 **Every gap found in eight domains was behavioural, not informational.** Four of
 them, and what closed each: verifying against the install rather than answering
@@ -216,8 +234,11 @@ rules that are short, general, and cheap to state.
 - **Multi-distro support.** Jazzy only, by design. A skill that hedges toward
   Humble is a skill that is wrong on both.
 - **Embedding API snippets to raise offline accuracy.** Embedded content rots
-  silently and is emitted verbatim when wrong — that has happened here. Entry
-  points plus exact symbol names stay the strategy.
+  silently and is emitted verbatim when wrong — that has happened here. The
+  install and the official docs are the strategy.
+- **Re-adding a deleted domain skill without a ladder that fails.** Eight were
+  removed on measurement. Restoring one needs a rung the baseline agent does not
+  clear, not an argument that the content is correct or useful.
 - **A router skill, or an index table in `CLAUDE.md`.** Routing happens through
   `description` frontmatter. It is measured, not replaced.
 
