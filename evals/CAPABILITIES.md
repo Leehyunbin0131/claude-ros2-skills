@@ -24,11 +24,11 @@ Four failure modes were found. All four are behavioural:
 | Verify against the install instead of answering from memory | **2/10** | one paragraph of `CLAUDE.md` | **10/10** (q=0.002) |
 | Produce an exit-coded pass/fail verdict rather than "looks right" | **0/10** | a bundled runnable script | **10/10** (q<0.001) |
 | Run the QoS code it writes before shipping it | **5/10** | `CLAUDE.md`'s "Done means it ran" | **9/10** (q=0.141, underpowered) |
-| Run the Nav2 config it writes before shipping it | **0/10** | a task that requires reaching `active` | **18/18** |
+| Run the Nav2 config it writes before shipping it | **0/10** | a task that requires reaching `active` | **30/30** |
 
 The last row is the cleanest evidence here, and it is set out in full below:
 same model, same wrong belief, **zero difference in information**, 0/10 versus
-18/18.
+30/30.
 
 **No `SKILL.md` prose has ever moved a check.** The two things that did are a
 paragraph telling the agent to verify, and an executable file.
