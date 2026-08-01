@@ -1,0 +1,11 @@
+{
+  "dev2_bringup_found": true,
+  "bringup": "/tmp/eval-dev2-baseline-RLLN/bringup.sh",
+  "dev2_servers_up": true,
+  "dev2_controller_active": true,
+  "dev2_planner_active": true,
+  "cs_state": "active [3]",
+  "ps_state": "active [3]",
+  "bringup_rc": 0,
+  "bringup_tail": "started controller_server (pid 6818)\nstarted planner_server (pid 6819)\nstarted behavior_server (pid 6820)\nstarted bt_navigator (pid 6821)\nstarted lifecycle_manager_navigation (pid 6893)\nNav2 bringup launched. Logs in /tmp/eval-dev2-baseline-RLLN/log\n"
+}

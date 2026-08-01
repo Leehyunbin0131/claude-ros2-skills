@@ -39,31 +39,45 @@ numbers.
 
 | Gap | Baseline | What closes it | After |
 | :--- | ---: | :--- | ---: |
-| **Nav2 `CostCritic.consider_footprint: true` with a circular `robot_radius`** — controller_server refuses to configure | **0/10** | not yet tested | — |
+| Ships a Nav2 config without bringing the stack up — `consider_footprint: true` against a circular `robot_radius` | **0/10** | being asked to reach `active`, which forces a run | **18/18** |
 | Verifies against the install instead of answering from memory | **2/10** | `CLAUDE.md`'s verify paragraph | **10/10** (q=0.002) |
 | Produces an exit-coded pass/fail verdict, not "looks right" | **0/10** | a bundled runnable script | **10/10** (q<0.001) |
 | Runs the QoS code it writes instead of shipping it untested | **5/10** | `CLAUDE.md`'s "Done means it ran" | **9/10** (q=0.141, **underpowered — not significant**) |
 
-**The `consider_footprint` gap is the first domain-knowledge failure this
-project has found.** Ten of ten cells wrote a Nav2 parameter file that is valid
-YAML, names `nav2_mppi_controller::MPPIController` correctly, and puts
-`robot_radius: 0.3` in exactly the right place — and Nav2's own
-`controller_server` then refuses to configure:
+### `dev1` vs `dev2`: the same wrong belief, opposite outcomes
+
+`dev1` asks for a Nav2 parameter file "loadable by the Nav2 servers as-is".
+**Ten of ten cells** wrote a file that is valid YAML, names
+`nav2_mppi_controller::MPPIController` correctly, puts `robot_radius: 0.3` in
+exactly the right place — and set
+
+    controller_server.FollowPath.CostCritic.consider_footprint: true
+
+on which Nav2's own `controller_server` refuses to configure:
 
 ```
 Original error: Considering footprint in collision checking but
 no robot footprint provided in the costmap.
 ```
 
-Cause isolated by controlled experiment: taking a working file and flipping
-**only** `controller_server.FollowPath.CostCritic.consider_footprint` from
-`false` to `true` reproduces the failure exactly (`unconfigured [1]`, same
-error). A circular footprint declared via `robot_radius` provides no polygon,
-and the MPPI cost critic requires one when asked to consider the footprint.
+Cause isolated by controlled experiment, not inferred: flipping **only** that
+boolean on a working file reproduces the failure exactly (`unconfigured [1]`,
+identical error). A circular footprint declared through `robot_radius` provides
+no polygon, and the cost critic requires one.
 
-Everything about the file looks right. This is the shape that separates a real
-gap from a habit: the model is not failing to check its work here, it is
-holding a wrong belief about how two Nav2 settings interact.
+`dev2` adds one thing: the stack must actually reach `active`. **Every dev2
+cell hit the identical error** — it appears 1 to 6 times per transcript, with
+`consider_footprint` discussed 8 to 12 times — diagnosed it, set the flag to
+`false`, and passed **18/18**.
+
+So the misconception is the same in both rungs. The difference is entirely
+whether the task forced the model to run what it wrote.
+
+**This was briefly recorded as the first domain-knowledge gap, and that was
+wrong.** `dev2` is the control that settles it: given a reason to execute, the
+model finds and fixes this in one sitting. It belongs with the other three
+findings, not apart from them — the pack has still never measured a gap that
+more information would close.
 
 Prose describing the bundled script moved **+0.00 on every check**. Ten skills
 stacked on top of `CLAUDE.md` moved **nothing** (10/10 vs 10/10, 6/10 vs 6/10).

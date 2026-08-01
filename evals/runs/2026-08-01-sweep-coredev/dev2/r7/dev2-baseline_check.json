@@ -1,0 +1,11 @@
+{
+  "dev2_bringup_found": true,
+  "bringup": "/tmp/eval-dev2-baseline-3set/bringup.sh",
+  "dev2_servers_up": true,
+  "dev2_controller_active": true,
+  "dev2_planner_active": true,
+  "cs_state": "active [3]",
+  "ps_state": "active [3]",
+  "bringup_rc": 0,
+  "bringup_tail": "Nav2 nodes launched in the background (logs in /tmp/eval-dev2-baseline-3set/log).\n"
+}

@@ -1,0 +1,11 @@
+{
+  "dev2_bringup_found": true,
+  "bringup": "/tmp/eval-dev2-baseline-AA7t/bringup.sh",
+  "dev2_servers_up": true,
+  "dev2_controller_active": true,
+  "dev2_planner_active": true,
+  "cs_state": "active [3]",
+  "ps_state": "active [3]",
+  "bringup_rc": 0,
+  "bringup_tail": "Starting Nav2 nodes (logs in /tmp/eval-dev2-baseline-AA7t/log)...\nWaiting for controller_server and planner_server to become active...\ncontroller_server and planner_server are active.\n"
+}
