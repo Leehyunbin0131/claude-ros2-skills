@@ -4,7 +4,7 @@
 
 **Claude Code Skills for ROS 2 Jazzy Jalisco robotics development.**
 
-Skills, die die ROS 2-Entwicklung mit KI-Agenten grundlegend verändern: Unbekannte Parameter im Voraus identifizieren, Einstellungen anhand installierter Pakete verifizieren und die Ausführung durch funktionierende Nachweise bestätigen.
+Skills, die verändern, wie KI-Agenten ROS-2-Entwicklung angehen: unbekannte Parameter vorab klären, Konfigurationen gegen die installierten Pakete prüfen und die Ausführung durch Belege für tatsächliches Funktionieren bestätigen.
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -17,7 +17,7 @@ Skills, die die ROS 2-Entwicklung mit KI-Agenten grundlegend verändern: Unbekan
 
 | Skills | Immer geladenes Protokoll | Doku-Links (CI-geprüft) | Physikalische Roboter-Prüfungen |
 | :---: | :---: | :---: | :---: |
-| **11** | **28 Zeilen** | **32** | **4 Skripte** |
+| **2** | **30 Zeilen** | **6** | **4 Skripte** |
 
 </div>
 
@@ -39,134 +39,152 @@ Skills, die die ROS 2-Entwicklung mit KI-Agenten grundlegend verändern: Unbekan
 
 ## Die teuren Fehlermuster
 
-Die kostenintensivsten Fehler in KI-generiertem ROS 2-Code sind selten Syntaxfehler. Stattdessen handelt es sich um subtile Probleme, die auf den ersten Blick korrekt wirken:
+Die kostspieligsten Fehler in KI-generiertem ROS-2-Code sind selten Syntaxfehler. Es sind subtile Probleme, die auf den ersten Blick korrekt aussehen:
 
-| Fehlermuster | Was Sie sehen | Warum der Agent auf das Problem stößt |
+| Fehler | Was man sieht | Warum ein Agent darauf hereinfällt |
 | :--- | :--- | :--- |
-| **Stiller Fehlschlag** | `ros2 topic hz` zeigt 30 Hz an; Ihr Callback wird jedoch nie ausgelöst | Ein Standard-Subscriber mit RELIABLE versucht sich mit einem BEST_EFFORT-Publisher zu verbinden. Der Code kompiliert und besteht das Code-Review, schlägt aber auf DDS-Middleware-Ebene fehl. |
-| **Falsche Ground Truth** | `/cmd_vel` zeigt Vorwärtsbewegung an und `/odom` meldet Vorwärtsbewegung, aber der physische Roboter bewegt sich **rückwärts** | Der statische TF-Frame ist relativ zur physischen Montage invertiert. Nachgelagerte Komponenten rechnen korrekt *unter Verwendung der falschen Transformation*, ohne offensichtliche Fehler zu erzeugen. |
-| **Veraltete API** | Der Code besteht das Review, schlägt aber zur Laufzeit beim Aufruf einer falschen Methode fehl | Der Agent verwendet veraltete Foxy- oder Humble-API-Methoden, die in Jazzy umbenannt oder entfernt wurden. |
-| **Ungültige Prämisse** | Der Agent schreibt 200 Zeilen Code basierend auf einer Annahme, die Sie in einem einzigen Satz hätten korrigieren können | Kein Mechanismus fordert den Agenten auf, fehlende Details vor der Codegenerierung zu verifizieren. |
+| **Middleware-Mismatch** | `ros2 topic hz` zeigt 30 Hz; der Callback feuert nie | Ein standardmäßig RELIABLE eingestellter Subscriber kann sich nicht mit einem BEST_EFFORT-Publisher paaren. Der Code kompiliert, besteht das Review und scheitert unterhalb der Anwendungsebene. rclpy warnt zwar — `offering incompatible QoS ... Last incompatible policy: RELIABILITY` — aber nur zur Laufzeit, im Startlog, für den, der es liest. |
+| **Falsche Referenz** | `/cmd_vel` gibt Vorwärtsfahrt vor und `/odom` meldet Vorwärtsfahrt, doch der reale Roboter fährt **rückwärts** | Der statische TF-Frame ist gegenüber der physischen Montage invertiert. Nachgelagerte Komponenten rechnen korrekt — *mit der falschen Transformation* — und erzeugen keine erkennbaren Fehler. |
+| **Veraltete API** | Der Code besteht das Review, scheitert aber zur Laufzeit beim Aufruf einer falschen Methode | Der Agent verwendet Foxy- oder Humble-Methoden, die in Jazzy umbenannt oder entfernt wurden. |
+| **Falsche Prämisse** | Der Agent schreibt 200 Zeilen auf Basis einer Annahme, die Sie mit einem Satz korrigiert hätten | Nichts zwingt den Agenten, fehlende Details vor der Codegenerierung zu klären. |
 
-Weder Compiler, Linter noch Log-Analysen erkennen diese versteckten Probleme. Die Behebung jedes Fehlers erfordert einen zusätzlichen Feedback-Zyklus: Ausgabe überprüfen, Ursache diagnostizieren, Korrektur erklären und den Code erneut generieren.
+Weder Compiler noch Linter noch Log-Analysen erkennen diese verborgenen Probleme. Jede Behebung kostet einen zusätzlichen Rückkopplungszyklus: Ausgabe prüfen, Ursache diagnostizieren, Korrektur erklären, neu generieren.
 
 ## Wie diese Skills aufgebaut sind
 
-Vier Entwurfsregeln bestimmen jeden Skill in diesem Repository:
+Vier Entwurfsregeln gelten für jeden Skill in diesem Repository:
 
-**1. Unbekannte Variablen im Voraus identifizieren.** Wichtige betriebliche Details sind in der Dokumentation oft nicht vorhanden – etwa ob die Umgebung reale Hardware oder Simulation ist, ob ein bestehender Workspace erweitert oder ein neuer erstellt werden soll, welcher Node bereits eine Transformation publiziert oder die genaue Geometrie des Roboters. [`CLAUDE.md`](./CLAUDE.md) weist den Agenten an, diese Unbekannten vor der Codegenerierung zu klären. Domänenspezifische Skills verwalten gezielte Parameter; beispielsweise fordert `ros2-dev` die Footprint-Geometrie des Roboters, die Antriebskinematik und die Lokalisierungsquelle an, bevor Nav2-Parameter konfiguriert werden.
+**1. Unbekannte Variablen vorab identifizieren.** Zentrale betriebliche Details stehen oft in keiner Dokumentation — ob die Umgebung reale Hardware oder Simulation ist, ob ein bestehender Workspace erweitert oder ein neuer angelegt wird, welcher Node bereits eine Transformation publiziert, oder wie die genaue Geometrie des Roboters aussieht. [`CLAUDE.md`](./CLAUDE.md) weist den Agenten an, diese Unbekannten vor der Codegenerierung zu klären.
 
-**2. Eine strukturierte Schleife mit klaren Abbruchkriterien ausführen.** Jeder Skill folgt einem *Verifizieren → Schreiben → Beweisen*-Zyklus: Systemstandards in der installierten Umgebung prüfen, inkrementelle Änderungen anwenden und die Ausführung bestätigen. Eine Aufgabe ist erst dann abgeschlossen, wenn sie durch beobachtbare Nachweise gestützt wird – wie etwa einen erfolgreichen Build, aktive Daten auf `ros2 topic echo` oder ein bestandenes Verifikationsskript – anstatt einfach nur Codedateien zu erzeugen.
+**2. Eine strukturierte Schleife mit klaren Abbruchkriterien ausführen.** Der Zyklus *prüfen → schreiben → nachweisen*: Standardwerte in der installierten Umgebung inspizieren, Änderungen schrittweise anwenden, Ausführung bestätigen. Eine Aufgabe gilt erst als abgeschlossen, wenn beobachtete Belege sie stützen — ein erfolgreicher Build, echte Daten auf `ros2 topic echo`, ein bestandenes Verifikationsskript — und nicht schon durch das bloße Erzeugen von Codedateien.
 
-**3. Strukturierte Fehlertabellen gegenüber langen Beschreibungen bevorzugen.** Strukturierte Tabellen, die Symptome → Ursachen → Korrekturmaßnahmen zuordnen, bieten eine klare, dauerhafte Orientierung, die in offiziellen Dokumentationen oft fehlt und über Release-Versionen hinweg zuverlässig bleibt:
+**3. Nichts sagen, was das Modell bereits weiß oder `CLAUDE.md` bereits sagt.** Jede Symptom→Ursache→Maßnahme-Tabelle, die dieses Paket je ausgeliefert hat, wurde gegen einen Basis-Agenten ohne geladene Skills gemessen. **Keine einzige hat eine Prüfung bewegt** — entweder erreicht das Modell diese Mechanismen bereits ohne Hilfe, oder die Lösung war ein mitgeliefertes Skript bzw. ein Absatz in `CLAUDE.md`, niemals Prosa, die die Domäne beschreibt. Siehe [Evaluationen](#evaluationen).
 
-> `[` ist GZ→ROS, `]` ist ROS→GZ · `16UC1` ist Millimeter, `32FC1` ist Meter · `joint_state_broadcaster` wird nicht automatisch gestartet · `raytrace_max_range` ≤ `obstacle_max_range` bedeutet, dass Hindernisse nie gelöscht werden · rclc alloziert unbegrenzte Nachrichtenfelder nicht automatisch
-
-**4. Kontextnutzung mit einer Drei-Schichten-Architektur optimieren.** Jeder Skill balanciert die Kontexteffizienz: Skill-Beschreibungen bleiben im Kontext, Skill-Rümpfe laden bei Aufruf und tiefer gehende Referenzdateien in `references/` laden erst bei Bedarf. Große Symbolkataloge und detaillierte Parameter-Tuning-Tabellen befinden sich in `references/`, wodurch der Kontext geschont wird und beim Debuggen gezielter Komponenten (wie AMCL) keine unnötige Dokumentation (wie Behavior-Tree-Nodes) geladen wird.
+**4. Auf ein ausführbares Artefakt zeigen, es niemals beschreiben.** Der einzige Inhalt dieses Pakets, für den je nachgewiesen wurde, dass er ein Ergebnis verändert, ist ein Skript mit Exit-Code (`scripts/check_*.py`, mitgeliefert in `ros2-troubleshooting`). Ein Absatz, der *beschreibt*, was ein solches Skript Ihnen sagen würde, bewegte nichts — nur seine Ausführung tat es.
 
 ## Was es anders macht
 
-Die meisten Robotik-Skill-Pakete betten statisches API-Wissen direkt in Skill-Dateien ein. Während die erste Nutzung einfach ist, bricht dieser Ansatz zusammen, sobald die zugrunde liegenden Pakete aktualisiert werden – zurück bleiben veraltete Code-Snippets, die stillschweigend fehlschlagen. Dieses Repository verfolgt einen dynamischen, dokumentationsgesteuerten Ansatz:
+Die meisten Robotik-Skill-Pakete betten statisches API-Wissen direkt in die Skill-Dateien ein. Die anfängliche Nutzung ist bequem, doch der Ansatz bricht, sobald die zugrunde liegenden Pakete aktualisiert werden — zurück bleiben veraltete Snippets, die stillschweigend versagen. Dieses Repository verfolgt einen dynamischen, dokumentationsgetriebenen Ansatz:
 
-| Merkmal | Inhaltslastige Skill-Pakete | **claude-ros2-skills** |
+| Merkmal | Inhaltsschwere Skill-Pakete | **claude-ros2-skills** |
 | :--- | :--- | :--- |
-| Speicherort des Wissens | In Skill-Dateien eingebettet (**400–1.800 Zeilen/Skill**) | Verlinkt auf offizielle Doku (**~60-Zeilen** Skill-Rümpfe); detaillierte Referenzen **nur bei Bedarf** gelesen |
-| Immer geladener Kontext | Vollständige `SKILL.md`-Dateien | **28-Zeilen** Kernprotokoll |
-| Umgang mit Jazzy-API-Updates | Snippets veralten stillschweigend; erfordert kontinuierliche manuelle Test-Updates | Risiko veralteter Snippets auf Einstiegspunkt-Links und Symbolnamen minimiert — **32 Dokumentationslinks** wöchentlich per CI verifiziert |
-| Verifikationsmethode | Statische Codeanalyse oder Log-Prüfung | **Physikalische & Laufzeit-Verifikation**: IMU-Gravitationsprüfungen, Richtungs-Odometrietests, TF-Frame-Ausrichtung, DDS-QoS-Kompatibilität |
-| Unterstützungsbereich | Behauptet Unterstützung für mehrere ROS-Distros, zielt aber nur auf eine ab | **Nur ROS 2 Jazzy**, durch Design — keine Ausflüchte wie „funktioniert auch auf Humble“ |
+| Ort des Wissens | In Skill-Dateien eingebettet (**400–1.800 Zeilen pro Skill**) | Auf offizielle Dokumentation verlinkt (**~60 Zeilen** Skill-Rumpf); ausführliche Referenzen werden **nur bei Bedarf** gelesen |
+| Immer geladener Kontext | Vollständige `SKILL.md`-Dateien | **30-zeiliges** Kernprotokoll |
+| Umgang mit Jazzy-API-Änderungen | Snippets veralten stillschweigend; laufende manuelle Pflege nötig | Veraltungsrisiko auf Einstiegslinks und Symbolnamen begrenzt — **6 Dokumentationslinks**, wöchentlich per CI geprüft |
+| Verifikationsmethode | Statische Codeanalyse oder Log-Prüfung | **Physikalische und Laufzeit-Verifikation**: IMU-Schwerkraftprüfung, gerichteter Odometrietest, TF-Frame-Ausrichtung, DDS-QoS-Kompatibilität |
+| Verteilungsumfang | Bewirbt Unterstützung mehrerer ROS-Distributionen, zielt real auf eine | Konstruktionsbedingt **nur ROS 2 Jazzy** — ohne „läuft auch unter Humble"-Ausweichen |
 
-Dieses Repository ist auf ein einziges Ziel hin optimiert: das Risiko zu minimieren, plausibel aussehenden Code zu generieren, der auf ROS 2 Jazzy nicht ausgeführt werden kann.
+Dieses Repository optimiert auf ein einziges Ergebnis: das Risiko zu minimieren, plausibel aussehenden Code zu erzeugen, der unter ROS 2 Jazzy nicht läuft.
 
 ## Evaluationen
 
-**Ein Skill gilt hier erst dann als verifiziert, wenn zwei Fragen beantwortet sind:** Verändert er das, was der Agent bei einer Aufgabe erzeugt, die seinen eigenen Inhalt beansprucht, und ist dieser Skill-Rumpf der *kleinste*, der diese Änderung bewirkt? Korrektheit ist die Untergrenze (floor), nicht die Messlatte (bar) — weniger Token und weniger Text können dasselbe Ergebnis liefern, und bis dies getestet ist, ist „der Agent hat ihn verwendet“ nur eine halbe Antwort.
+**Der Maßstab.** Ein Skill verdient seinen Platz nur, wenn er etwas liefert, das der Agent **nicht selbst erreichen kann** — und zwar mit eigenem Wissen, Websuche und einer realen Jazzy-Installation vor sich. Text, der dem Agenten nur mitteilt, was er ohnehin getan hätte, ist Kosten ohne Nutzen.
 
-**Noch kein Skill hat die Verifikation abgeschlossen.** Der Status pro Skill ist in [`evals/RESULTS.md`](./evals/RESULTS.md) dokumentiert; Ergebnisse werden dort veröffentlicht, sobald jeder Skill beide Achsen besteht, einschließlich derjenigen, die fehlschlagen. Zwischenmessungen werden bewusst zurückgehalten — eine frühere Runde ergab aus einem einzelnen Durchlauf eine plausible Schlussfolgerung, die ein kontrollierter erneuter Durchlauf dann widerlegte, und Teilergebnisse verbreiten diese Art von Fehler schneller, als er behoben werden kann.
+**Wie gemessen wird.** Eine reale Aufgabe in einem sauberen Container, zehn Durchläufe mit dem geprüften Element und zehn ohne, bewertet durch *Ausführen* des Ergebnisses — ein Build, ein Topic mit Daten, ein Exit-Code — niemals durch Lesen. Exakter Test nach Fisher, Benjamini–Hochberg-Korrektur über die gesamte Runde.
 
-Was gemessen wird, wie bewertet wird und wie alles erneut ausgeführt werden kann: [`evals/README.md`](./evals/README.md). Das aktuelle Kriterium — eine Skill liefert das, was der Agent **nicht selbst erreichen kann** (bei verfügbarem Modellwissen, Websuche und einer echten Installation) — steht in [`evals/DESIGN.md`](./evals/DESIGN.md), der Status jeder Skill in [`evals/RESULTS.md`](./evals/RESULTS.md).
+**Was das geklärt hat.** Acht Domänen wurden auf eine dreistufige Leiter gestellt — 24 Sprossen insgesamt, jede fügt einen benannten Mechanismus hinzu und wird von einer Prüfung bewertet, die das Artefakt ausführt. Der Basis-Agent erreichte **jeden Mechanismus, der von ihm verlangt wurde**:
+
+| Domäne | L1 → L2 → L3, pro Sprosse ergänzte Mechanismen | Ohne Hilfe |
+| :--- | :--- | ---: |
+| Packaging und Build | `ament_python`/`ament_cmake` → paketübergreifende `.srv` → komponierbarer Node + `colcon test` | **190/190** |
+| Simulation | SDF-Welt + Differentialantrieb → `ros_gz_bridge` + `gpu_lidar` → URDF-Spawn + `use_sim_time` | **108/110** |
+| Executors | 1-s-Service aus einem Timer → aus einem Subscription-Callback + Heartbeat → 5 nebenläufige Aufrufe | **110/110** |
+| `ros2_control` | Mock-Hardware + Broadcaster → zweiter Controller, der Interfaces beansprucht → **eigenes C++-`SystemInterface`-Plugin** | **90/90** |
+| Testing | pytest, den `colcon test` tatsächlich ausführt → `launch_testing` gegen einen laufenden Node → rosbag2 geschrieben und zurückgelesen | **110/110** |
+| MoveIt 2 | Selbst verfasste URDF+SRDF, die `move_group` lädt → echter `GetMotionPlan` → Kollisionsobjekt in der Planungsszene | **100/100** |
+| Kern | Statische TF aus Parametern → dynamische TF + `ExtrapolationException` → Lifecycle-Node, der bis zur Aktivierung schweigt | **110/110** |
+| Nav2 | Parameterdatei, die die Server unverändert akzeptieren → Stack bis `active` gefahren → Costmap, die Hindernisse aus Live-Scans markiert | siehe unten |
+| Perception | `cv_bridge`-Rundlauf → `CameraInfo`-Projektion → 16UC1-Tiefe → `PointCloud2` | **106/120** |
+
+**Kein einziger Fehler wurde durch Bereitstellen von Information geschlossen.** Vier Lücken wurden gefunden, allesamt verhaltensbezogen:
+
+| Was das Modell ohne Hilfe nicht tut | Basis | Was es schloss | Danach |
+| :--- | ---: | :--- | ---: |
+| Gegen die Installation prüfen, statt aus dem Gedächtnis zu antworten | **2/10** | ein Absatz in `CLAUDE.md` | **10/10** (q=0,002) |
+| Ein Urteil mit Exit-Code liefern statt „sieht richtig aus" | **0/10** | ein mitgeliefertes ausführbares Skript | **10/10** (q<0,001) |
+| Den geschriebenen QoS-Code vor der Übergabe ausführen | **5/10** | das „fertig heißt, es lief" aus `CLAUDE.md` | **9/10** (zu geringe Teststärke) |
+| Die geschriebene Nav2-Konfiguration vor der Übergabe ausführen | **0/10** | eine Aufgabe, die das Erreichen von `active` verlangt | **30/30** |
+
+Die letzte Zeile ist das sauberste Ergebnis hier. Auf die Aufforderung, eine Nav2-Parameterdatei zu schreiben, produzierten 10 von 10 Zellen eine, die **ihre eigenen Server nicht konfigurieren wollen**. Auf die Aufforderung, dieselbe Datei zu schreiben *und* den Stack bis `active` zu bringen, stieß jede Zelle auf genau denselben Fehler, diagnostizierte ihn aus dem Log, behob ihn und bestand. **Gleiches Modell, gleiche falsche Annahme, null Unterschied an Information** — nur die Forderung nach Ausführung unterscheidet sich.
+
+**Konsequenz für dieses Paket.** Sechs Domänen-Skills wurden vollständig entfernt, zusätzlich zu den beiden zuvor entfernten: Das Modell erreicht ihre Inhalte bereits selbst, und keine Prosa in diesem Repository hat je eine Prüfung bewegt. Übrig bleiben ein 30-zeiliges Protokoll, vier ausführbare Skripte und das Referenzmaterial dahinter. Methode, Ergebnisse je Domäne und jeder Rohdurchlauf: [`evals/`](./evals/).
 
 ## Schnellstart
 
-**Option A — Plugin Marketplace (Empfohlen):**
+**Option A — Plugin-Marketplace (empfohlen):**
 
 ```
 /plugin marketplace add Leehyunbin0131/claude-ros2-skills
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Aktualisieren Sie installierte Plugins jederzeit mit `/plugin marketplace update`.
+Installierte Plugins lassen sich jederzeit mit `/plugin marketplace update` aktualisieren.
 
 **Option B — Manuelle Installation:**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
-# Projektbasierte Installation (gilt nur für das aktuelle Projekt)
+# Installation auf Projektebene (gilt nur für das aktuelle Projekt)
 mkdir -p your-project/.claude/skills
 cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
 cp claude-ros2-skills/CLAUDE.md your-project/
 
-# Benutzerweite Installation (gilt für alle Projekte)
+# Installation auf Benutzerebene (gilt für alle Projekte)
 mkdir -p ~/.claude/skills
 cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 ```
 
-Starten Sie Claude Code neu (oder beginnen Sie eine neue Sitzung), um die installierten Skills anzuwenden.
+Starten Sie Claude Code neu (oder beginnen Sie eine neue Sitzung), um die installierten Skills zu übernehmen.
 
 ## Skills
 
 | Skill | Pfad | Abdeckung |
 | :--- | :--- | :--- |
-| **ros2-core** | `skills/ros2-core/SKILL.md` | rclcpp, rclpy, TF2, EKF-Odometrie, QoS-Profile, Parameter |
-| **ros2-package** | `skills/ros2-package/SKILL.md` | `ros2 pkg create`, CMakeLists/setup.py-Einbindung, colcon build & source, benutzerdefinierte Interfaces |
-| **ros2-dev** | `skills/ros2-dev/SKILL.md` | Nav2 (AMCL, Costmaps, MPPI/Smac), SLAM Toolbox, RTAB-Map, Isaac ROS |
-| **gazebo-sim** | `skills/gazebo-sim/SKILL.md` | Gazebo Harmonic, ros_gz_bridge, ros_gz_sim, SDFormat-Modellierung |
-| **ros2-control** | `skills/ros2-control/SKILL.md` | ros2_control Hardware-Abstraktion, Controller Manager, URDF-Tags |
-| **ros2-moveit** | `skills/ros2-moveit/SKILL.md` | MoveIt 2, MoveGroup C++/Python-API, IK-Solver, OMPL, MoveIt Servo |
-| **ros2-perception** | `skills/ros2-perception/SKILL.md` | image_transport, cv_bridge, vision_msgs, depth_image_proc, PCL |
-| **ros2-testing** | `skills/ros2-testing/SKILL.md` | launch_testing, gtest/pytest, rosbag2 C++/Python-APIs, ros2trace |
-| **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc Client-API, benutzerdefinierte Transporte, statischer Speicher |
-| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | REP 103/105 Ground-Truth-TF-Baum, LiDAR/IMU-Ausrichtung, physikalische Verifikation |
+| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | Vier ausführbare Bestanden/Durchgefallen-Prüfungen — QoS-Kompatibilität, TF-Baum, IMU-Montage, Odometrierichtung — sowie die dahinterliegenden REP-103/105-Frame-Konventionen, das Laufzeitverhalten von Jazzy und die Odometrie-Kalibrierung an realer Hardware |
+| **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS-Agent, rclc-Client-API, eigene Transporte, statischer Speicher |
+
+**Warum nur zwei.** Alle anderen Skills wurden gegen einen Basis-Agenten ohne geladene Skills gemessen und entfernt, sobald der Agent ohne sie dasselbe Ergebnis lieferte — `ros2-core`, `ros2-dev`, `ros2-control`, `ros2-moveit`, `ros2-perception`, `ros2-testing`, `ros2-package` und `gazebo-sim`, in dieser Messreihenfolge. `ros2-microros` ist die einzige Domäne ohne Leiter: Die Hardware, um eine solche auszuführen, steht hier nicht zur Verfügung, daher bleibt der Skill erhalten und **wird nicht als verifiziert ausgewiesen**. Siehe [Evaluationen](#evaluationen).
 
 ## Verifikationsskripte
 
-Diese Verifikationsskripte sind im `ros2-troubleshooting`-Skill (`skills/ros2-troubleshooting/scripts/`) gebündelt und bei jeder Installation enthalten. Sie wandeln physikalische Hardware-Prüfungen in ausführbare Erfolgs-/Fehlerschritte (PASS/FAIL) um (erfordert eine gesourcte ROS 2-Umgebung; Rückgabecodes: 0 = PASS, 1 = FAIL, 2 = NO DATA):
+Diese Skripte sind im Skill `ros2-troubleshooting` enthalten (`skills/ros2-troubleshooting/scripts/`) und werden mit jeder Installation ausgeliefert. Sie überführen physikalische Hardwareprüfungen in ausführbare Bestanden/Durchgefallen-Schritte (erfordert eine gesourcte ROS-2-Umgebung; Rückgabewerte: 0 = BESTANDEN, 1 = DURCHGEFALLEN, 2 = KEINE DATEN):
 
 | Skript | Verifiziert |
 | :--- | :--- |
-| `check_imu_gravity.py` | Validiert, dass ein ruhender Roboter die Schwerkraft mit ~+9,81 m/s² entlang der **+Z**-Achse misst (REP 103). Erkennt invertierte oder fehlausgerichtete IMU-Montagen. |
-| `check_odom_direction.py` | Validiert, dass das Vorwärtsschieben des Roboters eine positive Odometrieverschiebung in Ausrichtungsrichtung erzeugt. Erkennt invertierte Drehrichtungen der Motoren, Polaritätsprobleme der Encoder oder invertierte TF-Setups. |
-| `check_tf_tree.py` | Verifiziert, dass `map→odom→base_link` korrekt aufgelöst wird; zeigt jeden Sensormontage-Offset in RPY-Grad an und hebt potenzielle 180°-Orientierungsfehler hervor. |
-| `check_qos_compat.py` | Verifiziert die QoS-Kompatibilität über alle Publisher/Subscriber-Paare auf einem Topic unter Verwendung von DDS-Regeln. Verhindert stille Fehlschläge (z. B. ein BEST_EFFORT-Publisher gepaart mit einem RELIABLE-Subscriber oder Abweichungen bei Durability, Deadline und Liveliness). |
+| `check_imu_gravity.py` | Dass ein ruhender Roboter die Schwerkraft mit ~+9,81 m/s² entlang der **+Z**-Achse misst (REP 103). Erkennt invertierte oder fehlausgerichtete IMU-Montagen. |
+| `check_odom_direction.py` | Dass Vorwärtsschieben des Roboters eine positive Odometrieverschiebung entlang seiner Fahrtrichtung erzeugt. Erkennt invertierte Motorrichtungen, Encoder-Polaritätsprobleme oder invertierte TF-Konfigurationen. |
+| `check_tf_tree.py` | Dass `map→odom→base_link` korrekt auflöst; zeigt den Montage-Offset jedes Sensors in RPY-Grad und hebt mögliche 180°-Orientierungsfehler hervor. |
+| `check_qos_compat.py` | Die QoS-Kompatibilität aller Publisher-/Subscriber-Paare eines Topics nach DDS-Regeln. Verhindert stille Fehler (etwa BEST_EFFORT-Publisher zusammen mit RELIABLE-Subscriber oder Abweichungen bei Durability, Deadline und Liveliness). |
 
-Die Kern-Entscheidungslogik wird unabhängig von ROS per Unit-Test geprüft (`python3 skills/ros2-troubleshooting/scripts/test_checks.py`) und läuft bei jedem Push über Continuous Integration (CI).
+Die zentrale Entscheidungslogik wird unabhängig von ROS unit-getestet (`python3 skills/ros2-troubleshooting/scripts/test_checks.py`) und läuft bei jedem Push über Continuous Integration (CI).
 
 ## Funktionsweise
 
 ```mermaid
 flowchart LR
-    A["Ihre Anfrage"] --> B["CLAUDE.md<br/>Protokoll + Schranken,<br/>keine API-Details"]
-    B --> C["skills/&lt;name&gt;/SKILL.md<br/>Schranken, Schleife,<br/>Fehlertabellen"]
-    C --> D["/opt/ros/jazzy/<br/>oder offizielle Jazzy-Doku"]
-    C -.nur bei Bedarf.-> R["references/<br/>Symbolkataloge,<br/>Tuning-Tabellen"]
-    D --> E["Code, dann Nachweis der Ausführung"]
+    A["Ihre Anfrage"] --> B["CLAUDE.md<br/>Protokoll + Prüfpunkte,<br/>keine API-Details"]
+    B --> D["/opt/ros/jazzy/<br/>oder offizielle Jazzy-Doku"]
+    B -.Laufzeitfehler.-> C["ros2-troubleshooting<br/>ausführbare Prüfungen"]
+    C -.nur bei Bedarf.-> R["references/<br/>frames, runtime,<br/>calibration"]
+    D --> E["Code, und der Beleg, dass er lief"]
+    C --> E
     R --> E
 ```
 
-`CLAUDE.md` enthält keine spezifischen API-Details. Stattdessen etabliert es das Betriebsprotokoll und fordert, dass klärende Fragen vor dem Schreiben von Code beantwortet werden. Jede `SKILL.md`-Datei verwaltet domänenspezifische Entscheidungen: Unbekannte Variablen identifizieren, die Schleife aus Verifizieren-Schreiben-Beweisen ausführen und auf Fehlertabellen verweisen. Detaillierte Referenzmaterialien werden separat im Verzeichnis `references/` gespeichert. Siehe [`CLAUDE.md`](./CLAUDE.md) für Details.
+`CLAUDE.md` enthält keine konkreten API-Details. Es legt allein das operative Protokoll fest — gegen die Installation prüfen, die Unbekannten zuerst klären, die keine Dokumentation liefern kann, und eine Aufgabe erst als erledigt betrachten, wenn etwas beim Laufen beobachtet wurde. Das Domänenwissen, das es sonst tragen würde, bleibt dem Modell und der Installation überlassen, denn dorthin hat die Messung es verwiesen. `ros2-troubleshooting` kommt nur ins Spiel, wenn ein System unauffällig loggt und trotzdem nicht funktioniert, und es antwortet mit einem Exit-Code statt mit einem Absatz. Einzelheiten in [`CLAUDE.md`](./CLAUDE.md).
 
 ## Aktualisierung
 
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # oder das .claude/skills/-Verzeichnis Ihres Projekts
+cp -r skills/* ~/.claude/skills/   # oder das .claude/skills/ Ihres Projekts
 ```
 
 ## Mitwirken
 
-Zusammenfassung: Skill-Dateien müssen sich auf die Entscheidungslogik konzentrieren (Validierungsschranken, Schleifenschritte und Fehlertabellen), während detaillierte Dokumentationen in `references/` verbleiben. Jedes API-Symbol muss gegen die offizielle Jazzy-Dokumentation oder `/opt/ros/jazzy/`-Installationen verifiziert werden. Verifikationsskripte müssen reine Logik beibehalten, die ohne ROS-Abhängigkeiten per Unit-Test geprüft werden kann. Die vollständigen Richtlinien, Checklisten für Skills und Skripte sowie Issue-Vorlagen finden Sie unter [`CONTRIBUTING.md`](./CONTRIBUTING.md).
+Kurzfassung: Neue Skill-Inhalte müssen sich ihren Platz gegen einen Basis-Agenten verdienen, der sie nicht hat — eine reale Aufgabe, zehn Durchläufe je Bedingung, bewertet durch Ausführen der Ausgabe. Inhalte, die der Agent ohne Hilfe produziert, werden nicht aufgenommen, so korrekt sie auch sein mögen. Verifikationsskripte müssen ihre Entscheidungslogik rein halten, damit sie ohne ROS unit-getestet werden kann. Messprotokoll, Checklisten und Issue-Vorlagen finden Sie in [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
 ## Lizenz
 

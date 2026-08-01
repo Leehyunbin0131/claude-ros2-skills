@@ -15,7 +15,7 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 | Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks |
 | :---: | :---: | :---: | :---: |
-| **2** | **28 lines** | **6** | **4 scripts** |
+| **2** | **30 lines** | **6** | **4 scripts** |
 
 </div>
 
@@ -67,7 +67,7 @@ Most robotics skill packs embed static API knowledge directly inside skill files
 | Feature | Content-heavy skill packs | **claude-ros2-skills** |
 | :--- | :--- | :--- |
 | Knowledge location | Embedded in skill files (**400–1,800 lines/skill**) | Linked to official docs (**~60-line** skill bodies); detailed references read **only when needed** |
-| Always-loaded context | Full `SKILL.md` files | **28-line** core protocol |
+| Always-loaded context | Full `SKILL.md` files | **30-line** core protocol |
 | Handling Jazzy API updates | Snippets become outdated quietly; requires continuous manual test updates | Outdated snippet risk is minimized to entry-point links and symbol names — **6 documentation links** verified weekly via CI |
 | Verification method | Static code analysis or log checking | **Physical & runtime verification**: IMU gravity checks, directional odometry tests, TF frame alignment, DDS QoS compatibility |
 | Distribution scope | Claims support for multiple ROS distros while targeting only one | **ROS 2 Jazzy only**, by design — no "works on Humble too" hedging |
@@ -120,7 +120,7 @@ belief, zero difference in information** — only the demand to run differs.
 
 **Consequence for this pack.** Six domain skills were deleted in full, on top of
 the two deleted earlier: the model already reaches their content, and no prose
-in this repository has ever moved a check. What remains is a 28-line protocol,
+in this repository has ever moved a check. What remains is a 30-line protocol,
 four runnable scripts, and the reference material behind them. Method,
 per-domain results and every raw run: [`evals/`](./evals/).
 
@@ -156,7 +156,7 @@ Restart Claude Code (or start a new session) to apply the installed skills.
 
 | Skill | Path | Coverage |
 | :--- | :--- | :--- |
-| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | Four runnable pass/fail checks — QoS compatibility, TF tree, IMU mount, odometry direction — plus REP 103/105 frame conventions and Jazzy runtime behaviour behind them |
+| **ros2-troubleshooting** | `skills/ros2-troubleshooting/SKILL.md` | Four runnable pass/fail checks — QoS compatibility, TF tree, IMU mount, odometry direction — plus REP 103/105 frame conventions, Jazzy runtime behaviour, and hardware odometry calibration behind them |
 | **ros2-microros** | `skills/ros2-microros/SKILL.md` | micro-ROS Agent, rclc client API, custom transports, static memory |
 
 **Why only two.** Every other skill was measured against a baseline agent that
@@ -187,7 +187,7 @@ flowchart LR
     A["your request"] --> B["CLAUDE.md<br/>protocol + gates,<br/>no API details"]
     B --> D["/opt/ros/jazzy/<br/>or official Jazzy docs"]
     B -.runtime fault.-> C["ros2-troubleshooting<br/>runnable checks"]
-    C -.only if needed.-> R["references/<br/>frames, runtime"]
+    C -.only if needed.-> R["references/<br/>frames, runtime,<br/>calibration"]
     D --> E["code, then proof it ran"]
     C --> E
     R --> E
