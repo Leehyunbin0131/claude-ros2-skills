@@ -1,0 +1,15 @@
+{
+  "dev1_params_found": true,
+  "params": "/tmp/eval-dev1-baseline-Xmtk/nav2_params.yaml",
+  "dev1_yaml_valid": true,
+  "dev1_servers_load": false,
+  "dev1_mppi": true,
+  "dev1_footprint": true,
+  "radius": "0.3",
+  "speed": "0.4",
+  "yaml_probe": "YAML_OK\nSERVERS behavior_server,controller_server,map_server,planner_server,smoother_server\nMPPI yes\nRADIUS 0.3\nSPEED 0.4",
+  "cs_state": "unconfigured [1]",
+  "ps_state": "inactive [2]",
+  "controller_tail": ":critics::ConstraintCritic\n[WARN] [1785545520.684195584] [controller_server]: Inconsistent configuration in collision checking. Please verify the robot's shape settings in both the costmap and the cost critic.\n[ERROR] [1785545520.684266453] [controller_server]: Caught exception in callback for transition 10\n[ERROR] [1785545520.684282381] [controller_server]: Original error: Considering footprint in collision checking but no robot footprint provided in the costmap.\n[WARN] [1785545520.684292656] [controller_server]: Callback returned ERROR during the transition: configure\n[FATAL] [1785545520.684296671] [controller_server]: Lifecycle node controller_server does not have error state implemented\n",
+  "planner_tail": "1785545522.570392234] [global_costmap.global_costmap]: Subscribed to Topics: scan\n[INFO] [1785545522.572156397] [global_costmap.global_costmap]: Initialized plugin \"obstacle_layer\"\n[INFO] [1785545522.572176744] [global_costmap.global_costmap]: Using plugin \"inflation_layer\"\n[INFO] [1785545522.572712192] [global_costmap.global_costmap]: Initialized plugin \"inflation_layer\"\n[INFO] [1785545522.583518665] [planner_server]: Created global planner plugin GridBased of type nav2_navfn_planner::NavfnPlanner\n[INFO] [1785545522.583547817] [planner_server]: Configuring plugin GridBased of type NavfnPlanner\n[INFO] [1785545522.583730077] [planner_server]: Planner Server has GridBased  planners available.\n"
+}
