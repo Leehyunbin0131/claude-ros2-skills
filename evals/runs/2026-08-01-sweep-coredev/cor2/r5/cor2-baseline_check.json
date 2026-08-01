@@ -1,0 +1,15 @@
+{
+  "cor2_node_found": true,
+  "node": "/tmp/eval-cor2-baseline-GgCk/node.py",
+  "cor2_tf_lines": true,
+  "cor2_motion": true,
+  "cor2_extrap": true,
+  "cor2_exits_clean": true,
+  "n_tf_lines": 20,
+  "n_extrap_lines": 1,
+  "x_first": "0.00000",
+  "x_last": "0.04760",
+  "exit_code": 0,
+  "elapsed_s": 1,
+  "run_tail": "_node]: TF 1785542123.0243 0.0201\n[INFO] [1785542123.074759909] [odom_base_link_tf_node]: TF 1785542123.0744 0.0226\n[INFO] [1785542123.124865674] [odom_base_link_tf_node]: TF 1785542123.1245 0.0251\n[INFO] [1785542123.174871577] [odom_base_link_tf_node]: TF 1785542123.1746 0.0276\n[INFO] [1785542123.225278370] [odom_base_link_tf_node]: TF 1785542123.2247 0.0301\n[INFO] [1785542123.275095801] [odom_base_link_tf_node]: TF 1785542123.2748 0.0326\n[INFO] [1785542123.325206948] [odom_base_link_tf_node]: TF 1785542123.3248 0.0351\n[INFO] [1785542123.375267744] [odom_base_link_tf_node]: TF 1785542123.3749 0.0376\n[INFO] [1785542123.425393840] [odom_base_link_tf_node]: TF 1785542123.4250 0.0401\n[INFO] [1785542123.475384727] [odom_base_link_tf_node]: TF 1785542123.4751 0.0426\n[INFO] [1785542123.525550591] [odom_base_link_tf_node]: TF 1785542123.5252 0.0451\n[INFO] [1785542123.575554882] [odom_base_link_tf_node]: TF 1785542123.5752 0.0476\n[INFO] [1785542123.625766196] [odom_base_link_tf_node]: EXTRAP Lookup would require extrapolation into the future.  Requested time 1785542128.575227 but the latest data is at time 1785542123.575227, when looking up transform from frame [base_link] to frame [odom]\n"
+}
