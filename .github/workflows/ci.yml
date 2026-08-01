@@ -24,8 +24,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check all documentation links
+      - name: Check documentation links
         uses: lycheeverse/lychee-action@v2
         with:
-          args: --no-progress --max-retries 3 --accept 200,429 "**/*.md"
+          # evals/runs/ is excluded on purpose. Those files are transcripts of
+          # what a test cell actually did, including every URL it tried — some
+          # truncated by the summariser, some needing auth, some 404 because
+          # the agent guessed wrong. That is the measurement, not link rot, and
+          # the files are immutable records nobody navigates from. Checking
+          # them makes the job fail on data it is not allowed to fix.
+          args: >-
+            --no-progress --max-retries 3 --accept 200,429
+            --exclude-path evals/runs
+            "**/*.md"
           fail: true
