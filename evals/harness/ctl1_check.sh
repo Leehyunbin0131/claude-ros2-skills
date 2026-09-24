@@ -44,13 +44,16 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_all() {
-  pkill -9 -f '^/opt/ros/jazzy/lib/controller_manager/ros2_control_node' 2>/dev/null || true
-  pkill -9 -f 'ros2_control_node' 2>/dev/null || true
-  pkill -9 -f 'robot_state_publisher' 2>/dev/null || true
-  pkill -9 -f 'spawner' 2>/dev/null || true
-  pkill -9 -f '^python3 .*bringup' 2>/dev/null || true
+  kill_owned '^/opt/ros/jazzy/lib/controller_manager/ros2_control_node'
+  kill_owned 'ros2_control_node'
+  kill_owned 'robot_state_publisher'
+  kill_owned 'spawner'
+  kill_owned '^python3 .*bringup'
   # Also kill anything still referencing the cell's own directory. The cell has
   # already run its bringup once -- CLAUDE.md tells it to verify its work -- and
   # killing only the nodes left the `ros2 launch` wrapper alive, so a bringup
@@ -95,15 +98,7 @@ BRING_RC=$?
 # scored as total failures by a checker that kept querying its own domain.
 # Every ctl1 cell happened to inherit ours, so no ctl1 result changes; the fix
 # is here so the next one does not depend on that.
-adopt_domain_from() {
-  local pid d
-  pid="$(pgrep -f "$1" | head -1)"
-  [ -n "$pid" ] || return 0
-  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
-       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
-  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
-  return 0
-}
+# adopt_domain_from is in procscope.sh: it reads only this run's processes.
 adopt_domain_from 'ros2_control_node'
 
 # Give the system time to come up. The prompt says bringup starts things in the

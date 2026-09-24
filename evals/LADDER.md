@@ -394,7 +394,10 @@ running, after two progress reports from me that said it was.
 
 All 24 rungs are measured. The list they produced is
 [`CAPABILITIES.md`](./CAPABILITIES.md); the pack that survived them is two
-skills, one of which has no ladder.
+skills, one of which has no ladder. Several totals in this table include
+re-grades that were never committed; CAPABILITIES.md's
+[reconciliation](./CAPABILITIES.md#reconciliation-published-numbers-vs-the-committed-record)
+sets them beside what the committed verdicts reproduce.
 
 ## The 2026-07-31 coverage sweep
 

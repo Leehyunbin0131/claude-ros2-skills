@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
-"""Aggregate a v2 round: grade every cell, tally per check, test per TASKS.md.
+"""Aggregate a v2 round: grade every cell, tally per check, run the fixed tests.
 
 Usage:
-    python3 analyze_v2.py evals/runs/<round-dir>
+    python3 analyze_v2.py evals/runs/<round-dir> [--only t1,t2] [--include-superseded]
 
-Comparisons and the significance handling are fixed in TASKS.md and are not
-chosen here after seeing the numbers:
+Comparisons and the significance handling are the COMPARISONS table below and
+are not chosen here after seeing the numbers (the TASKS.md that pre-registered
+them is not in this repository):
   * t1, t3, t4  -> skills vs baseline
   * t2          -> skills vs scripts-only (what the TEXT buys)
                    and scripts-only vs baseline (what the FILES buy)
   * Fisher exact, two-sided; Benjamini-Hochberg across every test in the round.
-  * t4 must be null. If any t4 check is significant, the round is void.
+  * t4 must be null. If any t4 check is significant, the round is void. A round
+    with no t4 cells has NOT passed that gate -- it was never evaluated.
+
+Directories whose name contains `-DISCARDED-` or `-SUPERSEDED-` hold cells a
+round threw away (a harness edit mid-round, a grader race). They are excluded
+and listed, never pooled; `--include-superseded` exists only to audit them.
+Cells that are ungradable (no result event, a CLI error, no verdict file) or
+contaminated (a baseline-type cell whose session loaded this pack's skills or
+plugin) are counted and listed, never tallied.
 """
 from __future__ import annotations
 
@@ -118,10 +127,33 @@ def bh_qvalues(pvals: list[float]) -> list[float]:
     return q
 
 
+SET_ASIDE_MARKERS = ("-DISCARDED-", "-SUPERSEDED-")
+# Conditions that must not have this pack loaded. `skills` and `patch` may.
+NO_PACK_CONDITIONS = {"baseline", "scripts-only", "claude-md-only"}
+
+
+def set_aside(path: Path, root: Path) -> str | None:
+    """The discarded/superseded directory `path` sits under, if any."""
+    for part in path.relative_to(root).parts[:-1]:
+        if any(m in part for m in SET_ASIDE_MARKERS):
+            return part
+    return None
+
+
+def cell_workdir(f: Path, stem: str) -> str:
+    """Where run_ab.sh copied this cell's files: its own `<stem>_files/` since
+    that directory exists, else (older rounds) the transcript's directory."""
+    own = f.parent / f"{stem}_files"
+    return str(own if own.is_dir() else f.parent)
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("round_dir")
     ap.add_argument("--only", help="comma-separated task ids to include")
+    ap.add_argument("--include-superseded", action="store_true",
+                    help="also grade -DISCARDED-/-SUPERSEDED- directories (audit only)")
     a = ap.parse_args()
     root = Path(a.round_dir)
     only = set(a.only.split(",")) if a.only else None
@@ -131,6 +163,11 @@ def main() -> int:
     tools: dict[tuple[str, str], collections.Counter] = collections.defaultdict(collections.Counter)
     leaks: list[tuple[str, str, int]] = []
     breaches: list[tuple[str, str, int]] = []
+    excluded: collections.Counter = collections.Counter()
+    ungradable: list[str] = []
+    contaminated: list[tuple[str, list[str]]] = []
+    models: collections.Counter = collections.Counter()
+    tasks_seen: set[str] = set()
     cells = 0
 
     files = sorted(root.rglob("*_result.jsonl")) + sorted(root.rglob("*_result.jsonl.gz"))
@@ -142,22 +179,22 @@ def main() -> int:
         task, _, cell = stem.partition("-")
         if task not in COMPARISONS or (only and task not in only):
             continue
+        aside = set_aside(f, root)
+        if aside and not a.include_superseded:
+            excluded[aside] += 1
+            continue
         c = grade_v2.Cell(f)
-        fn = getattr(grade_v2, task)
-        if task == "t1":
-            grade = fn(c, live=False)
-        elif task == "t4":
-            grade = fn(c, workdir=str(f.parent))
-        elif task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3",
-                      "qos1", "ctl1", "ctl2", "tst1", "tst2", "per1", "per2", "per3", "mvt1", "mvt2", "mvt3",
-                      "ctl3", "tst3",
-                      "cor1", "cor2", "cor3", "dev1", "dev2", "dev3"):
-            # Real-outcome verdicts were written next to the transcript by
-            # t5_check.sh at cell time, while the workspace still existed.
-            grade = fn(c, check=f.parent / f"{stem}_check.json")
-        else:
-            grade = fn(c)
+        rel = str(f.relative_to(root))
         cells += 1
+        tasks_seen.add(task)
+        models[c.model or "(no init event)"] += 1
+        loaded = c.pack_components_loaded()
+        if loaded and cell in NO_PACK_CONDITIONS:
+            contaminated.append((rel, loaded))
+            continue
+        grade = grade_v2.grade_cell(task, f, workdir=cell_workdir(f, stem), cell=c)
+        if all(v is None for v in grade.values()):
+            ungradable.append(rel)
         lk = grade_v2.leaked(c)
         if lk:
             leaks.append((f.parent.name, f.name, len(lk)))
@@ -174,7 +211,29 @@ def main() -> int:
             t[0] += 1 if v else 0
 
     print(f"# v2 round — `{root.name}`\n")
-    print(f"{cells} cells graded\n")
+    print(f"{cells} cells read; {len(ungradable)} ungradable, "
+          f"{len(contaminated)} contaminated, "
+          f"{cells - len(ungradable) - len(contaminated)} graded\n")
+    print("Models (from each transcript's init event): " +
+          ", ".join(f"`{m}` ×{n}" for m, n in sorted(models.items())) + "\n")
+    if excluded:
+        print("**Set aside, not pooled** (`-DISCARDED-` / `-SUPERSEDED-`; "
+              "`--include-superseded` to audit):\n")
+        for d, n in sorted(excluded.items()):
+            print(f"- `{d}` — {n} transcript(s)")
+        print()
+    if ungradable:
+        print("**Ungradable** — no result event, a CLI error, or no checker "
+              "verdict. Not counted as failures:\n")
+        for u in ungradable:
+            print(f"- `{u}`")
+        print()
+    if contaminated:
+        print("**CONTAMINATED — excluded.** These sessions started with this "
+              "pack loaded in a condition that must not have it:\n")
+        for rel, names in contaminated:
+            print(f"- `{rel}` — {', '.join(names)}")
+        print()
 
     # --- per-check table ---------------------------------------------------
     print("## Pass rate per check\n")
@@ -218,10 +277,15 @@ def main() -> int:
         r["q"] = q
 
     print("## Tests\n")
-    print("Comparisons and alpha fixed in TASKS.md before the round. "
-          "`q` is Benjamini-Hochberg across every test here.\n")
-    print("| Task | Check | Comparison | higher | lower | Δ | p | q | Verdict |")
-    print("| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | :--- |")
+    print("Comparisons and alpha are fixed in `COMPARISONS` / `ALPHA` in "
+          "analyze_v2.py. `q` is Benjamini-Hochberg across every test here.\n")
+    if not pending:
+        print("No comparison in this round has cells on both sides, so there is "
+              "nothing to test. Ladder rungs run `baseline` only: the pass rate "
+              "per check above is the result.\n")
+    else:
+        print("| Task | Check | Comparison | higher | lower | Δ | p | q | Verdict |")
+        print("| :--- | :--- | :--- | ---: | ---: | ---: | ---: | ---: | :--- |")
     for r in sorted(pending, key=lambda x: (x["q"], -abs(x["delta"]))):
         if r["q"] < ALPHA:
             v = "**SIGNIFICANT**"
@@ -236,11 +300,14 @@ def main() -> int:
 
     # --- control gate ------------------------------------------------------
     t4sig = [r for r in pending if r["task"] == "t4" and r["q"] < ALPHA]
+    t4tests = [r for r in pending if r["task"] == "t4"]
     print("## Control gate\n")
-    if only and "t4" not in only:
-        print("t4 was not run in this round. The gate was cleared in the round "
-              "that established the harness; a narrow follow-up inherits that "
-              "rather than re-paying for it.\n")
+    if "t4" not in tasks_seen or not t4tests:
+        # Not a pass. Nothing in this directory can show the harness is untilted,
+        # and the round that once cleared the gate is not in the repository.
+        print("**NOT EVALUATED.** This round has no t4 null-control comparison, so "
+              "nothing here tests whether the harness is tilted toward one "
+              "condition. Do not read the absence of a failure as a pass.\n")
     elif t4sig:
         print("**ROUND VOID.** The t4 null control moved:")
         for r in t4sig:

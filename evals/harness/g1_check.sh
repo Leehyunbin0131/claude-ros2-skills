@@ -68,6 +68,9 @@ set +u
 # shellcheck disable=SC1091
 source /opt/ros/jazzy/setup.bash
 set -u
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 export GZ_PARTITION="g1check$$"
 
 p_sdf=false; p_runs=false; p_topics=false; p_moves=false
@@ -143,7 +146,7 @@ kill $SIM 2>/dev/null || true
 sleep 2
 kill -9 $SIM 2>/dev/null || true
 wait $SIM 2>/dev/null || true
-pkill -9 -f '^gz sim' 2>/dev/null || true
+kill_owned '^gz sim'
 
 {
   printf '{\n'

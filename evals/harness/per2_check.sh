@@ -50,11 +50,14 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_all() {
-  pkill -9 -f '^python3 .*camera_publisher\.py' 2>/dev/null || true
-  pkill -9 -f '^python3 .*/node\.py' 2>/dev/null || true
-  pkill -9 -f '^python3 .*detection_probe\.py' 2>/dev/null || true
+  kill_owned '^python3 .*camera_publisher\.py'
+  kill_owned '^python3 .*/node\.py'
+  kill_owned '^python3 .*detection_probe\.py'
 }
 kill_all
 sleep 1
@@ -147,7 +150,7 @@ run_once
 # A node that failed on its own terms is not re-run.
 if [ "${N_DET:-0}" -eq 0 ] && [ "$RC" -eq 0 ]; then
   ATTEMPTS=2
-  pkill -9 -f '^python3 .*/node\.py' 2>/dev/null || true
+  kill_owned '^python3 .*/node\.py'
   sleep 2
   run_once
 fi
