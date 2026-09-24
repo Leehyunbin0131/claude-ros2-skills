@@ -24,6 +24,8 @@ def main():
                 event = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if not isinstance(event, dict):
+                continue
 
             if event.get("type") == "assistant":
                 message = event.get("message", {})

@@ -38,6 +38,7 @@ import analyze_v2  # noqa: E402
 import grade_v2  # noqa: E402
 import isolation  # noqa: E402
 import procscope  # noqa: E402
+import scenario_ready  # noqa: E402
 
 # sha256 of every `PROMPT='...'` line of run_ab.sh at 39fed2a (34 lines).
 # LADDER.md rule 1: a frozen prompt never changes, not even for a typo.
@@ -152,6 +153,7 @@ class Gradability(unittest.TestCase):
         self.assertFalse(self._cell(is_error=True).gradable(), "CLI-reported error")
         self.assertFalse(self._cell(subtype="error_max_turns").gradable())
         self.assertFalse(self._cell(text="Not logged in · Please run /login").gradable())
+        self.assertFalse(self._cell(text="You've hit your session limit · resets 7am").gradable())
         self.assertFalse(self._cell(text="").gradable())
 
     def test_error_cell_is_not_failed_by_its_verdict(self):
@@ -179,6 +181,23 @@ class Gradability(unittest.TestCase):
         self.assertEqual(sorted(c.pack_components_loaded()),
                          ["claude-ros2-skills", "ros2-troubleshooting"])
         self.assertEqual(self._cell().pack_components_loaded(), [])
+
+    def test_partial_and_invalid_verdicts_never_invent_evidence(self):
+        t = transcript(self.d / "ctl1-baseline_result.jsonl")
+        chk = self.d / "ctl1-baseline_check.json"
+        chk.write_text(json.dumps({"ctl1_bringup_found": True,
+                                   "ctl1_cm_running": True,
+                                   "ctl1_jsb_active": "false"}))
+        self.assertEqual(grade_v2.grade_cell("ctl1", t),
+                         {"ctl1_cm_running": True, "ctl1_jsb_active": None,
+                          "ctl1_joint_states": None})
+        chk.write_text(json.dumps({"ctl1_bringup_found": "false"}))
+        self.assertTrue(all(v is None for v in grade_v2.grade_cell("ctl1", t).values()))
+
+    def test_non_object_json_lines_do_not_crash(self):
+        p = transcript(self.d / "t1-baseline_result.jsonl")
+        p.write_text('null\n[]\n42\n' + p.read_text())
+        self.assertTrue(grade_v2.Cell(p).gradable())
 
 
 class InstallFacts(unittest.TestCase):
@@ -420,6 +439,79 @@ class Procs(unittest.TestCase):
         pids = {pid for pid, _ in procscope.foreign_ros()}
         self.assertIn(theirs.pid, pids)
         self.assertNotIn(ours.pid, pids)
+
+    def test_discovery_defaults_cannot_inherit_subnet_or_static_peers(self):
+        env = dict(os.environ, ROS_AUTOMATIC_DISCOVERY_RANGE="SUBNET",
+                   ROS_STATIC_PEERS="192.0.2.1", EVAL_RUN_TAG=self.tag)
+        for name in ("ROS_DISCOVERY_SERVER", "FASTDDS_DEFAULT_PROFILES_FILE",
+                     "FASTRTPS_DEFAULT_PROFILES_FILE", "CYCLONEDDS_URI"):
+            env.pop(name, None)
+        script = (f'source "{HARNESS}/procscope.sh"; '
+                  'echo "$ROS_AUTOMATIC_DISCOVERY_RANGE/${ROS_STATIC_PEERS-unset}"')
+        out = subprocess.run(["bash", "-c", script], env=env, text=True, capture_output=True)
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertEqual(out.stdout.strip(), "LOCALHOST/unset")
+        env["ROS_DISCOVERY_SERVER"] = "192.0.2.1:11811"
+        out = subprocess.run(["bash", "-c", script], env=env, text=True, capture_output=True)
+        self.assertEqual(out.returncode, 2)
+        self.assertNotIn("LOCALHOST", out.stdout)
+
+
+class ScenarioReadiness(unittest.TestCase):
+    def test_inactive_controller_does_not_satisfy_prompt(self):
+        self.assertFalse(scenario_ready.controller_active(
+            "diff_drive_controller diff_drive_controller/DiffDriveController inactive"))
+        self.assertFalse(scenario_ready.controller_active(
+            "other diff_drive_controller/DiffDriveController active"))
+        self.assertTrue(scenario_ready.controller_active(
+            "diff_drive_controller diff_drive_controller/DiffDriveController \x1b[92mactive\x1b[0m"))
+
+    def test_readiness_retries_then_stops_at_total_deadline(self):
+        now = [0.0]
+        calls = []
+        def sleep(seconds):
+            now[0] += seconds
+        def absent(command, **kwargs):
+            calls.append(command)
+            now[0] += kwargs['timeout']
+            raise subprocess.TimeoutExpired(command, kwargs['timeout'])
+        ready, detail = scenario_ready.wait_until_ready(
+            't2', 8, probe=absent, clock=lambda: now[0], sleep=sleep)
+        self.assertFalse(ready)
+        self.assertIn('/imu/data', detail)
+        self.assertEqual(now[0], 8)
+        self.assertEqual(len(calls), 2)
+
+    def test_all_promised_resources_are_required(self):
+        seen = []
+        def probe(command, **kwargs):
+            seen.append(command)
+            return subprocess.CompletedProcess(command, 0, 'message', '')
+        self.assertTrue(scenario_ready.wait_until_ready('per2', probe=probe)[0])
+        self.assertEqual([c[3] for c in seen], ['/camera/image_raw', '/camera/camera_info'])
+        seen.clear()
+        self.assertTrue(scenario_ready.wait_until_ready('t2', probe=probe)[0])
+        self.assertEqual(len(seen), 2)
+        self.assertIn('imu_link', seen[1])
+
+    def test_failed_readiness_prevents_model_call(self):
+        # Exercise the real start_scenario function with a configuration-only
+        # task and a failing readiness command. No ROS package or model needed.
+        src = (HARNESS / 'run_ab.sh').read_text()
+        function = src[src.index('start_scenario() {'):src.index('\nstop_scenario() {')]
+        # Sourcing ROS is irrelevant for t3 and unavailable in the pure CI job.
+        function = function.replace('source /opt/ros/jazzy/setup.bash', ':')
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'scenario_ready.py').write_text('raise SystemExit(2)\n')
+            script = ('set -euo pipefail\nTASK=t3\n'
+                      f'HARNESS="{root}"\nSCEN_LOG="{root}/scenario.log"\n'
+                      'ROS_DOMAIN_ID=90\n' + function +
+                      '\nstart_scenario\necho MODEL_STARTED\n')
+            result = subprocess.run(['bash', '-c', script], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertNotIn('MODEL_STARTED', result.stdout)
+            self.assertIn('no model call made', result.stderr)
 
 
 class Scripts(unittest.TestCase):

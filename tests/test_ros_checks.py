@@ -144,6 +144,21 @@ class RosChecks(unittest.TestCase):
             self.node.destroy_publisher(pub)
             self.node.destroy_publisher(broadcaster.pub_tf)
 
+    def test_eval_imu_fixture_exposes_declared_mount_mismatch(self):
+        harness = SCRIPTS.parents[2] / 'evals/harness'
+        sys.path.insert(0, str(harness))
+        from fake_imu_pub import FakeImu
+        topic = '/regression/fixture_' + uuid.uuid4().hex
+        fixture = FakeImu(topic, 50.0)
+        try:
+            code, text = self.command('check_imu_gravity.py',
+                                      ['--topic', topic, '--samples', '4', '--timeout', '2.5'],
+                                      lambda _: fixture.tick())
+            self.assertEqual(code, 1, text)
+            self.assertIn('FAIL', text)
+        finally:
+            fixture.destroy_node()
+
     def odom(self, case, expected):
         topic = '/regression/odom_' + uuid.uuid4().hex
         pub = self.node.create_publisher(Odometry, topic, qos_profile_sensor_data)

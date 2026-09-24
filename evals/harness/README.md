@@ -11,7 +11,8 @@ agreeing with you — is [`../LADDER.md`](../LADDER.md). The *result* is
 | :--- | :--- |
 | [`run_ab.sh`](./run_ab.sh) | One task: holds every task's **frozen prompt**, refuses to start unless preflight passes, and for each condition brings up the task's live scenario, runs the cell in a fresh directory under `isolate_cell.sh`, runs the task's `*_check.sh`, and tears the scenario down. |
 | [`isolate_cell.sh`](./isolate_cell.sh) + [`isolation.py`](./isolation.py) | Unprivileged mount namespace in which every copy of this repository and the host's own Claude instructions are masked with empty bind mounts, then a nested user namespace so the agent runs as your uid and cannot unmount them. `--check` verifies all of that without running anything. |
-| [`procscope.py`](./procscope.py) + [`procscope.sh`](./procscope.sh) | Which processes belong to this run: everything it starts carries `EVAL_RUN_TAG`, and only tagged processes are ever killed. Also keeps ROS discovery on this host. |
+| [`scenario_ready.py`](./scenario_ready.py) | Bounded, read-only probes require the promised topics, service and TF before a model call; missing readiness aborts and preserves the scenario log. |
+| [`procscope.py`](./procscope.py) + [`procscope.sh`](./procscope.sh) | Which processes belong to this run: everything it starts carries `EVAL_RUN_TAG`, and only tagged processes are ever killed. Sets localhost ROS discovery and rejects vendor overrides; not a network sandbox. |
 | [`grade_v2.py`](./grade_v2.py) | Turns each cell into a dict of check → pass/fail/ungradable. Real-outcome tasks read the JSON verdict the shell checker wrote at cell time, while the cell's workspace still existed. |
 | [`analyze_v2.py`](./analyze_v2.py) | Grades every cell in a round directory, tallies per check per cell type, runs the fixed comparisons, corrects across the round, and reports isolation, set-aside, ungradable and contaminated cells. |
 | [`summarize_run.py`](./summarize_run.py) | Reduces a `stream-json` log to the final message plus the tool calls actually invoked. Diagnosis only — never a grading input. |
@@ -26,6 +27,12 @@ for i in $(seq 1 10); do
 done
 python3 analyze_v2.py ../runs/$(date +%F)-sweep
 ```
+
+Existing task/cell artifacts are never overwritten. Duplicate or unsupported
+conditions are refused, as are `qos2`/`qos3`, whose prompts are frozen but have no
+grader. A readiness failure starts no paid model call. `t2` now publishes the
+identity `base_link -> imu_link` transform as well as the deliberately incorrect
+gravity vector; this fixture correction applies to future runs only.
 
 `MODEL` has no default and must be named; every committed sweep ran `sonnet`
 (each transcript's init event records the model id, and `analyze_v2.py` prints
@@ -113,7 +120,8 @@ returns "Not logged in" and records as a silent failure. `run_ab.sh` passes
 `--setting-sources project,local --strict-mcp-config` instead: the host's user
 settings, enabled plugins, hooks and MCP servers stay out of every condition,
 while the project scope — where a treatment's `CLAUDE.md` and `.claude/skills`
-live — still loads. (`--safe-mode` is not usable: it would also disable the
+live — still loads. `--settings '{"autoMemoryEnabled":false}'` disables auto
+memory explicitly; `--no-session-persistence` alone does not do that. (`--safe-mode` is not usable: it would also disable the
 treatment.) The committed 2026-07/08 rounds ran without these flags; their init
 events show no plugin and no pack skill loaded, which `analyze_v2.py` checks on
 every cell. That these flags leave OAuth login working was **not** re-verified
@@ -168,22 +176,26 @@ What a cell must not see, and what hides it (`isolation.py` has the full list):
 | `CLAUDE.md` / `CLAUDE.local.md` / `AGENTS.md` / `.claude/` in an ancestor of the cell directory (Claude Code loads those) | masked |
 | Managed policy (`/etc/claude-code`), which cannot be excluded | **refused** unless `EVAL_ALLOW_MANAGED_POLICY=1` |
 | The agent unmounting a mask | agent runs as your uid in a nested user namespace; `--check` tries the unmount and fails if it works |
-| A cell's ROS traffic reaching a robot on the LAN | `ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST`, a dedicated `ROS_DOMAIN_ID` per run |
+| Accidental discovery of a robot on the LAN | Force `ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST`, clear static peers, reject vendor discovery/profile overrides, use a dedicated `ROS_DOMAIN_ID` per run |
 | A robot stack on the same host | `run_ab.sh` **refuses** while ROS processes it did not start are running (`EVAL_ALLOW_FOREIGN_ROS=1` overrides) |
-| Two rounds at once sharing a DDS domain | host lock; the second run is refused |
+| Two rounds for the same OS user sharing a DDS domain | user lock; the second run is refused |
 
 **Not handled, and not claimed.** This is not a sandbox. The agent keeps the
 network — the repository is public, and a `WebFetch` can read it — the process
 table, and every file outside the masks. The masks are only as complete as the
-scan plus `EVAL_MASK_PATHS`. Nothing stops a cell deliberately choosing the same
-`ROS_DOMAIN_ID` as a process on this host.
+scan plus `EVAL_MASK_PATHS`. The foreign-process scan is heuristic, not proof that no robot is present.
+Nothing stops a cell changing its discovery configuration or choosing the same
+`ROS_DOMAIN_ID` as another process. Run evaluations on a development host
+separated from operational robots.
 
 `analyze_v2.py` separates an **attempt** from a **breach**. Naming the
 repository path in a tool call is not a breach on its own — `ps` and
 `/proc/<pid>/cmdline` expose the harness's own invocation, which contains the
 path, and the bind mount leaves the directory empty for anything that reads it.
-A breach requires repository *content* to come back, matched against exact
-strings that appear only in real repo files. Separately, a cell in a condition
+Content markers in tool results are flagged for review, not automatically
+classified as breaches: a treatment legitimately reads its own `CLAUDE.md`,
+and a generic command can occur independently. No marker match is not proof
+of isolation. Confirm provenance before excluding a cell or citing a result. Separately, a cell in a condition
 that must not have this pack (`baseline`, `scripts-only`, `claude-md-only`)
 whose init event lists one of its skills or its plugin is **contaminated**:
 listed and excluded, never tallied.

@@ -174,6 +174,11 @@ def main() -> int:
     if not files:
         print(f"no transcripts under {root}", file=sys.stderr)
         return 2
+    duplicates = [f for f in files if f.suffix == '.gz' and f.with_suffix('').exists()]
+    if duplicates:
+        print("both compressed and plain transcripts exist; choose one copy per cell: "
+              + ", ".join(str(f) for f in duplicates), file=sys.stderr)
+        return 2
     for f in files:
         stem = f.name.split("_result.jsonl")[0]
         task, _, cell = stem.partition("-")
@@ -188,6 +193,13 @@ def main() -> int:
         cells += 1
         tasks_seen.add(task)
         models[c.model or "(no init event)"] += 1
+        # Audit even cells excluded from performance tallies.
+        lk = grade_v2.leaked(c)
+        if lk:
+            leaks.append((f.parent.name, f.name, len(lk)))
+        cf = grade_v2.leak_confirmed(c)
+        if cf:
+            breaches.append((f.parent.name, f.name, len(cf)))
         loaded = c.pack_components_loaded()
         if loaded and cell in NO_PACK_CONDITIONS:
             contaminated.append((rel, loaded))
@@ -195,12 +207,6 @@ def main() -> int:
         grade = grade_v2.grade_cell(task, f, workdir=cell_workdir(f, stem), cell=c)
         if all(v is None for v in grade.values()):
             ungradable.append(rel)
-        lk = grade_v2.leaked(c)
-        if lk:
-            leaks.append((f.parent.name, f.name, len(lk)))
-        cf = grade_v2.leak_confirmed(c)
-        if cf:
-            breaches.append((f.parent.name, f.name, len(cf)))
         for tn in c.tool_names():
             tools[(task, cell)][tn] += 1
         for check, v in grade.items():
@@ -314,20 +320,24 @@ def main() -> int:
             print(f"- {r['check']}: {r['ph']}/{r['nh']} vs {r['pl']}/{r['nl']}, q={r['q']:.3f}")
         print("\nFind the bias before reading anything above.")
     else:
-        print("t4 shows no significant difference between cells — the harness is "
-              "not tilted toward the skills condition, so the other tasks can be read.")
+        print("t4 shows no statistically significant difference. This does not "
+              "prove equivalence or the absence of bias; consider the sample size.")
     print()
 
     print("## Isolation\n")
     if breaches:
-        print(f"**BREACH — {len(breaches)} of {cells} cells obtained repository "
-              f"content**, i.e. saw the eval design or a scenario source naming "
-              f"the planted answer. Reported, not averaged away:\n")
+        print(f"**REVIEW REQUIRED — {len(breaches)} of {cells} cells returned "
+              "known content markers.** Check their provenance before using "
+              "the results: a treatment reading its own CLAUDE.md is expected; "
+              "reading the answer key is a breach. Marker matching alone does "
+              "not distinguish these cases or automatically exclude them:\n")
         for rep, name, n in breaches:
             print(f"- `{rep}/{name}` — {n} result(s)")
-        print("\nRun through `isolate_cell.sh` to close this.\n")
+        print("\nKeep confirmed breaches out of a reported comparison; preserve "
+              "the original transcripts when setting them aside.\n")
     elif leaks:
-        print("Isolation held: no cell obtained repository content.\n")
+        print("No known content markers detected; this is a limited audit, "
+              "not proof of isolation.\n")
         print(f"{len(leaks)} of {cells} cells *named* the repository path in a "
               f"tool call. That is not a breach on its own — `ps` and "
               f"`/proc/<pid>/cmdline` expose the harness's own invocation, "
@@ -337,7 +347,8 @@ def main() -> int:
             print(f"- `{rep}/{name}` — {n} tool call(s)")
         print()
     else:
-        print("No cell reached the repository. Isolation held.\n")
+        print("No known repository-path or content markers detected. This "
+              "limited audit does not prove isolation.\n")
 
     print("## Tool use per cell\n")
     print("| Task | Cell | Tools seen (cells using each) |")

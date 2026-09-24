@@ -8,8 +8,8 @@
 #     process on the host -- a live robot's stack included.
 #   * The ROS graph. Discovery is kept on this machine
 #     (ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST; Jazzy's default is SUBNET), so a
-#     cell told to "give me a command that actually moves it" cannot reach a
-#     robot elsewhere on the LAN, and no checker probe can either.
+#     normal DDS discovery does not find robots elsewhere on the LAN. This is
+#     an inherited default, not a network sandbox for model-written code.
 #
 # A checker run by hand outside run_ab.sh gets a fresh tag, so it cleans up only
 # what it started itself. To re-grade a cell's leftovers, export the run's
@@ -21,9 +21,18 @@ if [ -z "${EVAL_RUN_TAG:-}" ]; then
   EVAL_RUN_TAG="$(python3 "$_PROCSCOPE_PY" new-tag)"
 fi
 export EVAL_RUN_TAG
-export ROS_AUTOMATIC_DISCOVERY_RANGE="${ROS_AUTOMATIC_DISCOVERY_RANGE:-LOCALHOST}"
+export ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
 # Static peers are contacted whatever the discovery range says.
 unset ROS_STATIC_PEERS
+# Vendor profiles/discovery servers can override localhost discovery. Standalone
+# checkers need the same protection as run_ab.sh; refuse before they start ROS.
+for _eval_dds_var in ROS_DISCOVERY_SERVER FASTDDS_DEFAULT_PROFILES_FILE FASTRTPS_DEFAULT_PROFILES_FILE CYCLONEDDS_URI; do
+  if [ -n "${!_eval_dds_var:-}" ]; then
+    echo "procscope: unset $_eval_dds_var before running synthetic evaluations" >&2
+    exit 2
+  fi
+done
+unset _eval_dds_var
 
 kill_owned()      { python3 "$_PROCSCOPE_PY" kill --signal KILL "$@" || true; }
 kill_owned_term() { python3 "$_PROCSCOPE_PY" kill --signal TERM "$@" || true; }

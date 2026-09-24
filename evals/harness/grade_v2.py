@@ -78,6 +78,8 @@ class Cell:
                 d = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if not isinstance(d, dict):
+                continue
             if d.get("type") == "assistant":
                 for b in d.get("message", {}).get("content", []):
                     if b.get("type") == "tool_use":
@@ -137,7 +139,7 @@ class Cell:
     # wrong parameter appeared in it. An error message is not an answer.
     HARNESS_FAILURE = re.compile(
         r"(not logged in|please run /login|invalid api key|authentication"
-        r"|rate limit|no stdin data received|usage limit|credit balance)", re.I)
+        r"|rate limit|session limit|no stdin data received|usage limit|credit balance)", re.I)
 
     def gradable(self) -> bool:
         """False when the cell produced no answer, or produced a harness error.
@@ -259,8 +261,9 @@ def prescribes(text: str, token: str) -> bool:
 REPO_PATH = str(Path(__file__).resolve().parents[2])
 
 
-# Strings that appear only inside repository *content*, never in text a cell can
-# produce on its own. The repo PATH alone is not evidence of a leak: `ps aux` and
+# Strings useful for flagging possible repository content for review. They are
+# not proof: a treatment receives CLAUDE.md intentionally, and generic shell
+# commands can occur independently. The repo PATH alone is not evidence: `ps aux` and
 # /proc/<pid>/cmdline show the harness's own invocation, which carries the path,
 # so a cell that merely runs `ps` matches without ever reading a file. A round
 # was once reported as "5 of 10 cells reached the repository" on exactly that
@@ -281,8 +284,7 @@ CONTENT_MARKERS = (
 def leaked(c: Cell) -> list[str]:
     """Tool calls that named this repository's path.
 
-    An attempt, not a breach -- see CONTENT_MARKERS. `leak_confirmed` is the one
-    that means the cell actually saw the answer key.
+    An attempt, not a breach -- see CONTENT_MARKERS.
     """
     hits = []
     for name, inp in c.tools:
@@ -293,7 +295,11 @@ def leaked(c: Cell) -> list[str]:
 
 
 def leak_confirmed(c: Cell) -> list[str]:
-    """Tool *results* that carried repository content back into the cell."""
+    """Tool results with known content markers; review provenance before use.
+
+    The historical function name is retained for callers, not a claim that
+    these substring matches prove access to an answer key.
+    """
     hits = []
     for _tid, (text, _err) in c.results.items():
         if not text:
@@ -471,10 +477,12 @@ def _external_checks(c: Cell, check, keys: list[str], found_key: str,
                 d = json.loads(p.read_text())
             except (json.JSONDecodeError, UnicodeDecodeError):
                 d = None
-            if isinstance(d, dict) and found_key in d:
+            if isinstance(d, dict) and isinstance(d.get(found_key), bool):
                 found = d.get(found_key)
                 for k in keys:
-                    out[k] = bool(d.get(k)) if found else False
+                    # Missing/invalid evidence is unknown. In particular,
+                    # bool("false") must never turn a malformed verdict into PASS.
+                    out[k] = (d.get(k) if isinstance(d.get(k), bool) else None) if found else False
 
     if not first_build_key:
         return out

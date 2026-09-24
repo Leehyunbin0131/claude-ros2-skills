@@ -177,6 +177,41 @@ preflight() {
     bad=1
   fi
   local t
+  if ! python3 - "$HARNESS" "$TASK" <<'CHECK_TASK'
+import sys
+sys.path.insert(0, sys.argv[1])
+from grade_v2 import TASKS
+raise SystemExit(0 if sys.argv[2] in TASKS else 1)
+CHECK_TASK
+  then
+    echo "preflight: $TASK has a frozen prompt but no grader; refusing an ungradable paid run" >&2
+    bad=1
+  fi
+  local -A seen_cells=()
+  for t in ${CELLS:-baseline skills}; do
+    case "$t" in
+      baseline|skills|scripts-only|claude-md-only) ;;
+      *) echo "preflight: unsupported cell $t" >&2; bad=1 ;;
+    esac
+    if [ -n "${seen_cells[$t]:-}" ]; then
+      echo "preflight: duplicate cell $t" >&2; bad=1
+    fi
+    seen_cells[$t]=1
+    if [ -z "$PREFLIGHT_ONLY" ] && compgen -G "$OUT/${TASK}-${t}_*" >/dev/null; then
+      echo "preflight: $OUT already contains $TASK/$t artifacts; use a fresh output directory" >&2
+      bad=1
+    fi
+  done
+  if [ "${#seen_cells[@]}" -eq 0 ]; then
+    echo "preflight: CELLS must contain at least one condition" >&2
+    bad=1
+  fi
+  for t in ROS_DISCOVERY_SERVER FASTDDS_DEFAULT_PROFILES_FILE FASTRTPS_DEFAULT_PROFILES_FILE CYCLONEDDS_URI; do
+    if [ -n "${!t:-}" ]; then
+      echo "preflight: unset $t; vendor configuration can override localhost discovery" >&2
+      bad=1
+    fi
+  done
   for t in claude python3 unshare flock timeout; do
     command -v "$t" >/dev/null 2>&1 || { echo "preflight: '$t' not found" >&2; bad=1; }
   done
@@ -211,10 +246,10 @@ preflight() {
   return $bad
 }
 
-# One run at a time per host. Concurrent rounds shared a DDS domain and graded
+# One run at a time per OS user. Concurrent rounds shared a DDS domain and graded
 # each other's nodes (evals/runs/2026-07-31-sweep-L2/ctl2/r7 found parallel
 # cells of the same task colliding on /controller_manager).
-LOCK="${XDG_RUNTIME_DIR:-/tmp}/claude-ros2-eval.lock"
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/claude-ros2-eval-${UID}.lock"
 exec 9>"$LOCK"
 if ! flock -n 9; then
   echo "run_ab.sh: another eval run holds $LOCK -- REFUSING to run concurrently." >&2
@@ -246,8 +281,7 @@ mkdir -p "$OUT"
 # reality. It is started fresh for every cell and torn down after that cell's
 # checker, so every condition sees the same thing: several checkers kill the
 # scenario process as part of their own cleanup, which used to leave the second
-# cell of a pair with no publisher at all. Task 2 deliberately publishes ONLY
-# the base tree: writing the rear_lidar transform is the agent's job.
+# cell of a pair with no publisher at all.
 SCENARIO_PIDS=()
 start_scenario() {
   SCENARIO_PIDS=()
@@ -256,7 +290,6 @@ start_scenario() {
   # shellcheck disable=SC1091
   source /opt/ros/jazzy/setup.bash
   set -u
-  local pi=3.14159265358979
   case "$TASK" in
     t1) bash "$REPO/evals/harness/t1_diffdrive_scenario.sh" up \
           >"$SCEN_LOG" 2>&1 &
@@ -281,7 +314,7 @@ start_scenario() {
     tr1|tr2|tr3) python3 "$REPO/evals/harness/slow_trigger_server.py" \
           >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!)
-        if [ "$TASK" != tr1 ]; then
+        if [ "$TASK" = tr2 ]; then
           python3 "$REPO/evals/harness/tick_publisher.py" \
             >>"$SCEN_LOG" 2>&1 &
           SCENARIO_PIDS+=($!)
@@ -311,35 +344,11 @@ start_scenario() {
           >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
   esac
-  # Block until the system is actually up, instead of sleeping blind. Output is
-  # captured before matching: `cmd | grep -q` under pipefail can fail on a match.
-  local got
-  case "$TASK" in
-    t1) for _ in $(seq 1 60); do
-          got="$(timeout 10 ros2 control list_controllers 2>/dev/null || true)"
-          case "$got" in *diff_drive_controller*active*) break ;; esac
-          sleep 1
-        done ;;
-    t2) timeout 20 ros2 topic echo /imu/data --once >/dev/null 2>&1 || true ;;
-    t3) : ;;
-    t4) timeout 20 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
-    t5) : ;;
-    t6) : ;;
-    t7) : ;;
-    g1|g2|g3) : ;;
-    tr1|tr2|tr3) got="$(timeout 25 ros2 service list 2>/dev/null || true)"
-        case "$got" in *slow_check*) ;; *) sleep 3 ;; esac ;;
-    qos1|qos2|qos3) for _ in $(seq 1 20); do
-          TL="$(timeout 5 ros2 topic list 2>/dev/null || true)"
-          case "$TL" in */sensor*) break ;; esac
-          sleep 1
-        done ;;
-    ctl1|ctl2|ctl3|tst1|tst2|tst3|mvt1|mvt2|mvt3) : ;;
-    cor1|cor2|cor3|dev1) : ;;
-    dev2|dev3) timeout 30 ros2 topic echo /scan --once >/dev/null 2>&1 || true ;;
-    per1|per2) timeout 25 ros2 topic echo /camera/image_raw --once >/dev/null 2>&1 || true ;;
-    per3) timeout 25 ros2 topic echo /depth/image_raw --once >/dev/null 2>&1 || true ;;
-  esac
+  if ! python3 "$HARNESS/scenario_ready.py" "$TASK" >>"$SCEN_LOG" 2>&1; then
+    echo "run_ab.sh: scenario $TASK did not become ready; no model call made. See $SCEN_LOG" >&2
+    tail -n 20 "$SCEN_LOG" >&2
+    return 2
+  fi
   echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]:-none}, domain $ROS_DOMAIN_ID)"
 }
 stop_scenario() {
@@ -354,9 +363,10 @@ stop_scenario() {
   kill_owned_term
   sleep 2
   kill_owned
-  wait 2>/dev/null || true
 }
-trap stop_scenario EXIT INT TERM
+trap stop_scenario EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # Exactly what a condition copies in, so it can be removed again afterwards: a
 # `skills` cell's CLAUDE.md left in /tmp is a protocol copy the next `baseline`
@@ -417,6 +427,7 @@ run_cell() {
       --setting-sources project,local \
       --strict-mcp-config \
       --no-session-persistence \
+      --settings '{"autoMemoryEnabled":false}' \
       --output-format stream-json --verbose \
       --permission-mode acceptEdits \
       --allowedTools WebFetch WebSearch Read Glob Grep Write Bash \
