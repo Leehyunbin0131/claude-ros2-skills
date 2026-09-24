@@ -49,12 +49,15 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_all() {
-  pkill -9 -f 'move_group' 2>/dev/null || true
-  pkill -9 -f 'robot_state_publisher' 2>/dev/null || true
-  pkill -9 -f 'joint_state_publisher' 2>/dev/null || true
-  pkill -9 -f 'static_transform_publisher' 2>/dev/null || true
+  kill_owned 'move_group'
+  kill_owned 'robot_state_publisher'
+  kill_owned 'joint_state_publisher'
+  kill_owned 'static_transform_publisher'
   # Also kill anything still referencing the cell's own directory. The cell has
   # already run its bringup once -- CLAUDE.md tells it to verify its work -- and
   # killing only the nodes left the `ros2 launch` wrapper alive, so a bringup
@@ -95,15 +98,7 @@ BRING_RC=$?
 # invisible unless we ask. An L2 cell that did this planned 21 points while
 # this checker reported move_group_up=false, because `ros2 node list` was
 # querying a different domain.
-adopt_domain_from() {
-  local pid d
-  pid="$(pgrep -f "$1" | head -1)"
-  [ -n "$pid" ] || return 0
-  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
-       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
-  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
-  return 0
-}
+# adopt_domain_from is in procscope.sh: it reads only this run's processes.
 adopt_domain_from 'move_group'
 
 MG_UP=false

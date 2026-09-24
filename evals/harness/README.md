@@ -9,17 +9,28 @@ agreeing with you — is [`../LADDER.md`](../LADDER.md). The *result* is
 
 | File | What it does |
 | :--- | :--- |
-| [`run_ab.sh`](./run_ab.sh) | The whole round. Holds every task's **frozen prompt**, brings up the live scenario the task needs, runs each cell in a fresh directory under `isolate_cell.sh`, and dispatches the task's `*_check.sh` when the cell finishes. |
-| [`isolate_cell.sh`](./isolate_cell.sh) | Unprivileged mount namespace with an empty directory bind-mounted over the repository, so a cell cannot read the eval design or a scenario source that names the answer. |
+| [`run_ab.sh`](./run_ab.sh) | One task: holds every task's **frozen prompt**, refuses to start unless preflight passes, and for each condition brings up the task's live scenario, runs the cell in a fresh directory under `isolate_cell.sh`, runs the task's `*_check.sh`, and tears the scenario down. |
+| [`isolate_cell.sh`](./isolate_cell.sh) + [`isolation.py`](./isolation.py) | Unprivileged mount namespace in which every copy of this repository and the host's own Claude instructions are masked with empty bind mounts, then a nested user namespace so the agent runs as your uid and cannot unmount them. `--check` verifies all of that without running anything. |
+| [`procscope.py`](./procscope.py) + [`procscope.sh`](./procscope.sh) | Which processes belong to this run: everything it starts carries `EVAL_RUN_TAG`, and only tagged processes are ever killed. Also keeps ROS discovery on this host. |
 | [`grade_v2.py`](./grade_v2.py) | Turns each cell into a dict of check → pass/fail/ungradable. Real-outcome tasks read the JSON verdict the shell checker wrote at cell time, while the cell's workspace still existed. |
-| [`analyze_v2.py`](./analyze_v2.py) | Grades every cell in a round directory, tallies per check per cell type, runs the fixed comparisons, corrects across the round, and reports isolation. |
+| [`analyze_v2.py`](./analyze_v2.py) | Grades every cell in a round directory, tallies per check per cell type, runs the fixed comparisons, corrects across the round, and reports isolation, set-aside, ungradable and contaminated cells. |
 | [`summarize_run.py`](./summarize_run.py) | Reduces a `stream-json` log to the final message plus the tool calls actually invoked. Diagnosis only — never a grading input. |
+| [`test_harness.py`](./test_harness.py) | Regression tests for all of the above. No model call, no ROS. Run it before trusting a change here. |
 
 ```bash
-# needs a sourced ROS 2 Jazzy install
-MODEL=sonnet ./run_ab.sh dev3 ../runs/$(date +%F)-sweep
+python3 test_harness.py                       # the harness itself
+MODEL=sonnet ./run_ab.sh --preflight          # every refusal check; no scenario, no model call
+# A ladder rung is ten reps, one directory each (the layout of ../runs/):
+for i in $(seq 1 10); do
+  MODEL=sonnet CELLS=baseline ./run_ab.sh dev3 ../runs/$(date +%F)-sweep/dev3/r$i
+done
 python3 analyze_v2.py ../runs/$(date +%F)-sweep
 ```
+
+`MODEL` has no default and must be named; every committed sweep ran `sonnet`
+(each transcript's init event records the model id, and `analyze_v2.py` prints
+it). Needs Ubuntu 24.04 (util-linux ≥ 2.38 for `unshare --map-user`),
+unprivileged user namespaces, and `/opt/ros/jazzy`.
 
 ## The checkers
 
@@ -39,11 +50,19 @@ before writing a new checker — they were each paid for by a wrong number:
 - `grep -c` for counting prints `0` **and** exits 1. Use `awk`.
 - `/active/` also matches `inactive`. Compare the first field exactly.
 - A cell may set its own `ROS_DOMAIN_ID` — which is correct practice — and be
-  invisible to a checker on a different domain. `adopt_domain_from()` reads the
-  domain out of `/proc/<pid>/environ` of a process the cell's own bringup
-  started.
+  invisible to a checker on a different domain. `adopt_domain_from()`
+  (`procscope.sh`) reads the domain out of `/proc/<pid>/environ` of a process
+  the cell's own bringup started — **only this run's processes**. The unscoped
+  `pgrep -f ros2_control_node | head -1` it replaced could adopt the domain of
+  someone else's live controller, and `ctl2`'s probe then publishes position
+  commands there.
+- Never `pkill -f <name>`: it kills every matching process on the host, a live
+  robot's `controller_server` or `robot_state_publisher` included. Every
+  checker used to. Use `kill_owned <pattern>` (`procscope.sh`), which only
+  touches processes carrying this run's `EVAL_RUN_TAG`.
 - `pkill -f "$BDIR"` matches the checker's own command line. Walk `$$`/`$PPID`
-  to build an exclusion set first.
+  to build an exclusion set first (`procscope.py` always excludes the caller
+  and its ancestors).
 - Killing node processes but leaving the `ros2 launch` wrapper alive makes a
   cell's re-entrancy guard skip its relaunch, scoring defensive code as failure.
 - Every wait loop must be bounded, or the checker is killed before it writes any
@@ -80,13 +99,26 @@ opened, they would have produced skill content for gaps the model does not have.
 **A cell that never reached the model is not a cell.** Usage limits, auth
 failures and refusals come back as a normal-looking result whose text happens to
 be an error message; a predicate handed `"You've hit your session limit"` scores
-it `False`, indistinguishable from the model being wrong. Cells with `is_error`
-or no cost are recorded as errors, never graded, and retried.
+it `False`, indistinguishable from the model being wrong. `grade_v2.py` treats
+as ungradable — never graded, listed by `analyze_v2.py`, to be retried — a
+transcript with no closing `result` event (cut off mid-cell), one whose result
+says `is_error` or a non-`success` subtype, a short answer that is only a
+harness error, and a real-outcome task whose checker left no parseable verdict.
+The same goes for an install fact this host lacks: without Nav2, "is this a
+registered Nav2 plugin?" is ungradable, not False.
 
 **`--bare` / `CLAUDE_CODE_SIMPLE=1` must not be used.** Bare mode reads
 Anthropic auth only from `ANTHROPIC_API_KEY`, so on an OAuth machine every cell
-returns "Not logged in" and records as a silent failure. Isolation comes from
-`--setting-sources ""` instead.
+returns "Not logged in" and records as a silent failure. `run_ab.sh` passes
+`--setting-sources project,local --strict-mcp-config` instead: the host's user
+settings, enabled plugins, hooks and MCP servers stay out of every condition,
+while the project scope — where a treatment's `CLAUDE.md` and `.claude/skills`
+live — still loads. (`--safe-mode` is not usable: it would also disable the
+treatment.) The committed 2026-07/08 rounds ran without these flags; their init
+events show no plugin and no pack skill loaded, which `analyze_v2.py` checks on
+every cell. That these flags leave OAuth login working was **not** re-verified
+when they were added (no model call was made); a cell that cannot log in is
+recorded ungradable, not scored.
 
 **Validate a grader against a deliberately broken reference before its round
 runs.** A grader that has only seen good answers is not validated. This caught
@@ -125,18 +157,49 @@ LADDER.md's ≤7/10 threshold is the verdict.
 
 ## Isolation
 
+What a cell must not see, and what hides it (`isolation.py` has the full list):
+
+| Threat | Handled by |
+| :--- | :--- |
+| This checkout, and every other git worktree of it | masked (`git worktree list`) |
+| Another clone, a plugin cache, an earlier `skills` cell's `CLAUDE.md` / skills / scripts under `/tmp` | masked, if a bounded scan of `$HOME` (depth 6) and `/tmp` (depth 5) recognises it |
+| Anything the scan cannot recognise — e.g. a directory of transcripts that quote this repository | **you** list it in `EVAL_MASK_PATHS` (colon-separated); a listed path that does not exist is refused |
+| The host's `~/.claude/CLAUDE.md`, `rules/`, `skills/`, `agents/`, `commands/`, `output-styles/`, `plugins/` | masked; user settings, enabled plugins, hooks and MCP also excluded by `run_ab.sh`'s flags |
+| `CLAUDE.md` / `CLAUDE.local.md` / `AGENTS.md` / `.claude/` in an ancestor of the cell directory (Claude Code loads those) | masked |
+| Managed policy (`/etc/claude-code`), which cannot be excluded | **refused** unless `EVAL_ALLOW_MANAGED_POLICY=1` |
+| The agent unmounting a mask | agent runs as your uid in a nested user namespace; `--check` tries the unmount and fails if it works |
+| A cell's ROS traffic reaching a robot on the LAN | `ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST`, a dedicated `ROS_DOMAIN_ID` per run |
+| A robot stack on the same host | `run_ab.sh` **refuses** while ROS processes it did not start are running (`EVAL_ALLOW_FOREIGN_ROS=1` overrides) |
+| Two rounds at once sharing a DDS domain | host lock; the second run is refused |
+
+**Not handled, and not claimed.** This is not a sandbox. The agent keeps the
+network — the repository is public, and a `WebFetch` can read it — the process
+table, and every file outside the masks. The masks are only as complete as the
+scan plus `EVAL_MASK_PATHS`. Nothing stops a cell deliberately choosing the same
+`ROS_DOMAIN_ID` as a process on this host.
+
 `analyze_v2.py` separates an **attempt** from a **breach**. Naming the
 repository path in a tool call is not a breach on its own — `ps` and
 `/proc/<pid>/cmdline` expose the harness's own invocation, which contains the
 path, and the bind mount leaves the directory empty for anything that reads it.
 A breach requires repository *content* to come back, matched against exact
-strings that appear only in real repo files.
+strings that appear only in real repo files. Separately, a cell in a condition
+that must not have this pack (`baseline`, `scripts-only`, `claude-md-only`)
+whose init event lists one of its skills or its plugin is **contaminated**:
+listed and excluded, never tallied.
+
+**Set-aside cells.** A directory whose name contains `-DISCARDED-` or
+`-SUPERSEDED-` holds cells a round threw away. `analyze_v2.py` lists and
+excludes it; it used to pool it, which turned `mvt1` into 12/12 in a 40-cell
+round that reported "50 cells graded".
 
 ## Archived
 
 The first-generation per-line ablation tooling (`claims.py`, `probes.py`,
 `runner.py`, `analyze.py`, `evals/variants/`) was deleted along with the rounds
-it produced. It answered "does this shipped line earn its place?", which can
+it produced. `isolate_guardrail.sh` followed later: it read
+`skills/ros2-perception/SKILL.md` out of `HEAD` after that skill was deleted, so
+it could no longer start, and it ran its cells without `isolate_cell.sh`. It answered "does this shipped line earn its place?", which can
 only ever delete, and its findings are folded into `../LADDER.md`. Two of its
 lessons still bind anything that edits a body programmatically, and are recorded
 here so they are not rediscovered:

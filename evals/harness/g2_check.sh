@@ -42,6 +42,9 @@ set -u
 export PATH="$HARNESS/gzshim:$PATH"
 export GZ_PARTITION="g2check$$"
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 # Clear strays BEFORE starting, not only after.
 #
@@ -60,11 +63,11 @@ export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
 #     dying only to `kill -9`. That is why every reference variant scored 0 with
 #     `n_sims_running: 2` -- the cleanup looked like it worked and did nothing.
 kill_sims() {
-  pkill -f '^gz sim' 2>/dev/null || true
-  pkill -f '^.*/parameter_bridge' 2>/dev/null || true
+  kill_owned_term '^gz sim'
+  kill_owned_term '^.*/parameter_bridge'
   sleep 2
-  pkill -9 -f '^gz sim' 2>/dev/null || true
-  pkill -9 -f '^.*/parameter_bridge' 2>/dev/null || true
+  kill_owned '^gz sim'
+  kill_owned '^.*/parameter_bridge'
 }
 kill_sims
 sleep 1
@@ -166,7 +169,7 @@ print(mm.group(1) if mm else "0")'
 }
 ODOM_TOPIC="$(find_odom_topic)"
 N_GZ_TOPICS=$(timeout 8 gz topic -l 2>/dev/null | grep -c . || echo 0)
-N_SIMS=$(pgrep -fc '^gz sim' 2>/dev/null || echo 0)
+N_SIMS=$(owned_pids '^gz sim' 2>/dev/null | awk 'END {print NR}')
 X0="$(gz_x)"
 [ -n "$X0" ] || X0=nan
 timeout 20 ros2 topic pub -r 10 /cmd_vel geometry_msgs/msg/Twist \

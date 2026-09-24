@@ -45,10 +45,13 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_all() {
-  pkill -9 -f 'controller_server' 2>/dev/null || true
-  pkill -9 -f 'planner_server' 2>/dev/null || true
+  kill_owned 'controller_server'
+  kill_owned 'planner_server'
 }
 kill_all
 sleep 1

@@ -9,6 +9,10 @@ only: no skills, no `CLAUDE.md`, model knowledge + web search + a live ROS 2
 Jazzy install. Ten cells per rung. **A rung fails at ≤ 7/10 cells.** Method and
 anti-manufacturing rules: [`LADDER.md`](./LADDER.md).
 
+Several rung numbers below include re-grades that are **not in the committed
+record**; [Reconciliation](#reconciliation-published-numbers-vs-the-committed-record)
+sets each one beside what `harness/analyze_v2.py` reproduces from `runs/`.
+
 ---
 
 ## The short answer
@@ -242,6 +246,47 @@ happen.
 
 ---
 
+## Reconciliation: published numbers vs the committed record
+
+The rung numbers above were read after failing cells had been opened and, where
+the grader was at fault, re-graded — mostly from workspaces preserved in `/tmp`
+at the time. Those re-graded verdicts were never committed, and the workspaces
+are gone. So `python3 harness/analyze_v2.py runs/<round>` on the committed
+verdict files does not reproduce every number above. Both are recorded here;
+neither is edited to match the other. `harness/test_harness.py` pins the
+committed column.
+
+| Rung | Published above | Committed verdicts (`analyze_v2.py`) | What the repository records about the difference |
+| :--- | ---: | :--- | :--- |
+| `ctl2` | 20/20 | **12/16** — r5, r6 fail both checks; r7, r8 left no verdict (ungradable) | grader defects #2 and #4 in [`LADDER.md`](./LADDER.md#the-l2-rounds-real-finding-six-grader-defects-one-root-cause); the post-fix re-grade is not committed. r7's own transcript reports parallel cells colliding on one DDS domain. |
+| `tst2` | 40/40 | 39/40 — `tst2_launch_testing` 9/10 (r9) | re-grade argued in [`LADDER.md`](./LADDER.md#a-grader-defect-found-by-reading-a-failing-cell-instead-of-counting-it) (5 of 10 workspaces re-verified) |
+| `tst3` | 40/40 | **33/40 — `tst3_bag_written` 3/10** (r1–r7: `n_bags 0`) | only the general note above ("cleaning up a temp directory" punished good engineering); **no per-cell record**. On the committed record alone this rung fails the ≤ 7/10 threshold. |
+| `mvt2` | 30/30 | **23/30 — `mvt2_move_group_up` 7/10** (r4, r7, r9); plan/points 8/10 (r7, r9) | grader defects #5 and #6 in `LADDER.md`; #6's fix is recorded there as "queued, not yet applied", and the re-grade is not committed. At the threshold on the committed record. |
+| `per2` | 38/40 | 34/40 — r8 fails all four; r10 fails `detection_published`/`_correct` | grader defect #3 (probe discovery race). The first attempt is kept, set aside, as `per2-SUPERSEDED-grader-race/`; the r10 re-grade is not committed. |
+| `per3` | 32/40 | **28/40 — 7/10 on every check** (r3, r5: the QoS trap; r4) | r4 logged 20 correct `CLOUD 15360` lines and exited 0, yet the probe saw no cloud (`n_clouds_seen 0`) — the per2 probe race again. Published counts r4 as a pass; that re-grade is not committed. At the threshold on the committed record. |
+| `dev2` | 30/30 | 27/27 — r4 left no verdict (ungradable) | not recorded |
+| `mvt1` | 30/30 | 30/30 | matches once `mvt1-DISCARDED-mid-round-edit/` is excluded; the analyzer used to pool it and print 12/12 |
+| all other committed rungs | — | match | `ctl1`, `ctl3`, `tst1`, `mvt3`, `per1`, `cor1`–`cor3`, `dev1`, `dev3` |
+
+By domain, the committed record gives `ros2_control` 82/86, Testing 102/110,
+MoveIt 93/100 and Perception 98/120, against 90/90, 110/110, 100/100 and 106/120
+above.
+
+**Not in the repository at all:** the `ros2-package` (`t5`–`t7`), `gazebo-sim`
+(`g1`–`g3`), executor (`tr1`–`tr3`) and `qos1` rounds, and the rounds behind
+the first three rows of *The short answer* (2/10 → 10/10, 0/10 → 10/10,
+5/10 → 9/10). Their transcripts were deleted; the numbers are the surviving
+record, not something this repository can reproduce.
+
+This section re-decides nothing. It does not restore a deleted skill or change a
+threshold, and it makes no new measurement. It records that for `tst3`, `mvt2`
+and `per3` the committed record alone sits at or below the rung-failure
+threshold, and that the published passes rest on re-grades whose evidence is no
+longer here. Whether those rungs should be re-run is a separate decision that
+would cost a paid round.
+
+---
+
 ## What was done about it
 
 Six skills were deleted in full on 2026-08-01 — `ros2-core`, `ros2-dev`,
@@ -253,7 +298,7 @@ What survives is exactly what measured:
 
 | Kept | Why |
 | :--- | :--- |
-| `CLAUDE.md`, 28 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
+| `CLAUDE.md`, 30 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
 | `ros2-troubleshooting` scripts | 0/10 → 10/10 on producing a checked verdict |
 | `references/frames.md` | physical mount vs REP 103 — no ladder can test it without hardware, and no doc contains the robot's real geometry |
 | `references/calibration.md` | same category, and nearly lost: `diff_drive_controller` wheel calibration was deleted with `ros2-control`, but `ctl1`–`ctl3` never tested it. Restored to the physical-verification skill that owns the script it cites. |

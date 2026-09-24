@@ -44,15 +44,18 @@ set -u
 export PATH="$HARNESS/gzshim:$PATH"
 export GZ_PARTITION="g3check$$"
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_sims() {
-  pkill -f '^gz sim' 2>/dev/null || true
-  pkill -f '^.*/parameter_bridge' 2>/dev/null || true
-  pkill -f 'robot_state_publisher' 2>/dev/null || true
+  kill_owned_term '^gz sim'
+  kill_owned_term '^.*/parameter_bridge'
+  kill_owned_term 'robot_state_publisher'
   sleep 2
-  pkill -9 -f '^gz sim' 2>/dev/null || true
-  pkill -9 -f '^.*/parameter_bridge' 2>/dev/null || true
-  pkill -9 -f 'robot_state_publisher' 2>/dev/null || true
+  kill_owned '^gz sim'
+  kill_owned '^.*/parameter_bridge'
+  kill_owned 'robot_state_publisher'
 }
 kill_sims
 sleep 1

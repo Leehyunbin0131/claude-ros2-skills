@@ -1,25 +1,43 @@
 #!/usr/bin/env bash
-# Run one eval task as a baseline / with-skills A/B pair.
+# Run one eval task: one cell per condition, each against its own live scenario.
 #
-#   ./run_ab.sh <t1|t2|t3|t4> [out-dir]
-#   CELLS="baseline scripts-only skills" ./run_ab.sh 2 out/
+#   MODEL=sonnet CELLS=baseline ./run_ab.sh <task> <out-dir>
+#   MODEL=sonnet CELLS="baseline scripts-only skills" ./run_ab.sh t2 out/
+#   ./run_ab.sh --preflight [task]      # every refusal check, no scenario, no model call
 #
-# Both cells get an identical prompt, model, tool allowlist and a fresh working
-# directory. The only difference is that the with-skills cell has CLAUDE.md and
-# skills/ installed per the Quickstart. stream-json is used in BOTH cells so the
-# "verification tools used" column is evidence, not recollection.
+# Every cell gets an identical prompt, model, tool allowlist and a fresh working
+# directory; the conditions differ only in what is copied into it (see
+# run_cell). stream-json is recorded in every cell so tool use is evidence, not
+# recollection. A ladder round is ten invocations, one per rep directory:
 #
-# Conditions match evals/README.md and the 2026-07-25 container run.
+#   for i in $(seq 1 10); do
+#     MODEL=sonnet CELLS=baseline ./run_ab.sh ctl1 ../runs/<round>/ctl1/r$i
+#   done
+#
+# Fails closed before any model call (see preflight): MODEL must be named
+# explicitly, isolation must verify, no other eval run may be active, and no ROS
+# stack this harness did not start may be running on the host -- cells execute
+# model-written ROS code and checkers publish commands.
 set -euo pipefail
 
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TASK="${1:?usage: run_ab.sh <t1|t2|t3|t4> [out-dir]}"
-OUT="${2:-$REPO/evals/runs/$(date +%F)-native}"
-MODEL="${MODEL:-haiku}"
+HARNESS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$HARNESS/../.." && pwd)"
+PREFLIGHT_ONLY=""
+if [ "${1:-}" = "--preflight" ]; then
+  PREFLIGHT_ONLY=1
+  shift
+  set -- "${1:-t4}" "(preflight: nothing is written)"
+fi
+TASK="${1:?usage: run_ab.sh <task> <out-dir> | --preflight [task]}"
+OUT="${2:?usage: run_ab.sh <task> <out-dir> -- name the round directory explicitly}"
+# No default. It used to be haiku, which this project found does not transfer
+# to the model it ships against; every committed sweep ran sonnet (the model id
+# each transcript's init event records).
+MODEL="${MODEL:-}"
 
-# v2 tasks. Prompts are verbatim from evals/TASKS.md -- if they diverge, TASKS.md
-# is the source of truth. t1-t3 target one category each from DESIGN.md; t4 is
-# the null control and must show no difference between cells.
+# The prompts below are FROZEN (evals/LADDER.md rule 1) and are the record: the
+# TASKS.md they were first written in is not in this repository. t4 is the
+# null control and must show no difference between cells.
 case "$TASK" in
   t1) PROMPT='I have a diff-drive robot running `ros2_control` on ROS 2 Jazzy with `diff_drive_controller` active and its interfaces claimed. Publishing to `/cmd_vel` does nothing — the wheels never turn and nothing errors. Find out why and give me a command that actually moves it.' ;;
   t2) PROMPT='My robot'"'"'s EKF odometry drifts and sometimes spins on the spot. Every topic looks healthy and nothing errors. I think the IMU is mounted wrong but I want evidence, not a hunch. Settle it.' ;;
@@ -149,15 +167,90 @@ case "$TASK" in
   *) echo "unknown task: $TASK (expected t1|t2|t3|t4|t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|qos2|qos3|ctl1-3|tst1-3|per1-3|mvt1-3|cor1-3|dev1-3)" >&2; exit 2 ;;
 esac
 
+# --- preflight: refuse before any scenario or model call ----------------------
+# Every check reports; the run stops if any failed. Nothing here writes outside
+# /tmp or touches a process.
+preflight() {
+  local bad=0 out
+  if [ -z "$MODEL" ]; then
+    echo "preflight: MODEL is not set. Name it (MODEL=sonnet); the committed sweeps ran sonnet." >&2
+    bad=1
+  fi
+  local t
+  for t in claude python3 unshare flock timeout; do
+    command -v "$t" >/dev/null 2>&1 || { echo "preflight: '$t' not found" >&2; bad=1; }
+  done
+  [ -r /opt/ros/jazzy/setup.bash ] || { echo "preflight: /opt/ros/jazzy/setup.bash not readable" >&2; bad=1; }
+  case "${EVAL_ROS_DOMAIN_ID:-90}" in
+    ''|*[!0-9]*) echo "preflight: EVAL_ROS_DOMAIN_ID must be a number 1-101" >&2; bad=1 ;;
+    *) { [ "${EVAL_ROS_DOMAIN_ID:-90}" -ge 1 ] && [ "${EVAL_ROS_DOMAIN_ID:-90}" -le 101 ]; } \
+         || { echo "preflight: EVAL_ROS_DOMAIN_ID must be 1-101 (Linux-safe DDS range)" >&2; bad=1; } ;;
+  esac
+  # Leftovers of an earlier run that died before its own cleanup.
+  out="$(python3 "$HARNESS/procscope.py" pids --any-tag 2>/dev/null || true)"
+  if [ -n "$out" ]; then
+    echo "preflight: processes from an earlier eval run are still alive: $(echo $out)" >&2
+    echo "  They carry an EVAL_RUN_TAG, so this removes exactly them and nothing else:" >&2
+    echo "  python3 $HARNESS/procscope.py kill --any-tag" >&2
+    bad=1
+  fi
+  # A robot stack this harness did not start. Cells run model-written ROS code
+  # and checkers publish commands, so do not share a host with a live robot.
+  out="$(python3 "$HARNESS/procscope.py" foreign-ros 2>/dev/null || true)"
+  if [ -n "$out" ] && [ "${EVAL_ALLOW_FOREIGN_ROS:-}" != 1 ]; then
+    echo "preflight: ROS processes not started by this harness are running:" >&2
+    printf '%s\n' "$out" | sed 's/^/  /' >&2
+    echo "  Stop them, or set EVAL_ALLOW_FOREIGN_ROS=1 if they cannot be reached" >&2
+    echo "  (the run itself stays on ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST)." >&2
+    bad=1
+  fi
+  if ! bash "$HARNESS/isolate_cell.sh" --check >/dev/null; then
+    echo "preflight: isolation did not verify (message above)" >&2
+    bad=1
+  fi
+  return $bad
+}
+
+# One run at a time per host. Concurrent rounds shared a DDS domain and graded
+# each other's nodes (evals/runs/2026-07-31-sweep-L2/ctl2/r7 found parallel
+# cells of the same task colliding on /controller_manager).
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/claude-ros2-eval.lock"
+exec 9>"$LOCK"
+if ! flock -n 9; then
+  echo "run_ab.sh: another eval run holds $LOCK -- REFUSING to run concurrently." >&2
+  exit 6
+fi
+
+if ! preflight; then
+  echo "run_ab.sh: preflight failed -- nothing was started." >&2
+  exit 3
+fi
+if [ -n "$PREFLIGHT_ONLY" ]; then
+  echo "preflight ok (model=$MODEL)"
+  exit 0
+fi
+
+# Everything this run starts carries this tag, and only tagged processes are
+# ever killed (procscope.sh). A fresh tag, never an inherited one.
+EVAL_RUN_TAG="$(python3 "$HARNESS/procscope.py" new-tag)"
+export EVAL_RUN_TAG
+# shellcheck source=procscope.sh
+source "$HARNESS/procscope.sh"
+# One DDS domain for this run's scenario and cells, on this host only.
+export ROS_DOMAIN_ID="${EVAL_ROS_DOMAIN_ID:-$(( 90 + RANDOM % 12 ))}"
+
 mkdir -p "$OUT"
 
 # --- live scenario -----------------------------------------------------------
-# Each task needs a running system for either cell to be able to verify against
-# reality. The same scenario is up for both cells, so the only difference stays
-# the skills. Task 2 deliberately publishes ONLY the base tree: writing the
-# rear_lidar transform is the agent's job.
+# Each task needs a running system for a cell to be able to verify against
+# reality. It is started fresh for every cell and torn down after that cell's
+# checker, so every condition sees the same thing: several checkers kill the
+# scenario process as part of their own cleanup, which used to leave the second
+# cell of a pair with no publisher at all. Task 2 deliberately publishes ONLY
+# the base tree: writing the rear_lidar transform is the agent's job.
 SCENARIO_PIDS=()
 start_scenario() {
+  SCENARIO_PIDS=()
   # setup.bash reads unset vars; -u must be off while sourcing it.
   set +u
   # shellcheck disable=SC1091
@@ -166,14 +259,14 @@ start_scenario() {
   local pi=3.14159265358979
   case "$TASK" in
     t1) bash "$REPO/evals/harness/t1_diffdrive_scenario.sh" up \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     t2) python3 "$REPO/evals/harness/fake_imu_pub.py" \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     t3) : ;;  # Nav2 config task; nothing to bring up, the install is the system
     t4) python3 "$REPO/evals/harness/fake_scan_pub.py" \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     t5) : ;;  # packaging task; the deliverable is a buildable workspace
     t6) : ;;  # ladder rung L2, same shape as t5
@@ -186,15 +279,15 @@ start_scenario() {
     # made that sentence false: cells ran `ros2 topic info /sensor -v`, got
     # "Unknown topic", and had to guess. Four of ten noticed /sensor was absent.
     tr1|tr2|tr3) python3 "$REPO/evals/harness/slow_trigger_server.py" \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!)
         if [ "$TASK" != tr1 ]; then
           python3 "$REPO/evals/harness/tick_publisher.py" \
-            >>"$OUT/${TASK}_scenario.log" 2>&1 &
+            >>"$SCEN_LOG" 2>&1 &
           SCENARIO_PIDS+=($!)
         fi ;;
     qos1|qos2|qos3) python3 "$REPO/evals/harness/qos_publishers.py" \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     # 2026-07-31 coverage sweep. ctl*/tst*/mvt* are self-contained: the
     # deliverable is a workspace or a bringup script, and the cell brings up its
@@ -209,19 +302,22 @@ start_scenario() {
     # dev3 says the scan and the TF chain are already published, so they must
     # actually be up during the cell -- the mistake qos1 paid for.
     dev2|dev3) bash "$REPO/evals/harness/dev3_scenario.sh" up \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     per1|per2) python3 "$REPO/evals/harness/camera_publisher.py" \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
     per3) python3 "$REPO/evals/harness/camera_publisher.py" --depth \
-          >"$OUT/${TASK}_scenario.log" 2>&1 &
+          >"$SCEN_LOG" 2>&1 &
         SCENARIO_PIDS+=($!) ;;
   esac
-  # Block until the system is actually up, instead of sleeping blind.
+  # Block until the system is actually up, instead of sleeping blind. Output is
+  # captured before matching: `cmd | grep -q` under pipefail can fail on a match.
+  local got
   case "$TASK" in
     t1) for _ in $(seq 1 60); do
-          ros2 control list_controllers 2>/dev/null | grep -q 'diff_drive_controller.*active' && break
+          got="$(timeout 10 ros2 control list_controllers 2>/dev/null || true)"
+          case "$got" in *diff_drive_controller*active*) break ;; esac
           sleep 1
         done ;;
     t2) timeout 20 ros2 topic echo /imu/data --once >/dev/null 2>&1 || true ;;
@@ -231,7 +327,8 @@ start_scenario() {
     t6) : ;;
     t7) : ;;
     g1|g2|g3) : ;;
-    tr1|tr2|tr3) timeout 25 ros2 service list 2>/dev/null | grep -q slow_check || sleep 3 ;;
+    tr1|tr2|tr3) got="$(timeout 25 ros2 service list 2>/dev/null || true)"
+        case "$got" in *slow_check*) ;; *) sleep 3 ;; esac ;;
     qos1|qos2|qos3) for _ in $(seq 1 20); do
           TL="$(timeout 5 ros2 topic list 2>/dev/null || true)"
           case "$TL" in */sensor*) break ;; esac
@@ -243,46 +340,51 @@ start_scenario() {
     per1|per2) timeout 25 ros2 topic echo /camera/image_raw --once >/dev/null 2>&1 || true ;;
     per3) timeout 25 ros2 topic echo /depth/image_raw --once >/dev/null 2>&1 || true ;;
   esac
-  echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]})"
+  echo "scenario for task $TASK up (pids: ${SCENARIO_PIDS[*]:-none}, domain $ROS_DOMAIN_ID)"
 }
 stop_scenario() {
-  # SIGTERM, then SIGKILL. Ten `ros2_control_node` processes from the t1 rounds
-  # were found still running long afterwards because this sent only SIGTERM and
-  # controller_manager does not act on it. Third instance of the same lesson in
-  # this project: `gz sim` ignored SIGTERM in the gazebo rounds, and rclpy inside
+  # SIGTERM, then SIGKILL, to every process of THIS run -- scenario, whatever
+  # the cell left running in the background, the checker's probes -- and to
+  # nothing else on the host (it used to `pkill -9` every ros2_control_node).
+  # SIGKILL because ten `ros2_control_node` processes from the t1 rounds were
+  # found still running long afterwards: controller_manager does not act on
+  # SIGTERM, `gz sim` ignored it in the gazebo rounds, and rclpy inside
   # executor.spin() ignored it in the executor rounds -- where a bare `wait` on
   # the survivor then hung a checker for 4 h 48 m.
-  [ ${#SCENARIO_PIDS[@]} -eq 0 ] || kill "${SCENARIO_PIDS[@]}" 2>/dev/null || true
+  kill_owned_term
   sleep 2
-  [ ${#SCENARIO_PIDS[@]} -eq 0 ] || kill -9 "${SCENARIO_PIDS[@]}" 2>/dev/null || true
-  pkill -9 -f '^/opt/ros/jazzy/lib/controller_manager/ros2_control_node' 2>/dev/null || true
+  kill_owned
   wait 2>/dev/null || true
 }
 trap stop_scenario EXIT INT TERM
 
-run_cell() {
-  local cell="$1" dir
-  dir="$(mktemp -d "/tmp/eval-${TASK}-${cell}-XXXX")"
-
-  # Three conditions. `scripts-only` ships the bundled scripts WITHOUT any
-  # SKILL.md or CLAUDE.md, so a task about those scripts measures what the
-  # skill *text* buys rather than what shipping the files buys -- without it
-  # that comparison is a tautology, since an agent that globs finds the scripts
-  # either way. See evals/TASKS.md, Task 2.
+# Exactly what a condition copies in, so it can be removed again afterwards: a
+# `skills` cell's CLAUDE.md left in /tmp is a protocol copy the next `baseline`
+# cell could find.
+inject() {
+  local cell="$1" dir="$2" s f
   case "$cell" in
     skills)
       mkdir -p "$dir/.claude/skills"
-      cp -r "$REPO"/skills/* "$dir/.claude/skills/"
+      for s in "$REPO"/skills/*/; do
+        cp -r "$s" "$dir/.claude/skills/"
+        echo ".claude/skills/$(basename "$s")"
+      done
       cp "$REPO/CLAUDE.md" "$dir/"
-      ;;
+      echo "CLAUDE.md" ;;
+    # `scripts-only` ships the bundled scripts WITHOUT any SKILL.md or CLAUDE.md,
+    # so a task about those scripts measures what the skill *text* buys rather
+    # than what shipping the files buys -- without it that comparison is a
+    # tautology, since an agent that globs finds the scripts either way.
     scripts-only)
-      local s
       for s in "$REPO"/skills/*/scripts; do
         [ -d "$s" ] || continue
         mkdir -p "$dir/scripts"
-        cp -r "$s"/* "$dir/scripts/"
-      done
-      ;;
+        for f in "$s"/*; do
+          cp -r "$f" "$dir/scripts/"
+          echo "scripts/$(basename "$f")"
+        done
+      done ;;
     # `CLAUDE.md` and nothing else. The `skills` cell ships both CLAUDE.md and
     # skills/, so round 3's t1_searched_or_read result (3/10 -> 10/10, q=0.009)
     # could belong to either. CLAUDE.md's opening paragraph is itself an
@@ -290,51 +392,81 @@ run_cell() {
     # behaviour that grader measures. This cell separates them.
     claude-md-only)
       cp "$REPO/CLAUDE.md" "$dir/"
-      ;;
+      echo "CLAUDE.md" ;;
     baseline) ;;
     *) echo "unknown cell: $cell" >&2; return 2 ;;
   esac
+}
 
-  echo "--- task $TASK / $cell  (model=$MODEL, cwd=$dir)"
-  # Every cell runs with this repository hidden. Round 2 caught a baseline cell
-  # reading evals/DESIGN.md and the scenario source, which names the planted
-  # answer; see evals/harness/isolate_cell.sh. Rounds before that fix are not
-  # comparable to rounds after it.
-  bash "$REPO/evals/harness/isolate_cell.sh" "$dir" \
+run_cell() {
+  local cell="$1" dir injected rel
+  dir="$(mktemp -d "/tmp/eval-${TASK}-${cell}-XXXX")"
+  injected="$(inject "$cell" "$dir")" || return 2
+
+  echo "--- task $TASK / $cell  (model=$MODEL, cwd=$dir, domain=$ROS_DOMAIN_ID)"
+  # Every cell runs with this repository hidden; see isolate_cell.sh. The
+  # settings flags keep the host's user settings, enabled plugins, hooks and
+  # MCP servers out of every condition alike; the project scope stays loaded
+  # because that is where a treatment's CLAUDE.md and .claude/skills live. The
+  # committed 2026-07/08 rounds ran without these three flags -- their init
+  # events show no plugin and no pack skill loaded, which analyze_v2.py checks.
+  local rc=0
+  bash "$HARNESS/isolate_cell.sh" "$dir" \
     claude -p "$PROMPT" \
       --model "$MODEL" \
+      --setting-sources project,local \
+      --strict-mcp-config \
+      --no-session-persistence \
       --output-format stream-json --verbose \
       --permission-mode acceptEdits \
       --allowedTools WebFetch WebSearch Read Glob Grep Write Bash \
-    > "$OUT/${TASK}-${cell}_result.jsonl"
+    > "$OUT/${TASK}-${cell}_result.jsonl" || rc=$?
+  # An empty transcript with a non-zero exit means the cell never started:
+  # isolation refused, or claude could not launch. Stop the run rather than
+  # grade nothing. A session that ran and then errored is kept; the grader
+  # records it as ungradable.
+  if [ "$rc" -ne 0 ] && [ ! -s "$OUT/${TASK}-${cell}_result.jsonl" ]; then
+    echo "run_ab.sh: cell $cell did not start (exit $rc) -- stopping the run." >&2
+    exit "$rc"
+  fi
 
   # Final assistant message + the tool names actually invoked, for grading.
-  python3 "$REPO/evals/harness/summarize_run.py" \
+  python3 "$HARNESS/summarize_run.py" \
       "$OUT/${TASK}-${cell}_result.jsonl" \
       > "$OUT/${TASK}-${cell}_final.md"
 
-  # T5's graders are all real outcomes and have to run against the workspace
-  # the cell left behind: a clean rebuild, then `ros2 run` / `ros2 launch` /
-  # `ros2 interface show`. Run it here, while $dir still exists, and keep the
-  # verdict next to the transcript. Every one of the packaging defects this
-  # task is about builds cleanly, so reading the build log is not enough --
-  # see the discrimination table in t5_check.sh.
-  case "$TASK" in
-    t5|t6|t7|g1|g2|g3|tr1|tr2|tr3|qos1|ctl1|ctl2|ctl3|tst1|tst2|tst3|per1|per2|per3|mvt1|mvt2|mvt3|cor1|cor2|cor3|dev1|dev2|dev3)
-      bash "$REPO/evals/harness/${TASK}_check.sh" "$dir" \
-        "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true ;;
-  esac
+  # Real-outcome graders run against the workspace the cell left behind, so
+  # they run here, while $dir still exists, and keep the verdict next to the
+  # transcript. Every packaging defect t5 is about builds cleanly, so reading
+  # the build log is not enough -- see the discrimination table in t5_check.sh.
+  if [ -f "$HARNESS/${TASK}_check.sh" ]; then
+    bash "$HARNESS/${TASK}_check.sh" "$dir" \
+      "$OUT/${TASK}-${cell}_check.json" >/dev/null 2>&1 || true
+  fi
 
-  # Keep whatever files the agent wrote (Task 1 produces a node).
-  find "$dir" -maxdepth 1 -type f ! -name CLAUDE.md -exec cp {} "$OUT/" \; 2>/dev/null || true
+  # Keep whatever top-level files the agent wrote, per cell: two conditions in
+  # one out-dir used to overwrite each other's node.py.
+  mkdir -p "$OUT/${TASK}-${cell}_files"
+  find "$dir" -maxdepth 1 -type f ! -name CLAUDE.md \
+    -exec cp {} "$OUT/${TASK}-${cell}_files/" \; 2>/dev/null || true
+  # Remove exactly what inject() copied in; the agent's own work stays.
+  while IFS= read -r rel; do
+    if [ -n "$rel" ]; then rm -rf -- "${dir:?}/$rel"; fi
+  done <<< "$injected"
   echo "    -> $OUT/${TASK}-${cell}_final.md"
+  python3 "$HARNESS/grade_v2.py" "$TASK" "$OUT/${TASK}-${cell}_result.jsonl" \
+    | python3 -c 'import json,sys; d=json.load(sys.stdin)
+print("       model=%s gradable=%s pack_loaded=%s" % (d["model"] or "?", d["gradable"], d["pack_components_loaded"] or "none"))' \
+    || true
 }
 
-start_scenario
 for cell in ${CELLS:-baseline skills}; do
+  SCEN_LOG="$OUT/${TASK}-${cell}_scenario.log"
+  start_scenario
   run_cell "$cell"
+  stop_scenario
 done
-stop_scenario
 
 echo
-echo "Grade with: python3 evals/harness/grade_v2.py $TASK <result.jsonl>"
+echo "Grade with: python3 $HARNESS/analyze_v2.py <round-dir>"
+echo "       or:  python3 $HARNESS/grade_v2.py $TASK <result.jsonl>"
