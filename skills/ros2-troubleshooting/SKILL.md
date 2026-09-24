@@ -20,13 +20,13 @@ package to `ros2 run`, and inventing one is a known failure mode. Exit code
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-python3 <this-skill>/scripts/check_qos_compat.py --topic /scan
+python3 "${CLAUDE_SKILL_DIR}/scripts/check_qos_compat.py" --topic /scan
 ```
 
 | Script | Answers |
 | :--- | :--- |
 | `check_qos_compat.py --topic /scan` | Why a healthy publisher delivers nothing to this subscriber |
-| `check_tf_tree.py --sensors laser_frame,imu_link` | Does `map->odom->base_link` resolve, and does each sensor's mount RPY match the hardware |
+| `check_tf_tree.py --sensors laser_frame,imu_link` | Does `map->odom->base_link` resolve? Prints sensor mount RPY for comparison with the hardware |
 | `check_imu_gravity.py [--topic /imu/data]` | At rest on level ground, is gravity ~+9.81 on +Z after TF into `--base base_link`? Yaw is not observable. Missing TF is inconclusive; `--assume-aligned` skips TF |
 | `check_odom_direction.py [--topic /odom]` | Does odometry agree with the direction the robot physically moved |
 

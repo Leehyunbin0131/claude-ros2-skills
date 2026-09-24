@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install/update the two skills and the unchanged protocol without replacing CLAUDE.md.
+"""Install/update the skills and protocol without replacing CLAUDE.md.
 
 python3 scripts/install.py --project /path/to/robot-workspace
 python3 scripts/install.py --user
@@ -17,7 +17,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = 'claude-ros2-skills-install.json'
-SKILLS = ('ros2-troubleshooting', 'ros2-microros')
+SKILLS = ('ros2-development', 'ros2-troubleshooting', 'ros2-microros')
 RETIRED = ('ros2-core', 'ros2-dev', 'ros2-control', 'ros2-moveit',
            'ros2-perception', 'ros2-testing', 'ros2-package', 'gazebo-sim')
 
@@ -115,7 +115,7 @@ def install(target):
             else:
                 manifest.unlink(missing_ok=True)
             raise
-    print(f'Installed two skills and rules/ros2-verification.md in {target}')
+    print(f'Installed {len(SKILLS)} skills and rules/ros2-verification.md in {target}')
     print('Existing CLAUDE.md and unrelated skills were preserved. Start a new Claude Code session.')
 
 

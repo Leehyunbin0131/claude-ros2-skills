@@ -1,110 +1,66 @@
-# How a skill in this pack is written
+# Authoring useful ROS 2 skills
 
-Two things shaped this pack, and **the whole point of this file is keeping them
-apart**:
+The current objective is to help an agent produce and verify working ROS 2
+software. Neither a large manual nor an empty skill is useful by default.
+Choose the smallest amount of guidance that addresses a concrete development
+problem, and test what it claims.
 
-- **A measurement in this repository** licenses a change to *this* pack.
-- **Anthropic's [context-engineering guidance for Claude 5 generation
-  models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)**
-  is a strong prior about *any* pack.
+## Choose the intervention from the failure
 
-They agreed almost everywhere, which is why this pack ended up so small. But
-they are not the same kind of evidence, and this project has already reverted
-one mass rewrite that rested on a prior instead of a number.
+A failure can arise from missing context, an incorrect API assumption, an
+unexecuted development step, a packaging defect or a physical mismatch. Do not
+assume every failure needs another rule, or that every failure is merely
+behavioural. Inspect the workspace and observations before choosing between
+source pointers, a workflow, a focused reference and a runnable diagnostic.
 
-## What the guidance actually says
+Examples in the current pack:
 
-Worth stating precisely, because it is easy to overclaim on its behalf.
+- `ros2-development`: building a package does not establish that its entry point
+  was installed or that its tests ran. The workflow checks the installed
+  artifact, and a bundled report check distinguishes executed tests from zero
+  tests and all-skipped runs.
+- `ros2-troubleshooting`: topic visibility does not establish endpoint QoS
+  compatibility, and raw IMU axes do not establish the base-frame gravity
+  direction. Scripts use native policy checks, TF and validated data.
+- `ros2-microros`: retained guidance is explicitly unverified on MCU hardware.
+  Its presence is not evidence of a measured benefit.
 
-It diagnoses **over-constraining** — "we were overconstraining Claude Code, both
-through our system prompt and in our CLAUDE.md files and skills" — and
-**conflicting instructions**, where a system prompt, a skill and a user request
-clash inside one request and "Claude must think more carefully about these
-overlapping and conflicting messages before deciding what to do."
+## Keep routing and context proportional
 
-Its one quantitative claim is that over 80% of Claude Code's system prompt was
-removed **"with no measurable loss"** on coding evaluations.
+The description should name the developer task that benefits. Do not make every
+skill activate for every ROS question. Keep detailed references out of the main
+body until their topic is needed. A short table may be useful when it changes a
+verification choice; a large catalogue of facts the agent can look up usually
+is not.
 
-**That is evidence the content was unnecessary, not evidence it was harmful.**
-The post does not claim old-style skills degrade Claude 5's output, and neither
-does this repository. The measured cost is context, tokens, and the judgement
-spent reconciling contradictions — not accuracy.
+The shared `CLAUDE.md` supplies the general protocol once. Skill bodies should
+add concrete task-specific procedures rather than repeat that protocol. Verify
+commands against the installed Jazzy environment or official sources and explain
+the limits of each result. An inconclusive check does not prove a robot defect.
 
-It also does not say the old advice was wrong at the time. Constraints "were
-once needed to avoid worst case scenarios"; what changed is that "newer models
-have better judgement and can handle these decisions well without explicit
-rules." An expired prescription, not a past mistake — which is why the response
-is periodic re-measurement rather than embarrassment.
+## State the evidence level
 
-## The six shifts, and which ones this pack actually tested
+Operational tests and model evaluations answer different questions. Validate a
+new script with realistic passing, failing and absent-data cases. Exercise a
+new workflow on representative artifacts. Record this as **tool/workflow
+validation**, not as proof that prose improves an agent.
 
-| Guidance | Tested here? | Result |
-| :--- | :--- | :--- |
-| Rules → judgement | **yes** | 24 rungs, 8 domains; the baseline reached every mechanism asked of it |
-| Repeat yourself → single source | **yes** | `CLAUDE.md` alone 2/10 → 10/10 (q=0.002); ten skills stacked on top moved **nothing** |
-| Simple specs → rich references | **yes** | a bundled script 0/10 → 10/10 (q<0.001); prose describing that same script, +0.00 |
-| Examples → interface design | no | little in this pack turns on tool design |
-| Put it all upfront → progressive disclosure | **no** | see below |
-| `CLAUDE.md` memory → auto-memory | no | out of scope here |
+Before claiming improved model performance, run a controlled comparison: the
+same tasks, environment, model/settings and tools, varying only the candidate
+change. Preserve all results, including errors and excluded cells, and use the
+predeclared [evaluation method](LADDER.md). A single successful session is a
+useful example, not a quantitative generalization.
 
-**Progressive disclosure is followed but unmeasured.** `references/` files load
-only when the symptom points at them, which is what the guidance recommends —
-but **every round in this repository measured whether *content* changes an
-outcome, never how content is *arranged*.** So the layout rests on the prior and
-the absence of a counter-example, not on a number. Recorded here so the gap is
-deliberate rather than invisible.
+## Historical evidence and the change in direction
 
-## The rules that survived
+Earlier revisions favoured removing all content the baseline could derive
+unaided and described the ladders as exhausted. The [artifact reconciliation](CAPABILITIES.md)
+shows that several published totals are not reproducible and some historical
+transcripts no longer exist. Those records remain useful observations, but do
+not justify a universal rule that domain prose cannot help.
 
-1. **Point at a runnable artifact, never describe one.** The only content in
-   this pack that ever cleared the bar. A script with an exit code, with a path
-   and an invocation — not a paragraph about what it would tell you.
-2. **Say nothing `CLAUDE.md` already says.** No "verify before writing", no "ask
-   about hardware vs simulation", no "done means it ran". Those live in
-   `CLAUDE.md`, once. Duplicating them is exactly the conflicting-instruction
-   problem the guidance describes, paid for on every load and twice over when a
-   task loads two skills.
-3. **No fact the model can look up.** Measured to exhaustion: every symptom →
-   cause → action table this pack shipped was deleted after a ladder showed the
-   baseline already reaching it.
-4. **Keep what is genuinely local and unreachable.** The residue: a bundled
-   script, this robot's real wheel radius, a physical mounting no container can
-   check. Nothing on the web or in `/opt/ros/jazzy` contains it.
-5. **Only claim what has been run.** Content decays. §3C once told readers a
-   nested `spin_until_future_complete` "hangs the entire node"; on Jazzy it
-   raises loudly in about a second. A wrong line is worse than a missing one.
-
-## The shape
-
-```markdown
----
-name: <skill>
-description: "<what routes here — no promises the body does not keep>"
----
-
-# <Title>
-
-## Bundled checks
-<only if scripts/ exists: path, invocation, what the exit code means>
-
-## <Local fact or convention that is genuinely unreachable>
-
-## References
-<one line each, loaded only when the symptom points at them>
-```
-
-Sections with nothing measured to put in them are **left out**, not filled.
-
-## Status
-
-All eight domains have been through a ladder. Six domain skills were deleted on
-the results, joining two deleted earlier; `ros2-troubleshooting` survives as the
-script bundle, and `ros2-microros` survives **labelled unverified** because no
-ladder is possible without an MCU. See [`CAPABILITIES.md`](./CAPABILITIES.md)
-for the result and [`LADDER.md`](./LADDER.md) for the method.
-
-One warning from that sweep, because it is the same failure this file guards
-against: an exhausted ladder licenses removing **what the ladder tested**, not
-everything sharing a file with it. Deleting `ros2-control` nearly took its
-wheel-calibration procedure with it — content `ctl1`–`ctl3` never tested and
-could not, there being no floor in a container.
+The project now permits focused development workflows with explicit operational
+validation and clearly labelled limits before a model benchmark exists. This
+is a change in product criteria, not a new performance result. Historical
+transcripts, frozen prompts and comparison thresholds remain unchanged; future
+experiments must record their own conditions and results.

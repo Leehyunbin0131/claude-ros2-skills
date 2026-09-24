@@ -5,8 +5,9 @@ appear as ~+9.81 m/s^2 on +Z after transforming acceleration into base_link.
 A correctly declared rotated IMU can report gravity on any axis in its own
 frame. TF is required by default; --assume-aligned explicitly skips rotation
 when you know the message axes already align with the level robot's base.
+Use acceleration that includes gravity, not a gravity-compensated estimate.
 
-Usage:  ros2 run <nothing needed> — just:  python3 check_imu_gravity.py [--topic /imu/data]
+Usage: python3 check_imu_gravity.py [--topic /imu/data]
 Exit codes: 0 PASS, 1 FAIL, 2 inconclusive (unusable/insufficient data / no ROS).
 """
 import argparse
@@ -56,15 +57,16 @@ def analyze(samples, mag_tol=DEFAULT_MAG_TOL, axis_ratio=DEFAULT_AXIS_RATIO):
 
     if abs(mag - G) > mag_tol:
         return "FAIL", (f"{detail}. Magnitude is not ~{G}: robot is moving, "
-                        "vibrating, or the IMU scale/units are wrong.")
+                        "vibrating, the scale/units are wrong, or this topic "
+                        "has gravity removed. Check those before changing the mount.")
     axes = {"X": ax, "Y": ay, "Z": az}
     dom = max(axes, key=lambda k: abs(axes[k]))
     if abs(axes[dom]) < axis_ratio * mag:
         return "FAIL", (f"{detail}. Gravity is split across axes: IMU is "
                         "mounted tilted relative to its TF frame.")
     if dom != "Z":
-        return "FAIL", (f"{detail}. Gravity is on {dom}, not Z: IMU is mounted "
-                        "rotated 90 deg relative to its declared TF frame.")
+        return "FAIL", (f"{detail}. Gravity is predominantly on {dom}, not Z. "
+                        "Compare the physical mount, declared TF and driver axis convention.")
     if az < 0:
         return "FAIL", (f"{detail}. Z is negative: IMU is upside-down relative "
                         "to its declared TF frame (or reports acceleration in "

@@ -1,6 +1,7 @@
 {
   "name": "claude-ros2-skills",
-  "description": "ROS 2 Jazzy verification protocol and executable robot checks.",
+  "version": "0.1.0",
+  "description": "ROS 2 Jazzy development workflows, test evidence and executable runtime diagnostics.",
   "license": "Apache-2.0",
   "author": {"name": "Leehyunbin0131"}
 }

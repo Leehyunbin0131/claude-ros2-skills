@@ -23,6 +23,12 @@ jobs:
         run: python3 skills/ros2-troubleshooting/scripts/test_checks.py
       - name: Installation and protocol transport
         run: python3 tests/test_install.py
+      - name: Development evidence gate
+        run: python3 tests/test_development.py
+      - name: Install isolated package-workflow test tools
+        run: python3 -m pip install colcon-common-extensions==0.3.0
+      - name: Real Python and CMake package workflow
+        run: python3 tests/test_colcon_workflow.py
       - name: Evaluation harness regressions
         run: |
           python3 evals/harness/grade_v2.py --selftest

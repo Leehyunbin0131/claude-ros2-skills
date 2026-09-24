@@ -39,8 +39,13 @@ class Installation(unittest.TestCase):
         self.assertEqual(unrelated.read_text(), 'unrelated skill')
         self.assertEqual((self.target/'rules/ros2-verification.md').read_bytes(), (ROOT/'CLAUDE.md').read_bytes())
         self.assertFalse(list(self.target.rglob('*.pyc')))
+        for name in installer.SKILLS:
+            self.assertTrue((self.target/'skills'/name/'SKILL.md').is_file())
         helper = self.target/'skills/ros2-troubleshooting/scripts/check_imu_gravity.py'
         result = subprocess.run(['python3', str(helper), '--help'], capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        checker = self.target/'skills/ros2-development/scripts/check_test_results.py'
+        result = subprocess.run(['python3', str(checker), '--help'], capture_output=True, text=True, timeout=5)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_update_replaces_only_managed_unchanged_files(self):
