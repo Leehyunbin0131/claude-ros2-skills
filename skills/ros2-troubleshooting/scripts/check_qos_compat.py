@@ -32,7 +32,7 @@ def combined_verdict(verdicts):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--topic", required=True)
-    p.add_argument("--wait", type=positive_float, default=2.0,
+    p.add_argument("--wait", type=positive_float, default=5.0,
                    help="seconds to allow DDS discovery before reading")
     args = p.parse_args()
     try:
@@ -57,7 +57,8 @@ def main():
 
     if not pubs or not subs:
         print(f"[INCONCLUSIVE] {args.topic}: discovered {len(pubs)} publishers "
-              f"and {len(subs)} subscribers; both are needed to check QoS.")
+              f"and {len(subs)} subscribers; both are needed to check QoS. "
+              "Check ROS_DOMAIN_ID/discovery configuration or increase --wait.")
         return 2
 
     verdicts = []

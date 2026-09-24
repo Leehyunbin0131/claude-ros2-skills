@@ -40,7 +40,7 @@ class ColconWorkflow(unittest.TestCase):
                 (pkg/name).mkdir()
                 (pkg/name/'__init__.py').write_text('def add(a, b):\n    return a + b\n')
                 (pkg/'setup.py').write_text(f'''from setuptools import setup
-setup(name='{name}', version='0.0.0', packages=['{name}'], tests_require=['pytest'])
+setup(name='{name}', version='0.0.0', packages=['{name}'])
 ''')
                 (pkg/'test').mkdir()
                 expectation = 99 if name == 'failing_py' else 3
@@ -73,7 +73,8 @@ install(TARGETS fixture DESTINATION lib/${{PROJECT_NAME}})
                 results = self.workspace/('results-' + package)
                 results.mkdir()
                 run = self.run_command(['colcon', 'test', '--packages-select', package,
-                    '--return-code-on-test-failure', '--test-result-base', str(results)])
+                    '--return-code-on-test-failure', '--python-testing', 'pytest',
+                    '--test-result-base', str(results)])
                 self.assertEqual(run.returncode, 1 if expected == 1 else 0,
                                  run.stdout + run.stderr)
                 check = self.run_command([sys.executable, str(CHECK), str(results),

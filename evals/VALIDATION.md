@@ -9,6 +9,7 @@ not an agent performance benchmark. The previous source baseline is
 | Case | Earlier behaviour / ordinary command | Updated outcome |
 | :--- | :--- | :--- |
 | CMake package has no registered tests | Both `colcon test` and `colcon test-result` return 0 | Development evidence check returns 2: no executed tests |
+| New setuptools ignores `tests_require` in Python metadata | Colcon may choose a runner that collects none of the intended pytest tests | Select `--python-testing pytest` explicitly for pytest packages; fixtures cover this without relying on the deprecated metadata |
 | All package tests skipped | Test command returns 0 | Evidence check returns 2 |
 | A named package has no result in the new run directory | An older passing report exists elsewhere | Missing current evidence returns 2 |
 | Passing Python and CMake tests | Reports contain executed tests | Evidence check returns 0 |
@@ -38,7 +39,8 @@ The checked-in tests create and clean their own temporary artifacts:
   and a C++ compiler. All branches were executed, not skipped, in local validation.
 - `tests/test_ros_checks.py`: 11 actual Jazzy integration tests with synthetic
   localhost data, including a deliberately incorrect IMU fixture and interrupt
-  cleanup. No hardware or motion commands.
+  cleanup. No hardware or motion commands. Positive tests allow DDS discovery
+  retransmission; short missing-data tests check deadlines independently.
 - `evals/harness/test_harness.py`: 42 harness regressions, including process
   ownership, mount isolation, grading and readiness; `grade_v2.py --selftest`
   also passes without Nav2 installed.

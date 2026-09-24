@@ -16,6 +16,9 @@ import unittest
 import uuid
 
 # Separate graph, localhost discovery, unique topics. No ros2 daemon is used.
+# Positive cases allow discovery retransmission in a cold CI container. The
+# short missing-data tests below verify deadlines separately; this suite does
+# not assert sub-second middleware discovery performance.
 os.environ['ROS_DOMAIN_ID'] = '173'
 os.environ['ROS_AUTOMATIC_DISCOVERY_RANGE'] = 'LOCALHOST'
 import rclpy
@@ -44,7 +47,7 @@ class RosChecks(unittest.TestCase):
         cls.node.destroy_node()
         rclpy.shutdown()
 
-    def command(self, script, args, publish=None, limit=9):
+    def command(self, script, args, publish=None, limit=15):
         proc = subprocess.Popen([sys.executable, '-u', str(SCRIPTS/script), *args],
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                 text=True)
@@ -99,7 +102,7 @@ class RosChecks(unittest.TestCase):
             pub.publish(msg)
         try:
             code, text = self.command('check_imu_gravity.py',
-                                      ['--topic', topic, '--samples', '4', '--timeout', '2.5',
+                                      ['--topic', topic, '--samples', '4', '--timeout', '6',
                                        '--assume-aligned'], publish)
             self.assertEqual(code, expected, text)
         finally:
@@ -133,7 +136,7 @@ class RosChecks(unittest.TestCase):
         try:
             code, text = self.command('check_imu_gravity.py',
                                       ['--topic', topic, '--base', 'regression_base',
-                                       '--samples', '4', '--timeout', '2.5'], publish)
+                                       '--samples', '4', '--timeout', '6'], publish)
             self.assertEqual(code, 0, text)
             code, text = self.command('check_imu_gravity.py',
                                       ['--topic', topic, '--base', 'missing_'+frame,
@@ -152,7 +155,7 @@ class RosChecks(unittest.TestCase):
         fixture = FakeImu(topic, 50.0)
         try:
             code, text = self.command('check_imu_gravity.py',
-                                      ['--topic', topic, '--samples', '4', '--timeout', '2.5'],
+                                      ['--topic', topic, '--samples', '4', '--timeout', '6'],
                                       lambda _: fixture.tick())
             self.assertEqual(code, 1, text)
             self.assertIn('FAIL', text)
@@ -184,7 +187,7 @@ class RosChecks(unittest.TestCase):
             pub.publish(msg)
         try:
             code, text = self.command('check_odom_direction.py',
-                                      ['--topic', topic, '--timeout', '2.5', '--wait-secs', '0.8'], publish)
+                                      ['--topic', topic, '--timeout', '6', '--wait-secs', '0.8'], publish)
             self.assertEqual(code, expected, text)
         finally:
             self.node.destroy_publisher(pub)
@@ -260,7 +263,7 @@ class RosChecks(unittest.TestCase):
             sub = self.node.create_subscription(String, topic, lambda _: None,
                                                 qos_profile_sensor_data if compatible else 10)
             try:
-                code, text = self.command('check_qos_compat.py', ['--topic', topic, '--wait', '1.5'])
+                code, text = self.command('check_qos_compat.py', ['--topic', topic, '--wait', '6'])
                 self.assertEqual(code, 0 if compatible else 1, text)
             finally:
                 self.node.destroy_subscription(sub)
@@ -278,7 +281,7 @@ class RosChecks(unittest.TestCase):
         try:
             code, text = self.command('check_tf_tree.py',
                                       ['--base', msg.header.frame_id, '--sensors', frame,
-                                       '--no-global', '--timeout', '2'])
+                                       '--no-global', '--timeout', '6'])
             self.assertEqual(code, 0, text)
             self.assertIn('UPSIDE-DOWN', text)
             code, text = self.command('check_tf_tree.py',

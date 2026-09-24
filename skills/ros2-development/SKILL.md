@@ -44,6 +44,11 @@ It reads reports and sends no ROS commands. Keep the printed result directory
 when reporting a failure. A package intentionally without tests is not a failed
 implementation; state the missing coverage and verify its changed behaviour.
 
+For a Python package that uses pytest, pass `--python-testing pytest` to
+`colcon test` (or use the workspace's explicit equivalent). Do not rely on
+`setup.py`'s `tests_require` to select the runner: newer setuptools can ignore
+that field and colcon can select a different framework, collecting no tests.
+
 ## Verify the installed behaviour
 
 Choose the smallest runtime check that exercises the change. A successful build
