@@ -5,6 +5,7 @@ source /opt/ros/jazzy/setup.bash
 python3 tests/test_ros_checks.py
 """
 import os
+import math
 from pathlib import Path
 import queue
 import signal
@@ -105,6 +106,10 @@ class RosChecks(unittest.TestCase):
                                       ['--topic', topic, '--samples', '4', '--timeout', '6',
                                        '--assume-aligned'], publish)
             self.assertEqual(code, expected, text)
+            if unavailable:
+                self.assertIn('marks acceleration unavailable', text)
+            elif any(not math.isfinite(value) for value in values):
+                self.assertIn('non-finite', text)
         finally:
             self.node.destroy_publisher(pub)
 
@@ -140,7 +145,7 @@ class RosChecks(unittest.TestCase):
             self.assertEqual(code, 0, text)
             code, text = self.command('check_imu_gravity.py',
                                       ['--topic', topic, '--base', 'missing_'+frame,
-                                       '--samples', '4', '--timeout', '0.8'], publish)
+                                       '--samples', '4', '--timeout', '6'], publish)
             self.assertEqual(code, 2, text)
             self.assertIn('TF', text)
         finally:
