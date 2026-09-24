@@ -1,0 +1,6 @@
+{
+  "name": "claude-ros2-skills",
+  "description": "ROS 2 Jazzy verification protocol and executable robot checks.",
+  "license": "Apache-2.0",
+  "author": {"name": "Leehyunbin0131"}
+}

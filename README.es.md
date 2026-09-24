@@ -17,7 +17,7 @@ Skills que transforman la manera en que los agentes de IA abordan el desarrollo 
 
 | Skills | Protocolo siempre cargado | Enlaces a documentación (verificados por CI) | Scripts de verificación física y en ejecución |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 líneas** | **6** | **4** |
+| **2** | **30 líneas** | **9** | **4** |
 
 </div>
 
@@ -80,9 +80,9 @@ Este repositorio optimiza un único resultado: minimizar el riesgo de generar c�
 
 **El criterio.** Un skill se gana su sitio solo si aporta algo que el agente **no puede alcanzar por sí mismo**, teniendo ya su propio conocimiento, búsqueda web y una instalación real de Jazzy delante. Un texto que solo le dice al agente lo que iba a hacer de todos modos es coste sin beneficio.
 
-**Cómo se mide.** Una tarea real en un contenedor limpio, diez ejecuciones con el elemento bajo prueba y diez sin él, evaluadas *ejecutando* lo que salió — una compilación, un topic con datos, un código de salida — nunca leyéndolo. Test exacto de Fisher, con corrección de Benjamini–Hochberg sobre toda la ronda.
+**Cómo se mide.** Una tarea real en un espacio de trabajo aislado, diez ejecuciones con el elemento bajo prueba y diez sin él, evaluadas *ejecutando* lo que salió — una compilación, un topic con datos, un código de salida — nunca leyéndolo. Test exacto de Fisher, con corrección de Benjamini–Hochberg sobre toda la ronda.
 
-**Qué quedó resuelto.** Ocho dominios pasaron por una escalera de tres peldaños — 24 peldaños en total, cada uno añadiendo un mecanismo concreto y evaluado por una verificación que ejecuta el artefacto. El agente de referencia alcanzó **todos los mecanismos que se le pidieron**:
+**Resultados históricos y límites de reproducibilidad.** Las tablas conservan las cifras publicadas anteriormente. Algunas no coinciden con los archivos de veredicto guardados y parte de la evidencia de las reevaluaciones ya no está disponible. Consulte la [conciliación de artefactos](./evals/CAPABILITIES.md) antes de citar estas cifras o conclusiones universales como verificadas. Esta actualización no ejecutó un nuevo benchmark.
 
 | Dominio | L1 → L2 → L3, mecanismos añadidos por peldaño | Sin ayuda |
 | :--- | :--- | ---: |
@@ -96,7 +96,7 @@ Este repositorio optimiza un único resultado: minimizar el riesgo de generar c�
 | Nav2 | Archivo de parámetros que los servidores aceptan tal cual → pila llevada hasta `active` → costmap marcando obstáculos con escaneo en vivo | véase más abajo |
 | Percepción | Ida y vuelta con `cv_bridge` → proyección con `CameraInfo` → profundidad 16UC1 → `PointCloud2` | **106/120** |
 
-**Ni un solo fallo se cerró aportando información.** Se encontraron cuatro carencias, todas de comportamiento:
+El análisis histórico atribuyó las siguientes diferencias a la verificación y la ejecución. Son observaciones sujetas a los límites anteriores, no garantías para todos los modelos o tareas.
 
 | Lo que el modelo no hace por sí solo | Referencia | Qué lo cerró | Después |
 | :--- | ---: | :--- | ---: |
@@ -105,9 +105,9 @@ Este repositorio optimiza un único resultado: minimizar el riesgo de generar c�
 | Ejecutar el código QoS que escribe antes de entregarlo | **5/10** | el "hecho significa que se ejecutó" de `CLAUDE.md` | **9/10** (potencia insuficiente) |
 | Ejecutar la configuración Nav2 que escribe antes de entregarla | **0/10** | una tarea que exige llegar a `active` | **30/30** |
 
-La última fila ilustra este principio de la forma más clara. Al solicitar únicamente un archivo de parámetros de Nav2, las 10 ejecuciones produjeron configuraciones que los propios servidores de Nav2 rechazaron cargar. Sin embargo, al solicitar el archivo de parámetros *y exigir además* que la pila alcanzara el estado `active`, todas las ejecuciones encontraron el mismo error de configuración, lo diagnosticaron a partir de los logs, lo corrigieron y aprobaron. **El mismo modelo, la misma concepción errónea, cero diferencia de información**: solo varió la exigencia de ejecutar y verificar.
+La comparación histórica de Nav2 sugirió que exigir la ejecución descubre errores de configuración. Faltan algunos veredictos guardados; los totales y las conclusiones deben leerse junto con la conciliación anterior.
 
-**Consecuencia para este paquete.** Se eliminaron por completo seis skills de dominio, además de los dos eliminados anteriormente: el modelo alcanza su contenido de forma independiente y ninguna prosa descriptiva en este repositorio mejoró nunca una prueba de evaluación. Lo que queda es un protocolo de 30 líneas, cuatro scripts ejecutables y el material de referencia que los respalda. Método, resultados por dominio y ejecuciones originales: [`evals/`](./evals/).
+**Alcance actual.** Se mantienen las eliminaciones anteriores de skills; esta actualización no establece nuevos resultados de capacidad ni revierte decisiones sin nueva evidencia. El pack contiene el protocolo original de 30 líneas, cuatro chequeos ejecutables y sus referencias. Consulte [`evals/`](./evals/) para el método, las ejecuciones históricas y los límites de la evidencia.
 
 ## Inicio rápido
 
@@ -118,7 +118,9 @@ La última fila ilustra este principio de la forma más clara. Al solicitar úni
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Actualiza los plugins instalados en cualquier momento con `/plugin marketplace update`.
+Actualice el plugin con `claude plugin update claude-ros2-skills@claude-ros2-skills` y abra una nueva sesión.
+
+Elija un solo método de instalación. El plugin carga el `CLAUDE.md` original mediante un hook `SessionStart`; en el ámbito de usuario se aplica a todos los proyectos. La instalación manual lo copia a `.claude/rules/ros2-verification.md` y conserva los `CLAUDE.md` existentes. El experimento 2/10→10/10 usó un `CLAUDE.md` en la raíz del proyecto; no se ha medido una eficacia equivalente con hooks o archivos de reglas.
 
 **Opción B — Instalación manual:**
 
@@ -126,13 +128,10 @@ Actualiza los plugins instalados en cualquier momento con `/plugin marketplace u
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
 # Instalación a nivel de proyecto (solo para el proyecto actual)
-mkdir -p your-project/.claude/skills
-cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
-cp claude-ros2-skills/CLAUDE.md your-project/
+python3 claude-ros2-skills/scripts/install.py --project your-project
 
 # Instalación a nivel de usuario (para todos los proyectos)
-mkdir -p ~/.claude/skills
-cp -r claude-ros2-skills/skills/* ~/.claude/skills/
+python3 claude-ros2-skills/scripts/install.py --user
 ```
 
 Reinicia Claude Code (o abre una sesión nueva) para aplicar los skills instalados.
@@ -148,11 +147,13 @@ Reinicia Claude Code (o abre una sesión nueva) para aplicar los skills instalad
 
 ## Scripts de verificación
 
-Estos scripts vienen incluidos en el skill `ros2-troubleshooting` (`skills/ros2-troubleshooting/scripts/`) y se distribuyen con cada instalación. Convierten comprobaciones de hardware físico en pasos ejecutables de aprobado/fallo (requiere un entorno ROS 2 cargado con source; códigos de retorno: 0 = APROBADO, 1 = FALLO, 2 = SIN DATOS):
+Estos scripts vienen incluidos en el skill `ros2-troubleshooting` (`skills/ros2-troubleshooting/scripts/`) y se distribuyen con cada instalación. Convierten comprobaciones de hardware físico en pasos ejecutables de aprobado/fallo (requiere un entorno ROS 2 cargado con source; códigos de retorno: 0 = APROBADO, 1 = FALLO, 2 = NO CONCLUYENTE):
+
+El código 2 también indica datos inválidos, QoS indeterminado, TF ausente o movimiento insuficiente. El chequeo IMU transforma la aceleración a `--base base_link`; use `--assume-aligned` solo si los ejes del mensaje coinciden con la base nivelada.
 
 | Script | Verifica |
 | :--- | :--- |
-| `check_imu_gravity.py` | Que un robot en reposo mida la gravedad a ~+9,81 m/s² sobre el eje **+Z** (REP 103). Detecta montajes de IMU invertidos o desalineados. |
+| `check_imu_gravity.py` | Con el robot quieto y nivelado, transforma la gravedad al marco de la base con TF y comprueba ~+9.81 m/s² en **+Z**. Detecta inconsistencias de roll/pitch; la gravedad no permite verificar yaw. |
 | `check_odom_direction.py` | Que empujar el robot hacia adelante produzca un desplazamiento de odometría positivo a lo largo de su rumbo. Detecta direcciones de motor invertidas, problemas de polaridad de encoders o configuraciones TF invertidas. |
 | `check_tf_tree.py` | Que `map→odom→base_link` se resuelva correctamente; muestra el offset de montaje de cada sensor en grados RPY y destaca posibles errores de orientación de 180°. |
 | `check_qos_compat.py` | La compatibilidad QoS entre todos los pares publicador/suscriptor de un topic según las reglas DDS. Previene fallos silenciosos (como un publicador BEST_EFFORT junto a un suscriptor RELIABLE, o desajustes de durability, deadline y liveliness). |
@@ -179,8 +180,11 @@ flowchart LR
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # o el .claude/skills/ de tu proyecto
+python3 scripts/install.py --user
+# python3 scripts/install.py --project /path/to/your-project
 ```
+
+El instalador solo actualiza sus archivos sin modificaciones; rechaza sobrescribir cambios locales o copias manuales preexistentes. Revise y aparte los archivos en conflicto. Enumera las carpetas de skills retirados para su limpieza manual, sin borrarlas. El mismo comando actualiza los skills y el protocolo.
 
 ## Contribuir
 

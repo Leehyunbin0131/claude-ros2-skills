@@ -17,7 +17,7 @@
 
 | 技能数量 | 常驻上下文协议 | 文档链接（CI 验证） | 实体与运行时验证脚本 |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 行** | **6** | **4** |
+| **2** | **30 行** | **9** | **4** |
 
 </div>
 
@@ -80,9 +80,9 @@ AI 生成的 ROS 2 代码中代价最高的错误很少是语法错误，而是�
 
 **标准。** 一个技能只有在提供了 Agent **自身无法到达**的东西时才配拥有一席之地 —— 在它已拥有自身知识、网络搜索以及眼前一个真实的 Jazzy 安装环境的前提下。仅仅告诉 Agent 它本来也会做的事情的文本，是有成本而无收益的。
 
-**如何测量。** 在干净的容器中执行真实任务，包含被测内容运行 10 次、不包含运行 10 次。评分方式是*运行*产出的结果 —— 构建、有数据流动的话题、退出码 —— 而绝非阅读它。Fisher 精确检验，并在整轮范围内做 Benjamini–Hochberg 校正。
+**如何测量。** 在隔离的工作目录中执行真实任务，包含被测内容运行 10 次、不包含运行 10 次。评分方式是*运行*产出的结果 —— 构建、有数据流动的话题、退出码 —— 而绝非阅读它。Fisher 精确检验，并在整轮范围内做 Benjamini–Hochberg 校正。
 
-**这确定了什么。** 八个领域被放上三级阶梯 —— 共 24 级，每一级新增一个命名的机制，每一级都由运行产物的检查来评分。基线 Agent **到达了它被要求的每一个机制**：
+**历史报告及可复现性限制。** 下表保留此前报告的分数。部分分数与已提交的判定文件不一致，部分重新评分证据已不可用。引用这些分数或普遍能力结论前，请阅读[存档核对结果](./evals/CAPABILITIES.md)。此次维护没有运行新的性能基准测试。
 
 | 领域 | L1 → L2 → L3，每级新增的机制 | 无辅助 |
 | :--- | :--- | ---: |
@@ -96,7 +96,7 @@ AI 生成的 ROS 2 代码中代价最高的错误很少是语法错误，而是�
 | Nav2 | 服务器可原样接受的参数文件 → 将整个栈驱动至 `active` → 用实时扫描标记障碍物的代价地图 | 见下文 |
 | 感知（Perception） | `cv_bridge` 往返 → `CameraInfo` 投影 → 16UC1 深度图 → `PointCloud2` | **106/120** |
 
-**没有任何一个失败是靠提供信息而被关闭的。** 发现的四个缺口全部属于行为（behavioural）层面：
+历史分析将下列差异归因于核验环境和实际执行的行为。这些观察受上述证据限制约束，并非对所有模型和任务的保证。
 
 | 模型在无辅助下不会做的事 | 基线 | 什么关闭了它 | 之后 |
 | :--- | ---: | :--- | ---: |
@@ -105,9 +105,9 @@ AI 生成的 ROS 2 代码中代价最高的错误很少是语法错误，而是�
 | 在交付之前先运行自己写的 QoS 代码 | **5/10** | `CLAUDE.md` 的"跑通了才算完成" | **9/10**（检验效能不足） |
 | 在交付之前先运行自己写的 Nav2 配置 | **0/10** | 一个要求到达 `active` 的任务 | **30/30** |
 
-最后一行最为清晰地展示了这一原则。当仅要求生成 Nav2 参数文件时，10/10 的测试单元均写出了其自身服务器拒绝加载的配置文件。然而，在要求生成同一文件并**附加要求将整个栈驱动至 `active` 状态**时，所有测试单元均遇到了完全相同的配置错误，从日志中诊断并修复了该问题，最终通过测试。**同一个模型，同一个误解，信息量零差异** — 唯一的区别是要求其真正运行并验证。
+历史 Nav2 对比提示，要求实际执行有助于发现配置错误。部分存档判定缺失，报告总数及更广泛的结论需要结合上述核对结果解读。
 
-**对本技能包的影响。** 在此前已删除的两个技能之外，六个领域技能被全部移除。模型自身已具备这些领域知识，且本仓库中的描述性文本从未改善过任何一项评估检查。最终仅保留了 30 行核心协议、4 个可运行脚本及必要的参考资料。评估方法、各领域详细结果及原始运行记录：[`evals/`](./evals/)。
+**当前范围。** 保留此前删除技能的决定；此次维护不声称建立新的模型能力结论，也不在没有新证据的情况下推翻旧决定。技能包包含保持原文的 30 行协议、四个可执行检查及参考资料。方法、历史运行和证据限制见 [`evals/`](./evals/)。
 
 ## 快速开始
 
@@ -118,7 +118,9 @@ AI 生成的 ROS 2 代码中代价最高的错误很少是语法错误，而是�
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-可随时使用 `/plugin marketplace update` 更新已安装的插件。
+运行 `claude plugin update claude-ros2-skills@claude-ros2-skills` 更新已安装的插件，然后开启新会话。
+
+请选择一种安装方式。插件通过 `SessionStart` 钩子载入原始 `CLAUDE.md`；用户级安装会应用于所有项目。手动安装将协议复制到 `.claude/rules/ros2-verification.md`，保留现有 `CLAUDE.md`。2/10→10/10 实验使用项目根目录的 `CLAUDE.md`；钩子和规则文件是否具有同等效果尚未测量。
 
 **方式 B —— 手动安装：**
 
@@ -126,13 +128,10 @@ AI 生成的 ROS 2 代码中代价最高的错误很少是语法错误，而是�
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
 # 项目级安装（仅对当前项目生效）
-mkdir -p your-project/.claude/skills
-cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
-cp claude-ros2-skills/CLAUDE.md your-project/
+python3 claude-ros2-skills/scripts/install.py --project your-project
 
 # 用户级安装（对所有项目生效）
-mkdir -p ~/.claude/skills
-cp -r claude-ros2-skills/skills/* ~/.claude/skills/
+python3 claude-ros2-skills/scripts/install.py --user
 ```
 
 重启 Claude Code（或开启新会话）以应用已安装的技能。
@@ -148,11 +147,13 @@ cp -r claude-ros2-skills/skills/* ~/.claude/skills/
 
 ## 验证脚本
 
-这些验证脚本捆绑在 `ros2-troubleshooting` 技能中（`skills/ros2-troubleshooting/scripts/`），随每种安装方式一同分发。它们把物理硬件检查转化为可执行的通过/失败验证步骤（需要已 source 的 ROS 2 环境；返回码：0 = 通过，1 = 失败，2 = 无数据）：
+这些验证脚本捆绑在 `ros2-troubleshooting` 技能中（`skills/ros2-troubleshooting/scripts/`），随每种安装方式一同分发。它们把物理硬件检查转化为可执行的通过/失败验证步骤（需要已 source 的 ROS 2 环境；返回码：0 = 通过，1 = 失败，2 = 无法判定）：
+
+退出码 2 也包括无效数据、无法确定的 QoS、缺失 TF 和位移不足。IMU 检查将加速度转换到 `--base base_link`；只有确认消息坐标轴与水平机体坐标轴对齐时，才使用 `--assume-aligned`。
 
 | 脚本 | 验证内容 |
 | :--- | :--- |
-| `check_imu_gravity.py` | 验证静止的机器人沿 **+Z** 轴测得约 +9.81 m/s² 的重力（REP 103）。检测倒置或错位的 IMU 安装。 |
+| `check_imu_gravity.py` | 在机器人水平静止时，将重力经 TF 转换到机体坐标系，检查 **+Z** 约为 +9.81 m/s²。检测 roll/pitch 不一致；仅凭重力无法验证 yaw。 |
 | `check_odom_direction.py` | 验证向前推动机器人时，沿其航向产生正的里程计位移。检测电机方向反转、编码器极性问题或反转的 TF 配置。 |
 | `check_tf_tree.py` | 验证 `map→odom→base_link` 能否正确解析；以 RPY 角度显示每个传感器的安装偏移，并标出可能的 180° 朝向错误。 |
 | `check_qos_compat.py` | 依据 DDS 规则验证某一话题上所有发布者/订阅者对的 QoS 兼容性。防止静默失败（例如 BEST_EFFORT 发布者搭配 RELIABLE 订阅者，或 durability、deadline、liveliness 不匹配）。 |
@@ -179,8 +180,11 @@ flowchart LR
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # 或你项目的 .claude/skills/
+python3 scripts/install.py --user
+# python3 scripts/install.py --project /path/to/your-project
 ```
+
+安装程序仅更新其管理且未经修改的文件，遇到本地编辑或原有手动副本会停止。请检查后移走冲突文件。已退役技能目录只会列出供手动清理，不会自动删除。使用同一安装命令同步更新技能和协议。
 
 ## 贡献
 

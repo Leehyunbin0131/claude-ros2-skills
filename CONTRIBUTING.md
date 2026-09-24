@@ -68,8 +68,9 @@ Three kinds of line, three different treatments:
 lost.** They read as the highest-value content — not in any single doc page,
 release-stable, mapped to a real failure. Measured against a baseline agent
 across eight domains and 24 ladder rungs, not one of them changed an outcome.
-Every table in this repository has now been deleted. If you are about to add
-one, the burden is on the measurement, not on how useful it looks.
+Those diagnostic tables were deleted from the measured domains. The explicitly
+unverified micro-ROS skill still has one pending hardware evaluation. If you
+are about to add one, the burden is on the measurement, not on how useful it looks.
 
 ### Three layers, three price tags
 
@@ -133,6 +134,11 @@ a behavioural rule still has to clear the bar on the model that ships, and an ol
 number is not a smaller version of a current one.
 
 ### What the measurement actually taught
+
+This section records historical interpretations. Some published scores cannot
+be reproduced from committed artifacts; consult the reconciliation in
+[`evals/CAPABILITIES.md`](./evals/CAPABILITIES.md) before using a historical
+claim as evidence for a new change.
 
 Every domain in this pack has now been through a three-rung ladder against the
 model it ships against. [`evals/CAPABILITIES.md`](./evals/CAPABILITIES.md) is
@@ -275,7 +281,8 @@ skill on every install path. They follow one pattern (see `check_imu_gravity.py`
 - Pure decision logic in module-level functions — no `rclpy` import outside
   `main()` — so it's unit-testable without ROS.
 - Add tests for that logic to `test_checks.py` in the same directory.
-- Exit codes: `0` PASS, `1` FAIL, `2` could not sample (no data / no ROS).
+- Exit codes: `0` PASS, `1` FAIL, `2` inconclusive or invalid request
+  (missing/invalid data, unknown QoS, insufficient motion, missing ROS).
 - The failure message must say what's physically wrong and what to do, not
   just "check failed".
 
@@ -284,10 +291,26 @@ skill on every install path. They follow one pattern (see `check_imu_gravity.py`
 ```bash
 python3 -m py_compile skills/ros2-troubleshooting/scripts/*.py
 python3 skills/ros2-troubleshooting/scripts/test_checks.py
+python3 tests/test_install.py
+python3 evals/harness/grade_v2.py --selftest
+python3 evals/harness/test_harness.py
+
+# Runtime checks use synthetic localhost data, no hardware or motion commands.
+source /opt/ros/jazzy/setup.bash
+python3 tests/test_ros_checks.py
 ```
 
-CI additionally link-checks every URL in every `.md` (lychee, weekly cron) —
-a dead docs link fails the build.
+CI runs these checks, including ROS integration in a Jazzy container, and checks
+documentation links (lychee, weekly cron). Immutable `evals/runs/` transcripts
+are excluded from link checking: failed URLs there are historical observations.
+
+Keep installation transport separate from measured behavior. The plugin's
+`SessionStart` hook emits the unchanged protocol; the manual installer copies
+it to an unconditional rules file. Historical effectiveness measurements used
+a project-root `CLAUDE.md`, not these delivery paths. Loading tests prove
+delivery, not equivalent model performance. Some published historical scores
+also differ from committed verdicts; see the reconciliation in
+[`evals/CAPABILITIES.md`](./evals/CAPABILITIES.md) before citing them as evidence.
 
 If your change claims to improve agent output, attach a graded transcript. The
 harness is in [`evals/harness/`](./evals/harness/) and its README covers running

@@ -17,7 +17,7 @@ Des skills qui transforment la façon dont les agents IA abordent le développem
 
 | Skills | Protocole chargé en permanence | Liens de doc (vérifiés par CI) | Scripts de vérification physique et à l'exécution |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 lignes** | **6** | **4** |
+| **2** | **30 lignes** | **9** | **4** |
 
 </div>
 
@@ -80,9 +80,9 @@ Ce dépôt optimise un seul résultat : minimiser le risque de générer du code
 
 **Le critère.** Un skill ne gagne sa place que s'il apporte quelque chose que l'agent **ne peut pas atteindre seul** — alors qu'il dispose déjà de ses propres connaissances, de la recherche web et d'une installation Jazzy réelle sous les yeux. Un texte qui ne fait que dire à l'agent ce qu'il aurait fait de toute façon est un coût sans bénéfice.
 
-**Comment c'est mesuré.** Une tâche réelle dans un conteneur propre, dix exécutions avec l'élément testé et dix sans, évaluées en *exécutant* ce qui est sorti — une compilation, un topic qui porte des données, un code de sortie — jamais en le lisant. Test exact de Fisher, correction de Benjamini–Hochberg sur l'ensemble de la série.
+**Comment c'est mesuré.** Une tâche réelle dans un espace de travail isolé, dix exécutions avec l'élément testé et dix sans, évaluées en *exécutant* ce qui est sorti — une compilation, un topic qui porte des données, un code de sortie — jamais en le lisant. Test exact de Fisher, correction de Benjamini–Hochberg sur l'ensemble de la série.
 
-**Ce que cela a tranché.** Huit domaines ont été passés sur une échelle à trois barreaux — 24 barreaux au total, chacun ajoutant un mécanisme nommé et évalué par une vérification qui exécute l'artefact. L'agent de référence a atteint **tous les mécanismes qui lui étaient demandés** :
+**Résultats historiques et limites de reproductibilité.** Les tableaux conservent les scores publiés auparavant. Certains diffèrent des fichiers de verdict archivés, et des preuves de réévaluation ne sont plus disponibles. Consultez le [rapprochement des artefacts](./evals/CAPABILITIES.md) avant de citer ces scores ou des conclusions universelles comme vérifiés. Cette maintenance ne comprend pas de nouveau benchmark.
 
 | Domaine | L1 → L2 → L3, mécanismes ajoutés par barreau | Sans aide |
 | :--- | :--- | ---: |
@@ -96,7 +96,7 @@ Ce dépôt optimise un seul résultat : minimiser le risque de générer du code
 | Nav2 | Fichier de paramètres accepté tel quel par les serveurs → pile amenée jusqu'à `active` → costmap marquant les obstacles depuis un scan en direct | voir ci-dessous |
 | Perception | Aller-retour `cv_bridge` → projection `CameraInfo` → profondeur 16UC1 → `PointCloud2` | **106/120** |
 
-**Aucun échec n'a été comblé en fournissant de l'information.** Quatre lacunes ont été trouvées, toutes comportementales :
+L’analyse historique associait les différences suivantes à la vérification et à l’exécution. Ces observations restent soumises aux limites ci-dessus ; elles ne garantissent rien pour tous les modèles ou toutes les tâches.
 
 | Ce que le modèle ne fait pas seul | Référence | Ce qui l'a comblé | Après |
 | :--- | ---: | :--- | ---: |
@@ -105,9 +105,9 @@ Ce dépôt optimise un seul résultat : minimiser le risque de générer du code
 | Exécuter le code QoS qu'il écrit avant de le livrer | **5/10** | le « terminé veut dire exécuté » de `CLAUDE.md` | **9/10** (puissance insuffisante) |
 | Exécuter la configuration Nav2 qu'il écrit avant de la livrer | **0/10** | une tâche qui exige d'atteindre `active` | **30/30** |
 
-La dernière ligne illustre ce principe de la manière la plus claire. À la demande d'un seul fichier de paramètres Nav2, les 10 exécutions ont produit des configurations que les propres serveurs Nav2 ont refusé de charger. En revanche, lorsque le fichier de paramètres était demandé *tout en exigeant* que la pile atteigne l'état `active`, chaque exécution a rencontré la même erreur de configuration, l'a diagnostiquée depuis les logs, l'a corrigée et a réussi. **Même modèle, même conception erronée, zéro différence d'information** — seule l'exigence d'exécuter et de vérifier différait.
+La comparaison historique de Nav2 suggérait qu’exiger une exécution révèle les erreurs de configuration. Certains verdicts archivés manquent ; les totaux et les conclusions doivent être lus avec le rapprochement ci-dessus.
 
-**Conséquence pour ce pack.** Six skills de domaine ont été supprimés intégralement, en plus des deux supprimés auparavant : le modèle atteint déjà leur contenu de manière autonome, et aucune prose descriptive dans ce dépôt n'a jamais amélioré un contrôle d'évaluation. Il reste un protocole de 30 lignes, quatre scripts exécutables et le matériel de référence qui les soutient. Méthode, résultats par domaine et exécutions brutes : [`evals/`](./evals/).
+**Périmètre actuel.** Les suppressions antérieures de skills sont conservées ; cette maintenance n’établit pas de nouveaux résultats de capacité et ne renverse aucune décision sans nouvelles preuves. Le pack contient le protocole original de 30 lignes, quatre contrôles exécutables et leurs références. Voir [`evals/`](./evals/) pour la méthode, les exécutions historiques et les limites des preuves.
 
 ## Démarrage rapide
 
@@ -118,7 +118,9 @@ La dernière ligne illustre ce principe de la manière la plus claire. À la dem
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Mettez à jour les plugins installés à tout moment avec `/plugin marketplace update`.
+Mettez le plugin à jour avec `claude plugin update claude-ros2-skills@claude-ros2-skills`, puis ouvrez une nouvelle session.
+
+Choisissez une seule méthode d’installation. Le plugin charge le `CLAUDE.md` original via un hook `SessionStart` ; une installation utilisateur s’applique à tous les projets. L’installation manuelle le copie dans `.claude/rules/ros2-verification.md` et préserve les `CLAUDE.md` existants. L’expérience 2/10→10/10 utilisait un `CLAUDE.md` à la racine du projet ; l’efficacité équivalente des hooks et fichiers de règles n’a pas été mesurée.
 
 **Option B — Installation manuelle :**
 
@@ -126,13 +128,10 @@ Mettez à jour les plugins installés à tout moment avec `/plugin marketplace u
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
 # Installation au niveau du projet (s'applique au projet courant uniquement)
-mkdir -p your-project/.claude/skills
-cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
-cp claude-ros2-skills/CLAUDE.md your-project/
+python3 claude-ros2-skills/scripts/install.py --project your-project
 
 # Installation au niveau utilisateur (s'applique à tous les projets)
-mkdir -p ~/.claude/skills
-cp -r claude-ros2-skills/skills/* ~/.claude/skills/
+python3 claude-ros2-skills/scripts/install.py --user
 ```
 
 Redémarrez Claude Code (ou ouvrez une nouvelle session) pour appliquer les skills installés.
@@ -150,9 +149,11 @@ Redémarrez Claude Code (ou ouvrez une nouvelle session) pour appliquer les skil
 
 Ces scripts sont fournis dans le skill `ros2-troubleshooting` (`skills/ros2-troubleshooting/scripts/`) et livrés avec chaque installation. Ils convertissent des contrôles matériels physiques en étapes de vérification exécutables réussite/échec (nécessite un environnement ROS 2 sourcé ; codes de retour : 0 = RÉUSSITE, 1 = ÉCHEC, 2 = AUCUNE DONNÉE) :
 
+Le code 2 couvre aussi les données invalides, les QoS indéterminés, les TF absentes et un déplacement insuffisant. Le contrôle IMU transforme l’accélération vers `--base base_link` ; utilisez `--assume-aligned` uniquement si les axes du message correspondent à ceux de la base horizontale.
+
 | Script | Vérifie |
 | :--- | :--- |
-| `check_imu_gravity.py` | Qu'un robot au repos mesure la gravité à ~+9,81 m/s² selon l'axe **+Z** (REP 103). Détecte les montages d'IMU inversés ou désalignés. |
+| `check_imu_gravity.py` | Robot immobile et horizontal : transforme la gravité dans le repère de base via TF et vérifie ~+9.81 m/s² sur **+Z**. Détecte les incohérences de roulis/tangage ; la gravité seule ne vérifie pas le lacet. |
 | `check_odom_direction.py` | Que pousser le robot vers l'avant produise un déplacement d'odométrie positif le long de son cap. Détecte les sens moteurs inversés, les problèmes de polarité d'encodeur ou les configurations TF inversées. |
 | `check_tf_tree.py` | Que `map→odom→base_link` se résolve correctement ; affiche l'offset de montage de chaque capteur en degrés RPY et signale les erreurs d'orientation à 180° possibles. |
 | `check_qos_compat.py` | La compatibilité QoS de toutes les paires publieur/abonné d'un topic selon les règles DDS. Prévient les échecs silencieux (publieur BEST_EFFORT associé à un abonné RELIABLE, ou incompatibilités de durability, deadline et liveliness). |
@@ -179,8 +180,11 @@ flowchart LR
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # ou le .claude/skills/ de votre projet
+python3 scripts/install.py --user
+# python3 scripts/install.py --project /path/to/your-project
 ```
+
+L’installateur ne met à jour que ses fichiers non modifiés ; il refuse d’écraser des changements locaux ou d’anciennes copies manuelles. Examinez puis déplacez les fichiers en conflit. Les dossiers des skills retirés sont signalés pour un nettoyage manuel, jamais supprimés automatiquement. La même commande met à jour les skills et le protocole.
 
 ## Contribuer
 

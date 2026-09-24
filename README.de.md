@@ -17,7 +17,7 @@ Skills, die verändern, wie KI-Agenten ROS-2-Entwicklung angehen: unbekannte Par
 
 | Skills | Immer geladenes Protokoll | Doku-Links (CI-geprüft) | Skripte für physische & Laufzeit-Verifikation |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 Zeilen** | **6** | **4** |
+| **2** | **30 Zeilen** | **9** | **4** |
 
 </div>
 
@@ -80,9 +80,9 @@ Dieses Repository optimiert auf ein einziges Ergebnis: das Risiko zu minimieren,
 
 **Der Maßstab.** Ein Skill verdient seinen Platz nur, wenn er etwas liefert, das der Agent **nicht selbst erreichen kann** — und zwar mit eigenem Wissen, Websuche und einer realen Jazzy-Installation vor sich. Text, der dem Agenten nur mitteilt, was er ohnehin getan hätte, ist Kosten ohne Nutzen.
 
-**Wie gemessen wird.** Eine reale Aufgabe in einem sauberen Container, zehn Durchläufe mit dem geprüften Element und zehn ohne, bewertet durch *Ausführen* des Ergebnisses — ein Build, ein Topic mit Daten, ein Exit-Code — niemals durch Lesen. Exakter Test nach Fisher, Benjamini–Hochberg-Korrektur über die gesamte Runde.
+**Wie gemessen wird.** Eine reale Aufgabe in einem isolierten Arbeitsverzeichnis, zehn Durchläufe mit dem geprüften Element und zehn ohne, bewertet durch *Ausführen* des Ergebnisses — ein Build, ein Topic mit Daten, ein Exit-Code — niemals durch Lesen. Exakter Test nach Fisher, Benjamini–Hochberg-Korrektur über die gesamte Runde.
 
-**Was das geklärt hat.** Acht Domänen wurden auf eine dreistufige Leiter gestellt — 24 Sprossen insgesamt, jede fügt einen benannten Mechanismus hinzu und wird von einer Prüfung bewertet, die das Artefakt ausführt. Der Basis-Agent erreichte **jeden Mechanismus, der von ihm verlangt wurde**:
+**Historische Ergebnisse mit Grenzen der Reproduzierbarkeit.** Die Tabellen behalten die früher veröffentlichten Werte bei. Einige stimmen nicht mit den gespeicherten Ergebnisdateien überein; ein Teil der Nachbewertung ist nicht mehr belegbar. Lesen Sie den [Abgleich der Artefakte](./evals/CAPABILITIES.md), bevor Sie diese Zahlen oder allgemeine Fähigkeitsaussagen als verifiziert zitieren. Bei dieser Wartung wurde kein neuer Benchmark ausgeführt.
 
 | Domäne | L1 → L2 → L3, pro Sprosse ergänzte Mechanismen | Ohne Hilfe |
 | :--- | :--- | ---: |
@@ -96,7 +96,7 @@ Dieses Repository optimiert auf ein einziges Ergebnis: das Risiko zu minimieren,
 | Nav2 | Parameterdatei, die die Server unverändert akzeptieren → Stack bis `active` gefahren → Costmap, die Hindernisse aus Live-Scans markiert | siehe unten |
 | Perception | `cv_bridge`-Rundlauf → `CameraInfo`-Projektion → 16UC1-Tiefe → `PointCloud2` | **106/120** |
 
-**Kein einziger Fehler wurde durch Bereitstellen von Information geschlossen.** Vier Lücken wurden gefunden, allesamt verhaltensbezogen:
+Die historische Analyse führte die folgenden Unterschiede auf Verifikation und Ausführung zurück. Diese Beobachtungen unterliegen den genannten Beleggrenzen und sind keine Garantie für alle Modelle oder Aufgaben.
 
 | Was das Modell ohne Hilfe nicht tut | Basis | Was es schloss | Danach |
 | :--- | ---: | :--- | ---: |
@@ -105,9 +105,9 @@ Dieses Repository optimiert auf ein einziges Ergebnis: das Risiko zu minimieren,
 | Den geschriebenen QoS-Code vor der Übergabe ausführen | **5/10** | das „fertig heißt, es lief" aus `CLAUDE.md` | **9/10** (zu geringe Teststärke) |
 | Die geschriebene Nav2-Konfiguration vor der Übergabe ausführen | **0/10** | eine Aufgabe, die das Erreichen von `active` verlangt | **30/30** |
 
-Die letzte Zeile verdeutlicht dieses Prinzip am klarsten. Auf die Aufforderung hin, nur eine Nav2-Parameterdatei zu erstellen, erzeugten alle 10 Durchläufe Konfigurationen, die ihre eigenen Nav2-Server zu laden verweigerten. Auf die Aufforderung hin, dieselbe Datei zu erstellen *und zusätzlich* den Stack in den Zustand `active` zu bringen, stieß jeder Durchlauf auf genau denselben Konfigurationsfehler, diagnostizierte ihn aus den Logs, behob ihn und bestand. **Gleiches Modell, gleiche Fehlvorstellung, null Unterschied an Information** — nur die Anforderung, auszuführen und zu verifizieren, unterschied sich.
+Der historische Nav2-Vergleich deutete darauf hin, dass geforderte Ausführung Konfigurationsfehler sichtbar macht. Einige gespeicherte Urteile fehlen; Summen und Schlussfolgerungen sind zusammen mit dem obigen Abgleich zu lesen.
 
-**Konsequenz für dieses Paket.** Sechs Domänen-Skills wurden vollständig entfernt, zusätzlich zu den beiden zuvor entfernten: Das Modell erreicht diese Inhalte bereits eigenständig, und keine beschreibende Prosa in diesem Repository hat je eine Evaluationsprüfung verbessert. Übrig bleiben ein 30-zeiliges Protokoll, vier ausführbare Skripte und das Referenzmaterial dahinter. Methode, Ergebnisse je Domäne und Rohdurchläufe: [`evals/`](./evals/).
+**Aktueller Umfang.** Frühere Skill-Löschungen bleiben bestehen. Diese Wartung belegt keine neuen Modellfähigkeiten und revidiert keine Entscheidungen ohne neue Nachweise. Das Paket enthält das unveränderte Protokoll mit 30 Zeilen, vier ausführbare Checks und Referenzen. Methode, historische Läufe und Beleggrenzen stehen in [`evals/`](./evals/).
 
 ## Schnellstart
 
@@ -118,7 +118,9 @@ Die letzte Zeile verdeutlicht dieses Prinzip am klarsten. Auf die Aufforderung h
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Installierte Plugins lassen sich jederzeit mit `/plugin marketplace update` aktualisieren.
+Aktualisieren Sie das Plugin mit `claude plugin update claude-ros2-skills@claude-ros2-skills` und starten Sie eine neue Sitzung.
+
+Wählen Sie eine Installationsmethode. Das Plugin lädt die unveränderte `CLAUDE.md` über einen `SessionStart`-Hook; im Benutzerbereich gilt sie für alle Projekte. Die manuelle Installation kopiert sie nach `.claude/rules/ros2-verification.md` und erhält bestehende `CLAUDE.md`-Dateien. Das Experiment 2/10→10/10 verwendete eine `CLAUDE.md` im Projektstamm; eine gleichwertige Wirkung von Hooks oder Regeldateien wurde nicht gemessen.
 
 **Option B — Manuelle Installation:**
 
@@ -126,13 +128,10 @@ Installierte Plugins lassen sich jederzeit mit `/plugin marketplace update` aktu
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
 # Installation auf Projektebene (gilt nur für das aktuelle Projekt)
-mkdir -p your-project/.claude/skills
-cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
-cp claude-ros2-skills/CLAUDE.md your-project/
+python3 claude-ros2-skills/scripts/install.py --project your-project
 
 # Installation auf Benutzerebene (gilt für alle Projekte)
-mkdir -p ~/.claude/skills
-cp -r claude-ros2-skills/skills/* ~/.claude/skills/
+python3 claude-ros2-skills/scripts/install.py --user
 ```
 
 Starten Sie Claude Code neu (oder beginnen Sie eine neue Sitzung), um die installierten Skills zu übernehmen.
@@ -148,11 +147,13 @@ Starten Sie Claude Code neu (oder beginnen Sie eine neue Sitzung), um die instal
 
 ## Verifikationsskripte
 
-Diese Skripte sind im Skill `ros2-troubleshooting` enthalten (`skills/ros2-troubleshooting/scripts/`) und werden mit jeder Installation ausgeliefert. Sie überführen physikalische Hardwareprüfungen in ausführbare Bestanden/Durchgefallen-Schritte (erfordert eine gesourcte ROS-2-Umgebung; Rückgabewerte: 0 = BESTANDEN, 1 = DURCHGEFALLEN, 2 = KEINE DATEN):
+Diese Skripte sind im Skill `ros2-troubleshooting` enthalten (`skills/ros2-troubleshooting/scripts/`) und werden mit jeder Installation ausgeliefert. Sie überführen physikalische Hardwareprüfungen in ausführbare Bestanden/Durchgefallen-Schritte (erfordert eine gesourcte ROS-2-Umgebung; Rückgabewerte: 0 = BESTANDEN, 1 = DURCHGEFALLEN, 2 = NICHT EINDEUTIG):
+
+Code 2 umfasst auch ungültige Daten, unbestimmtes QoS, fehlende TF und zu geringe Bewegung. Der IMU-Check transformiert die Beschleunigung nach `--base base_link`; nutzen Sie `--assume-aligned` nur bei nachweislich zur waagerechten Basis ausgerichteten Nachrichtenachsen.
 
 | Skript | Verifiziert |
 | :--- | :--- |
-| `check_imu_gravity.py` | Dass ein ruhender Roboter die Schwerkraft mit ~+9,81 m/s² entlang der **+Z**-Achse misst (REP 103). Erkennt invertierte oder fehlausgerichtete IMU-Montagen. |
+| `check_imu_gravity.py` | Bei ruhendem, waagerechtem Roboter: Gravitation per TF in den Basisrahmen transformieren und ~+9.81 m/s² auf **+Z** prüfen. Erkennt Roll-/Pitch-Abweichungen; Yaw ist mit Gravitation allein nicht prüfbar. |
 | `check_odom_direction.py` | Dass Vorwärtsschieben des Roboters eine positive Odometrieverschiebung entlang seiner Fahrtrichtung erzeugt. Erkennt invertierte Motorrichtungen, Encoder-Polaritätsprobleme oder invertierte TF-Konfigurationen. |
 | `check_tf_tree.py` | Dass `map→odom→base_link` korrekt auflöst; zeigt den Montage-Offset jedes Sensors in RPY-Grad und hebt mögliche 180°-Orientierungsfehler hervor. |
 | `check_qos_compat.py` | Die QoS-Kompatibilität aller Publisher-/Subscriber-Paare eines Topics nach DDS-Regeln. Verhindert stille Fehler (etwa BEST_EFFORT-Publisher zusammen mit RELIABLE-Subscriber oder Abweichungen bei Durability, Deadline und Liveliness). |
@@ -179,8 +180,11 @@ flowchart LR
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # oder das .claude/skills/ Ihres Projekts
+python3 scripts/install.py --user
+# python3 scripts/install.py --project /path/to/your-project
 ```
+
+Der Installer aktualisiert nur seine unveränderten Dateien und überschreibt weder lokale Änderungen noch vorhandene manuelle Kopien. Prüfen und verschieben Sie Konfliktdateien zuerst. Veraltete Skill-Ordner werden zur manuellen Bereinigung aufgelistet, niemals automatisch gelöscht. Derselbe Befehl aktualisiert Skills und Protokoll.
 
 ## Mitwirken
 

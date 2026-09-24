@@ -10,9 +10,10 @@ import pathlib
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 
-from check_imu_gravity import analyze
+from check_imu_gravity import analyze, rotate_acceleration
 from check_odom_direction import yaw_from_quat, forward_displacement, verdict_for
-from check_qos_compat import check_pair
+from check_qos_compat import compatibility_verdict, combined_verdict
+from _check_common import exit_code
 from check_tf_tree import quat_to_rpy, describe_mount
 
 G = 9.81
@@ -44,6 +45,16 @@ def test_yaw_from_quat():
     for yaw in (0.0, 0.5, math.pi / 2, -math.pi / 2, 3.0, -3.0):
         x, y, z, w = q_from_yaw(yaw)
         assert abs(yaw_from_quat(x, y, z, w) - yaw) < 1e-9, yaw
+
+
+def test_imu_transform():
+    # A correctly declared upside-down IMU is healthy in the robot base frame.
+    corrected = rotate_acceleration((0.0, 0.0, -G), (1.0, 0.0, 0.0, 0.0))
+    assert analyze([corrected])[0] == 'PASS'
+    s = math.sqrt(0.5)
+    corrected = rotate_acceleration((-G, 0.0, 0.0), (0.0, s, 0.0, s))
+    assert analyze([corrected])[0] == 'PASS'
+    assert analyze([(0.0, 0.0, -G)])[0] == 'FAIL'
 
 
 def test_forward_displacement():
@@ -83,42 +94,59 @@ def test_quat_to_rpy():
     assert abs(p - math.pi / 2) < 1e-6
 
 
-def _qos(**over):
-    base = {"reliability": "RELIABLE", "durability": "VOLATILE",
-            "liveliness": "AUTOMATIC", "deadline": None, "lease": None}
-    base.update(over)
-    return base
+def test_qos_verdicts():
+    assert compatibility_verdict('OK') == 'PASS'
+    assert compatibility_verdict('ERROR') == 'FAIL'
+    assert compatibility_verdict('WARNING') == 'INCONCLUSIVE'
+    assert compatibility_verdict('UNKNOWN') == 'INCONCLUSIVE'
+    assert combined_verdict([]) == 'INCONCLUSIVE'
+    assert combined_verdict(['PASS', 'PASS']) == 'PASS'
+    assert combined_verdict(['PASS', 'INCONCLUSIVE']) == 'INCONCLUSIVE'
+    assert combined_verdict(['INCONCLUSIVE', 'FAIL', 'PASS']) == 'FAIL'
 
 
-def test_qos_pairs():
-    # identical defaults match
-    assert check_pair(_qos(), _qos()) == []
-    # the classic sensor bug: BEST_EFFORT pub vs RELIABLE sub
-    probs = check_pair(_qos(reliability="BEST_EFFORT"), _qos())
-    assert len(probs) == 1 and "reliability" in probs[0]
-    # the reverse direction is fine (RELIABLE pub, BEST_EFFORT sub)
-    assert check_pair(_qos(), _qos(reliability="BEST_EFFORT")) == []
-    # latched-subscriber bug: VOLATILE pub vs TRANSIENT_LOCAL sub
-    probs = check_pair(_qos(), _qos(durability="TRANSIENT_LOCAL"))
-    assert len(probs) == 1 and "durability" in probs[0]
-    assert check_pair(_qos(durability="TRANSIENT_LOCAL"), _qos()) == []
-    # liveliness: AUTOMATIC pub cannot satisfy MANUAL_BY_TOPIC sub
-    assert check_pair(_qos(), _qos(liveliness="MANUAL_BY_TOPIC")) != []
-    assert check_pair(_qos(liveliness="MANUAL_BY_TOPIC"), _qos()) == []
-    # deadline: offered period must be <= requested; None = infinite
-    assert check_pair(_qos(deadline=0.1), _qos(deadline=0.2)) == []
-    assert check_pair(_qos(deadline=0.5), _qos(deadline=0.2)) != []
-    assert check_pair(_qos(), _qos(deadline=0.2)) != []  # infinite offer
-    assert check_pair(_qos(deadline=0.5), _qos()) == []  # sub accepts any
-    # lease duration follows the same rule
-    assert check_pair(_qos(lease=1.0), _qos(lease=0.5)) != []
-    assert check_pair(_qos(lease=0.5), _qos(lease=1.0)) == []
-    # UNKNOWN/SYSTEM_DEFAULT policies (None) are skipped, not failed
-    assert check_pair(_qos(reliability=None), _qos()) == []
-    # multiple simultaneous mismatches all reported
-    probs = check_pair(_qos(reliability="BEST_EFFORT"),
-                       _qos(durability="TRANSIENT_LOCAL", deadline=0.1))
-    assert len(probs) == 3
+def test_invalid_measurements():
+    for value in (float('nan'), float('inf'), -float('inf')):
+        for axis in range(3):
+            sample = [0.0, 0.0, G]
+            sample[axis] = value
+            assert analyze([tuple(sample)])[0] == 'INCONCLUSIVE'
+        assert verdict_for(value, 1.0)[0] == 'INCONCLUSIVE'
+    for q in [(0, 0, 0, 0), (0, 0, 0, 2), (0, float('nan'), 0, 1)]:
+        for convert in (yaw_from_quat, quat_to_rpy):
+            try:
+                convert(*q)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f'{convert.__name__} accepted invalid {q}')
+
+
+def test_exit_codes():
+    for verdict, expected in [('PASS', 0), ('FAIL', 1), ('INCONCLUSIVE', 2)]:
+        assert exit_code(verdict) == expected
+    assert exit_code(verdict_for(0.0, 1.0)[0]) == 2
+    assert exit_code(analyze([(0.0, float('nan'), G)])[0]) == 2
+
+
+def test_cli_arguments():
+    import subprocess
+    base = pathlib.Path(__file__).resolve().parent
+    for script, arguments in [
+        ('check_imu_gravity.py', ['--samples', '0']),
+        ('check_imu_gravity.py', ['--timeout', 'nan']),
+        ('check_imu_gravity.py', ['--tol-mag', 'inf']),
+        ('check_odom_direction.py', ['--dist', '-1']),
+        ('check_odom_direction.py', ['--wait-secs', '-1']),
+        ('check_odom_direction.py', ['--timeout', 'inf']),
+        ('check_qos_compat.py', ['--topic', '/test', '--wait', 'nan']),
+        ('check_tf_tree.py', ['--timeout', '-1']),
+    ]:
+        result = subprocess.run([sys.executable, str(base / script), *arguments],
+                                text=True, capture_output=True, timeout=5)
+        assert result.returncode == 2, (script, arguments, result)
+        assert 'error: argument' in result.stderr, result.stderr
+        assert 'Traceback' not in result.stderr, result.stderr
 
 
 def test_describe_mount():

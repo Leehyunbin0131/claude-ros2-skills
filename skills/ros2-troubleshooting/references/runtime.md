@@ -19,10 +19,15 @@ Last incompatible policy: RELIABILITY
 
 `scripts/check_qos_compat.py --topic <topic>` reports every incompatible
 publisher/subscriber pair on a topic. Two other policies fail the same way and
-name themselves the same way in that warning: DURABILITY (a VOLATILE subscriber
-never receives a TRANSIENT_LOCAL publisher's retained sample, so a
-latched-once config topic delivers nothing to a late joiner) and DEADLINE (a
-subscriber requesting a period stricter than the publisher offers).
+name themselves the same way in that warning: DURABILITY (a VOLATILE publisher
+cannot satisfy a TRANSIENT_LOCAL subscriber) and DEADLINE (a subscriber
+requesting a period stricter than the publisher offers).
+
+A TRANSIENT_LOCAL publisher and VOLATILE subscriber are compatible for new
+messages, but a late VOLATILE subscriber does not request retained history.
+That latched-once config failure produces no incompatibility warning; a QoS
+PASS does not prove that historical data was delivered. Unresolved/default
+policies are INCONCLUSIVE (exit 2), as reported by the installed RMW checker.
 
 `ros2 topic echo` cannot answer this question. It auto-negotiates QoS, so it
 matches publishers a real subscriber would not — a topic that echoes perfectly

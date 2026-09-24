@@ -15,7 +15,7 @@ Skills that transform how AI agents approach ROS 2 development: identify unknown
 
 | Skills | Always-loaded protocol | Doc links (CI-checked) | Physical robot checks |
 | :---: | :---: | :---: | :---: |
-| **2** | **30 lines** | **6** | **4 scripts** |
+| **2** | **30 lines** | **9** | **4 scripts** |
 
 </div>
 
@@ -81,14 +81,12 @@ This repository optimizes for a single outcome: minimizing the risk of generatin
 Jazzy install in front of it. Text that only tells the agent what it would have
 done anyway is cost without benefit.
 
-**How it is measured.** A real task in a clean container, ten runs with the piece
+**How it is measured.** A real task in an isolated workspace, ten runs with the piece
 under test and ten without, graded by *running* what came out — a build, a topic
 carrying data, an exit code — never by reading it. Fisher exact test,
 Benjamini–Hochberg across the round.
 
-**What that settled.** Eight domains were put through a three-rung ladder — 24
-rungs, each rung adding a named mechanism, each graded by a check that runs the
-artifact. The baseline agent reached **every mechanism it was asked for**:
+**Historical results, with reproducibility limits.** The following tables preserve previously reported scores. Several do not match the committed verdict files, and some regrading evidence is unavailable. See the [artifact reconciliation](./evals/CAPABILITIES.md) before treating these numbers or universal capability claims as verified. No new benchmark was run for this maintenance update.
 
 | Domain | L1 → L2 → L3, mechanisms added per rung | Unaided |
 | :--- | :--- | ---: |
@@ -102,8 +100,7 @@ artifact. The baseline agent reached **every mechanism it was asked for**:
 | Nav2 | parameter file the servers accept → stack driven to `active` → costmap marking live scan obstacles | see below |
 | Perception | `cv_bridge` round trip → `CameraInfo` projection → 16UC1 depth → `PointCloud2` | **106/120** |
 
-**Not one failure was closed by supplying information.** Four gaps were found,
-all behavioural:
+The historical analysis attributed the following differences to verification and execution behavior. These are reported observations with the evidence limits above, not a guarantee across models or tasks.
 
 | What the model does not do unaided | Baseline | What closed it | After |
 | :--- | ---: | :--- | ---: |
@@ -112,9 +109,9 @@ all behavioural:
 | Run the QoS code it writes before shipping it | **5/10** | `CLAUDE.md`'s "Done means it ran" | **9/10** (underpowered) |
 | Run the Nav2 config it writes before shipping it | **0/10** | a task that requires reaching `active` | **30/30** |
 
-The last row illustrates this principle most clearly. When asked only for a Nav2 parameter file, all 10 evaluation runs produced configurations that Nav2 servers refused to load. However, when asked for the parameter file *and* required to bring the stack to an `active` state, every run encountered the exact same configuration error, diagnosed it from logs, fixed it, and passed. **Same model, same misconception, zero difference in information** — only the requirement to run and verify differed.
+The historical Nav2 comparison suggested that requiring execution exposed configuration errors. Some committed verdicts are missing, so the reported totals and broader conclusions require the reconciliation linked above.
 
-**Consequence for this pack.** Six domain skills were deleted in full, in addition to the two deleted earlier: the model already reaches their content independently, and no descriptive prose in this repository ever improved a benchmark check. What remains is a 30-line protocol, four runnable scripts, and the reference material behind them. Method, per-domain results, and raw runs: [`evals/`](./evals/).
+**Current scope.** The earlier skill deletions are retained; this maintenance does not establish new model capability results or reverse those decisions without new evidence. The pack contains the unchanged 30-line protocol, four executable checks, and their supporting references. See [`evals/`](./evals/) for the method, historical runs, and evidence limits.
 
 ## Quickstart
 
@@ -125,7 +122,9 @@ The last row illustrates this principle most clearly. When asked only for a Nav2
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Update installed plugins anytime with `/plugin marketplace update`.
+Update the installed plugin with `claude plugin update claude-ros2-skills@claude-ros2-skills`, then start a new session.
+
+Choose one installation method. The plugin loads the unchanged `CLAUDE.md` through a `SessionStart` hook; at user scope it applies to every project. Manual installation copies it to `.claude/rules/ros2-verification.md` and preserves existing `CLAUDE.md` files. The 2/10→10/10 experiment used a project-root `CLAUDE.md`; equivalent effectiveness of hook/rules delivery has not been measured.
 
 **Option B — Manual Installation:**
 
@@ -133,13 +132,10 @@ Update installed plugins anytime with `/plugin marketplace update`.
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 
 # Project-level installation (applies to the current project only)
-mkdir -p your-project/.claude/skills
-cp -r claude-ros2-skills/skills/* your-project/.claude/skills/
-cp claude-ros2-skills/CLAUDE.md your-project/
+python3 claude-ros2-skills/scripts/install.py --project your-project
 
 # User-level installation (applies across all projects)
-mkdir -p ~/.claude/skills
-cp -r claude-ros2-skills/skills/* ~/.claude/skills/
+python3 claude-ros2-skills/scripts/install.py --user
 ```
 
 Restart Claude Code (or start a new session) to apply the installed skills.
@@ -161,11 +157,13 @@ See [Evals](#evals).
 
 ## Verification scripts
 
-These verification scripts are bundled within the `ros2-troubleshooting` skill (`skills/ros2-troubleshooting/scripts/`) and are included with every installation. They convert physical hardware checks into executable pass/fail verification steps (requires a sourced ROS 2 environment; return codes: 0 = PASS, 1 = FAIL, 2 = NO DATA):
+These verification scripts are bundled within the `ros2-troubleshooting` skill (`skills/ros2-troubleshooting/scripts/`) and are included with every installation. They convert physical hardware checks into executable pass/fail verification steps (requires a sourced ROS 2 environment; return codes: 0 = PASS, 1 = FAIL, 2 = INCONCLUSIVE):
+
+Exit 2 also covers invalid data, unknown QoS, missing TF and insufficient motion. The IMU check transforms acceleration into `--base base_link`; use `--assume-aligned` only when the message axes are known to match the level base frame.
 
 | Script | Verifies |
 | :--- | :--- |
-| `check_imu_gravity.py` | Validates that a robot at rest measures gravity at ~+9.81 m/s² along the **+Z** axis (REP 103). Detects inverted or misaligned IMU mountings. |
+| `check_imu_gravity.py` | Checks gravity at rest on level ground after TF into the base frame: ~+9.81 m/s² on **+Z** (REP 103). Detects roll/pitch inconsistencies; gravity alone cannot verify yaw. |
 | `check_odom_direction.py` | Validates that pushing the robot forward produces positive odometry displacement along its heading. Detects inverted motor directions, encoder polarity issues, or inverted TF setups. |
 | `check_tf_tree.py` | Verifies that `map→odom→base_link` resolves correctly; displays each sensor mounting offset in RPY degrees and highlights potential 180° orientation errors. |
 | `check_qos_compat.py` | Verifies QoS compatibility across all publisher/subscriber pairs on a topic using DDS rules. Prevents silent failures (such as a BEST_EFFORT publisher paired with a RELIABLE subscriber, or mismatches in durability, deadline, and liveliness). |
@@ -192,8 +190,11 @@ flowchart LR
 ```bash
 cd claude-ros2-skills
 git pull
-cp -r skills/* ~/.claude/skills/   # or your project's .claude/skills/
+python3 scripts/install.py --user
+# python3 scripts/install.py --project /path/to/your-project
 ```
+
+The installer updates its own unchanged files and refuses to overwrite local edits or existing unmanaged copies. Move conflicting copies aside after inspection. Retired skill directories are listed for manual cleanup and are never deleted automatically. Run the same installer command to update both skills and the protocol.
 
 ## Contributing
 

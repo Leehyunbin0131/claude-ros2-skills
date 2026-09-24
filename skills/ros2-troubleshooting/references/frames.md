@@ -35,17 +35,19 @@ because the sensor is mounted upside-down or backwards. `ros2 run tf2_ros
 tf2_echo base_link laser_frame` and compare RPY against the physical mount.
 
 **EKF odometry (`robot_localization`) diverges or spins**
-IMU `angular_velocity.z` has the opposite sign to wheel-odometry yaw rate
-during turns, or the stationary gravity vector sits on `+X`/`+Y` instead of
-`+Z`. `ros2 topic echo /imu/data` at rest: `linear_acceleration.z` must be
-~`+9.81` m/s².
+After rotating IMU vectors from the message's `header.frame_id` into the
+robot's base frame, yaw rate should agree with wheel odometry and gravity
+should be ~`+9.81` m/s² on base `+Z` at rest on level ground. Raw IMU `+Z`
+need not point upward: a correctly declared upside-down sensor reads negative
+raw Z. `check_imu_gravity.py` applies TF before judging; missing TF gives exit 2.
+Use `--assume-aligned` only when the message axes are known to match the base.
 
 ## Diagnostic order for a direction fault
 
 1. Push the robot forward 1 m by hand. `ros2 topic echo /odom` — displacement
    along body heading must be positive.
-2. Turn the robot left by hand. `ros2 topic echo /imu/data` —
-   `angular_velocity.z` must be positive.
+2. Turn the robot left by hand. IMU angular velocity **transformed into the
+   base frame** must have positive Z; raw Z applies only for aligned axes.
 3. `ros2 run tf2_ros tf2_echo base_link laser_frame` — static mount matches
    hardware.
 
