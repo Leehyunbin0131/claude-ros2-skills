@@ -1,0 +1,84 @@
+[
+  {
+    "tool": "Skill",
+    "input": {
+      "skill": "claude-ros2-skills:ros2-troubleshooting"
+    },
+    "output": "Launching skill: claude-ros2-skills:ros2-troubleshooting",
+    "is_error": false
+  },
+  {
+    "tool": "Bash",
+    "input": {
+      "command": "cd $WORKSPACE; ls -la; S=.acceptance-plugin/skills/ros2-troubleshooting/scripts; python3 $S/check_imu_gravity.py --help; source /opt/ros/jazzy/setup.bash; ros2 topic list -t; ros2 node list",
+      "description": "Inspect workspace, checker help, and live topics"
+    },
+    "output": "total 20\ndrwxrwxr-x  3 $USER $USER 4096 Sep 25 12:21 .\ndrwxrwxr-x 10 $USER $USER 4096 Sep 25 12:21 ..\ndrwxrwxr-x  5 $USER $USER 4096 Sep 25 12:21 .acceptance-plugin\n-rw-rw-r--  1 $USER $USER  860 Sep 25 12:21 TASK.txt\n-rw-rw-r--  1 $USER $USER    3 Sep 25 12:21 colcon-defaults.yaml\nusage: check_imu_gravity.py [-h] [--topic TOPIC] [--base BASE]\n                            [--assume-aligned] [--samples SAMPLES]\n                            [--timeout TIMEOUT] [--tol-mag TOL_MAG]\n\nVerify IMU mounting: with the robot resting flat and still, gravity must\nappear as ~+9.81 m/s^2 on +Z after transforming acceleration into base_link. A\ncorrectly declared rotated IMU can report gravity on any axis in its own\nframe. TF is required by default; --assume-aligned explicitly skips rotation\nwhen you know the message axes already align with the level robot's base. Use\nacceleration that includes gravity, not a gravity-compensated estimate. Usage:\npython3 check_imu_gravity.py [--topic /imu/data] Exit codes: 0 PASS, 1 FAIL, 2\ninconclusive (unusable/insufficient data / no ROS).\n\noptions:\n  -h, --help         show this help message and exit\n  --topic TOPIC\n  --base BASE        level robot body frame\n  --assume-aligned   explicitly assume message axes align with --base; skip TF\n  --samples SAMPLES\n  --timeout TIMEOUT  seconds\n  --tol-mag TOL_MAG\n/fixture/imu_a [sensor_msgs/msg/Imu]\n/fixture/imu_b [sensor_msgs/msg/Imu]\n/fixture/imu_c [sensor_msgs/msg/Imu]\n/parameter_events [rcl_interfaces/msg/ParameterEvent]\n/rosout [rcl_interfaces/msg/Log]\n/tf_static [tf2_msgs/msg/TFMessage]\n/imu_sim",
+    "is_error": false
+  },
+  {
+    "tool": "Bash",
+    "input": {
+      "command": "cd $WORKSPACE; cat TASK.txt colcon-defaults.yaml; source /opt/ros/jazzy/setup.bash; S=.acceptance-plugin/skills/ros2-troubleshooting/scripts; for t in a b c; do echo \"=== imu_$t\"; python3 $S/check_imu_gravity.py --topic /fixture/imu_$t --base base_link; echo \"exit=$?\"; done",
+      "description": "Run gravity checker on all three IMU topics",
+      "timeout": 180000
+    },
+    "output": "This is a ROS 2 Jazzy simulation fixture; no physical robot is connected. The simulated base frame is level and stationary and the accelerometers include gravity. Three independent IMU streams are already running: /fixture/imu_a, /fixture/imu_b, and /fixture/imu_c. Their declared sensor-to-base transforms, when available, are on TF; the base frame is base_link. Diagnose whether the measured acceleration is consistent with +9.81 m/s² on base +Z, distinguishing a confirmed inconsistency from insufficient evidence. Do not change or restart the publishers or add transforms. Save diagnosis.json in this directory, an object keyed by each full topic name with `status` equal to `pass`, `fail`, or `inconclusive`, and an `evidence` string describing the observation. Verify using live messages and TF, and explain what these results can and cannot establish.\n{}\n=== imu_a\nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_a (timeout 10.0s)...\n[PASS] In base_link: mean accel = (+0.00, +0.00, +9.81) m/s^2, |a| = 9.81. Gravity on +Z as REP 103 requires.\nexit=0\n=== imu_b\nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_b (timeout 10.0s)...\n[FAIL] In base_link: mean accel = (+0.00, +0.00, -9.81) m/s^2, |a| = 9.81. Z is negative: IMU is upside-down relative to its declared TF frame (or reports acceleration in NED instead of REP 103 ENU/body convention).\nexit=1\n=== imu_c\n[INCONCLUSIVE] collected 0/50 usable messages on /fixture/imu_c; 386 unavailable. TF base_link <- fixture_c: \"fixture_c\" passed to lookupTransform argument source_frame does not exist. \nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_c (timeout 10.0s)...\nexit=2",
+    "is_error": false
+  },
+  {
+    "tool": "Bash",
+    "input": {
+      "command": "source /opt/ros/jazzy/setup.bash; for t in a b c; do echo \"=== imu_$t\"; ros2 topic info -v /fixture/imu_$t | grep -E \"Node name|Reliability|Durability|Publisher count\"; ros2 topic echo --once /fixture/imu_$t --field header; ros2 topic echo --once /fixture/imu_$t --field linear_acceleration; ros2 topic echo --once /fixture/imu_$t --field linear_acceleration_covariance; ros2 topic hz /fixture/imu_$t --window 20 & sleep 3; kill %1; done 2>&1; echo \"=== tf_static\"; ros2 topic echo --once --qos-durability transient_local /tf_static",
+      "description": "Echo raw IMU headers, accel, rates, and static TF",
+      "timeout": 120000
+    },
+    "output": "Command did not complete within its 120s timeout and was moved to the background (ID: b9md39nk9). Output is being written to: /tmp/claude-1000/-tmp-ros2-acceptance-workspaces-20260925-imu-plugin-0/<UUID>/tasks/b9md39nk9.output. You will be notified when it completes. To check interim output, use Read on that file path.",
+    "is_error": false
+  },
+  {
+    "tool": "Read",
+    "input": {
+      "file_path": "/tmp/claude-1000/-tmp-ros2-acceptance-workspaces-20260925-imu-plugin-0/<UUID>/tasks/b9md39nk9.output"
+    },
+    "output": "1\t=== imu_a\n2\tPublisher count: 1\n3\tNode name: imu_sim\n4\tNode namespace: /\n5\t  Reliability: BEST_EFFORT\n6\t  Durability: VOLATILE\n7\tstamp:\n8\t  sec: 1790306494\n9\t  nanosec: 99010068\n10\tframe_id: fixture_a\n11\t---\n12\tx: 0.0\n13\ty: 0.0\n14\tz: -9.81\n15\t---\n16\t[0. 0. 0. 0. 0. 0. 0. 0. 0.]\n17\t---\n18\taverage rate: 37.219\n19\t\tmin: 0.027s max: 0.027s std dev: 0.00011s window: 20\n20\taverage rate: 37.155\n21\t\tmin: 0.027s max: 0.028s std dev: 0.00026s window: 20\n22\t=== imu_b\n23\tPublisher count: 1\n24\tNode name: imu_sim\n25\tNode namespace: /\n26\t  Reliability: BEST_EFFORT\n27\t  Durability: VOLATILE\n28\t[1]+  Exit 15                 ros2 topic hz /fixture/imu_$t --window 20\n29\tstamp:\n30\t  sec: 1790306500\n31\t  nanosec: 242191160\n32\tframe_id: fixture_b\n33\t---\n34\tx: 0.0\n35\ty: 0.0\n36\tz: 9.81\n37\t---\n38\t[0. 0. 0. 0. 0. 0. 0. 0. 0.]\n39\t---\n40\taverage rate: 38.885\n41\t\tmin: 0.025s max: 0.026s std dev: 0.00018s window: 20\n42\taverage rate: 38.703\n43\t\tmin: 0.026s max: 0.027s std dev: 0.00027s window: 20\n44\t=== imu_c\n45\tPublisher count: 1\n46\tNode name: imu_sim\n47\tNode namespace: /\n48\t  Reliability: BEST_EFFORT\n49\t  Durability: VOLATILE\n50\t[1]+  Exit 15                 ros2 topic hz /fixture/imu_$t --window 20\n51\tstamp:\n52\t  sec: 1790306506\n53\t  nanosec: 404554745\n54\tframe_id: fixture_c\n55\t---\n56\tx: 0.0\n57\ty: 0.0\n58\tz: 9.81\n59\t---\n60\t[0. 0. 0. 0. 0. 0. 0. 0. 0.]\n61\t---\n62\taverage rate: 39.100\n63\t\tmin: 0.025s max: 0.026s std dev: 0.00020s window: 20\n64\taverage rate: 39.032\n65\t\tmin: 0.025s max: 0.026s std dev: 0.00012s window: 20\n66\t=== tf_static\n67\tfailed to initialize wait set: the given context is not valid, either rcl_init() was not called or rcl_shutdown() was called., at ./src/rcl/wait.c:130\n68\t",
+    "is_error": false
+  },
+  {
+    "tool": "Bash",
+    "input": {
+      "command": "pkill -f \"ros2 topic\" ; true",
+      "description": "Stop the hung echo/hz commands"
+    },
+    "output": "Exit code 144",
+    "is_error": true
+  },
+  {
+    "tool": "Bash",
+    "input": {
+      "command": "source /opt/ros/jazzy/setup.bash; timeout 10 ros2 topic echo --once --qos-durability transient_local --qos-reliability reliable /tf_static; ros2 topic info -v /tf_static | grep -E \"Node name|Publisher count|Durability\"; for f in fixture_a fixture_b fixture_c; do echo \"=== base_link <- $f\"; timeout 5 ros2 run tf2_ros tf2_echo base_link $f 2>&1 | head -12; done",
+      "description": "Dump /tf_static and resolve each sensor transform",
+      "timeout": 60000
+    },
+    "output": "Exit code 143\ntransforms:\n- header:\n    stamp:\n      sec: 0\n      nanosec: 0\n    frame_id: base_link\n  child_frame_id: fixture_a\n  transform:\n    translation:\n      x: 0.0\n      y: 0.0\n      z: 0.0\n    rotation:\n      x: 1.0\n      y: 0.0\n      z: 0.0\n      w: 0.0\n- header:\n    stamp:\n      sec: 0\n      nanosec: 0\n    frame_id: base_link\n  child_frame_id: fixture_b\n  transform:\n    translation:\n      x: 0.0\n      y: 0.0\n      z: 0.0\n    rotation:\n      x: 1.0\n      y: 0.0\n      z: 0.0\n      w: 0.0\n---\nPublisher count: 1\nNode name: imu_sim\nNode namespace: /\n  Durability: TRANSIENT_LOCAL\n=== base_link <- fixture_a\n[INFO] [1790306621.980968677] [tf2_echo]: Waiting for transform base_link ->  fixture_a: Invalid frame ID \"base_link\" passed to canTransform argument target_frame - frame does not exist\nAt time 0.0\n- Translation: [0.000, 0.000, 0.000]\n- Rotation: in Quaternion (xyzw) [1.000, 0.000, 0.000, 0.000]\n- Rotation: in RPY (radian) [3.142, -0.000, 0.000]\n- Rotation: in RPY (degree) [180.000, -0.000, 0.000]\n- Matrix:\n  1.000  0.000  0.000  0.000\n  0.000 -1.000  0.000  0.000\n  0.000  0.000 -1.000  0.000\n  0.000  0.000  0.000  1.000\nAt time 0.0\n=== base_link <- fixture_b\n[INFO] [1790306626.612896012] [tf2_echo]: Waiting for transform base_link ->  fixture_b: Invalid frame ID \"base_link\" passed to canTransform argument target_frame - frame does not exist\nAt time 0.0\n- Translation: [0.000, 0.000, 0.000]\n- Rotation: in Quaternion (xyzw) [1.000, 0.000, 0.000, 0.000]\n- Rotation: in RPY (radian) [3.142, -0.000, 0.000]\n- Rotation: in RPY (degree) [180.000, -0.000, 0.000]\n- Matrix:\n  1.000  0.000  0.000  0.000\n  0.000 -1.000  0.000  0.000\n  0.000  0.000 -1.000  0.000\n  0.000  0.000  0.000  1.000\nAt time 0.0\n=== base_link <- fixture_c\nTerminated",
+    "is_error": true
+  },
+  {
+    "tool": "Write",
+    "input": {
+      "file_path": "$WORKSPACE/diagnosis.json",
+      "content": "{\n  \"/fixture/imu_a\": {\n    \"status\": \"pass\",\n    \"evidence\": \"Live messages: frame_id fixture_a, raw linear_acceleration (0.0, 0.0, -9.81) m/s^2, ~37 Hz from /imu_sim. /tf_static declares base_link->fixture_a rotation quaternion xyzw (1,0,0,0) = 180 deg roll (tf2_echo base_link fixture_a confirms). Rotated into base_link, the 50-sample mean is (+0.00, +0.00, +9.81), |a| = 9.81, matching +9.81 on base +Z. check_imu_gravity.py --topic /fixture/imu_a --base base_link exited 0 (PASS). The raw -Z reading is consistent with the declared upside-down mount.\"\n  },\n  \"/fixture/imu_b\": {\n    \"status\": \"fail\",\n    \"evidence\": \"Live messages: frame_id fixture_b, raw linear_acceleration (0.0, 0.0, +9.81) m/s^2, ~39 Hz from /imu_sim. /tf_static declares base_link->fixture_b rotation quaternion xyzw (1,0,0,0) = 180 deg roll (tf2_echo confirms). Rotated into base_link, the 50-sample mean is (+0.00, +0.00, -9.81), |a| = 9.81: gravity lands on base -Z. check_imu_gravity.py --topic /fixture/imu_b --base base_link exited 1 (FAIL). The data and the declared transform contradict each other: either the declared 180 deg roll is wrong, or the sensor data is sign-flipped (e.g. NED or gravity-sign convention). This check cannot tell which of the two is at fault.\"\n  },\n  \"/fixture/imu_c\": {\n    \"status\": \"inconclusive\",\n    \"evidence\": \"Live messages: frame_id fixture_c, raw linear_acceleration (0.0, 0.0, +9.81) m/s^2, ~39 Hz from /imu_sim. /tf_static (the only TF topic, from /imu_sim) holds only base_link->fixture_a and base_link->fixture_b; there is no /tf topic, and no transform for fixture_c exists. check_imu_gravity.py --topic /fixture/imu_c --base base_link exited 2 (INCONCLUSIVE): 0/50 usable messages, lookupTransform says source_frame fixture_c does not exist. With no declared sensor-to-base rotation, the raw +Z reading cannot be expressed in base_link. It is not evidence of a fault, and it would be a pass only if the frame were assumed to be aligned with base_link, which nothing here declares.\"\n  }\n}\n"
+    },
+    "output": "File created successfully at: $WORKSPACE/diagnosis.json (file state is current in your context — no need to Read it back)",
+    "is_error": false
+  },
+  {
+    "tool": "Bash",
+    "input": {
+      "command": "python3 -c \"import json;d=json.load(open('diagnosis.json'));print({k:v['status'] for k,v in d.items()})\"",
+      "description": "Validate diagnosis.json parses"
+    },
+    "output": "{'/fixture/imu_a': 'pass', '/fixture/imu_b': 'fail', '/fixture/imu_c': 'inconclusive'}",
+    "is_error": false
+  }
+]

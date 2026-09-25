@@ -1,0 +1,9 @@
+test_imu_live_statuses_and_mutation (__main__.Oracles.test_imu_live_statuses_and_mutation) ... ok
+test_scan_positive_and_negative_controls (__main__.Oracles.test_scan_positive_and_negative_controls) ... [WARN] [1790307466.572160862] [acceptance_default]: New subscription discovered on topic '/field_v3/scan', requesting incompatible QoS. No messages will be sent to it. Last incompatible policy: RELIABILITY
+ok
+test_test_suite_positive_and_negative_controls (__main__.Oracles.test_test_suite_positive_and_negative_controls) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 101.334s
+
+OK

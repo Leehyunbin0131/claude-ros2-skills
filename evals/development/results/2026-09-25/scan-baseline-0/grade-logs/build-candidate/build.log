@@ -1,0 +1,42 @@
+Starting >>> scan_watch
+running egg_info
+creating ../../build/scan_watch/scan_watch.egg-info
+writing ../../build/scan_watch/scan_watch.egg-info/PKG-INFO
+writing dependency_links to ../../build/scan_watch/scan_watch.egg-info/dependency_links.txt
+writing entry points to ../../build/scan_watch/scan_watch.egg-info/entry_points.txt
+writing requirements to ../../build/scan_watch/scan_watch.egg-info/requires.txt
+writing top-level names to ../../build/scan_watch/scan_watch.egg-info/top_level.txt
+writing manifest file '../../build/scan_watch/scan_watch.egg-info/SOURCES.txt'
+reading manifest file '../../build/scan_watch/scan_watch.egg-info/SOURCES.txt'
+writing manifest file '../../build/scan_watch/scan_watch.egg-info/SOURCES.txt'
+running build
+running build_py
+creating $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch
+copying scan_watch/node.py -> $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch
+copying scan_watch/__init__.py -> $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch
+copying scan_watch/logic.py -> $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch
+running install
+running install_lib
+creating $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch
+copying $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch/node.py -> $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch
+copying $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch/__init__.py -> $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch
+copying $OUTPUT/grade/build-candidate/build/scan_watch/build/lib/scan_watch/logic.py -> $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch
+byte-compiling $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch/node.py to node.cpython-312.pyc
+byte-compiling $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch/__init__.py to __init__.cpython-312.pyc
+byte-compiling $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch/logic.py to logic.cpython-312.pyc
+running install_data
+creating $OUTPUT/grade/build-candidate/install/scan_watch/share/ament_index/resource_index/packages
+copying resource/scan_watch -> $OUTPUT/grade/build-candidate/install/scan_watch/share/ament_index/resource_index/packages
+copying package.xml -> $OUTPUT/grade/build-candidate/install/scan_watch/share/scan_watch
+creating $OUTPUT/grade/build-candidate/install/scan_watch/share/scan_watch/config
+copying config/monitor.yaml -> $OUTPUT/grade/build-candidate/install/scan_watch/share/scan_watch/config
+creating $OUTPUT/grade/build-candidate/install/scan_watch/share/scan_watch/launch
+copying launch/monitor.launch.py -> $OUTPUT/grade/build-candidate/install/scan_watch/share/scan_watch/launch
+running install_egg_info
+Copying ../../build/scan_watch/scan_watch.egg-info to $OUTPUT/grade/build-candidate/install/scan_watch/lib/python3.12/site-packages/scan_watch-0.0.1-py3.12.egg-info
+running install_scripts
+Installing scan-watch script to $OUTPUT/grade/build-candidate/install/scan_watch/lib/scan_watch
+writing list of installed files to '$OUTPUT/grade/build-candidate/build/scan_watch/install.log'
+Finished <<< scan_watch [0.59s]
+
+Summary: 1 package finished [0.64s]

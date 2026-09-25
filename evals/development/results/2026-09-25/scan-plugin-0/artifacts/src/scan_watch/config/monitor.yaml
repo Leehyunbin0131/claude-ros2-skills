@@ -1,0 +1,5 @@
+# Default parameters for scan_watch, loaded by monitor.launch.py.
+# The /** wildcard applies them to the node under any launch namespace.
+/**:
+  ros__parameters:
+    limit: 0.4

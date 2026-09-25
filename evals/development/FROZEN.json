@@ -1,7 +1,7 @@
 {
   ".claude-plugin/marketplace.json": "3cab12dfeeee0725d74157d2e234d36574a88bd8d0ef4c5ec04de8b813918485",
   ".claude-plugin/plugin.json": "800f4d3101077bc41273a2dc9592e191359212f49bbb37a52b43b4fe7a77f4f4",
-  "CLAUDE.md": "ae8c2aa20a2d086b7bce73ee3e2a902b4cf9084521b2f44c0be701d656dd30a4",
+  "CLAUDE.md": "e927346aeba46bc34d9c00fb278fd7291a77c89ec1b97f73f76cae179c978bb1",
   "LICENSE": "c139cb09b5343ea4c69c06d727d06b91531218893724d9c668fdd2f7c3b75cb2",
   "evals/development/PROTOCOL.md": "09c1af1f0433634f601d06cf6bba94ded8e42788662400849a661839ca9cb980",
   "evals/development/fixtures.py": "6bcc60824aac6024bb6fca3583a203702c7d05ba8a6d09520d1519c51a8cc1eb",

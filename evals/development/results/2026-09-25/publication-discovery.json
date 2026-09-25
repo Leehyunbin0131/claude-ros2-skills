@@ -1,0 +1,19 @@
+{
+  "command": "colcon list --base-paths evals/development/results --names-only",
+  "before_marker": [
+    "drive_limits",
+    "drive_limits",
+    "drive_limits_v1",
+    "scan_watch",
+    "scan_watch",
+    "scan_watch_v1",
+    "scan_watch_v2",
+    "scan_watch_v3"
+  ],
+  "after_marker": [],
+  "returncodes": [
+    0,
+    0
+  ],
+  "note": "List exposes duplicate names without rejecting them; excluding evidence avoids accidental workspace package discovery. No build or model call."
+}

@@ -21,7 +21,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 # --user: alternative to --project
 ```
 
-重启会话后生效。插件通过 SessionStart 钩子加载 30 行协议；用户级安装影响所有项目。手动安装保留现有 CLAUDE.md 和其他技能，将协议放入 .claude/rules/ros2-verification.md；遇到本地修改时拒绝覆盖。ROS、colcon 和驱动需自行准备。
+重启会话后生效。插件通过 SessionStart 钩子加载协议；用户级安装影响所有项目。手动安装保留现有 CLAUDE.md 和其他技能，将协议放入 .claude/rules/ros2-verification.md；遇到本地修改时拒绝覆盖。ROS、colcon 和驱动需自行准备。
 
 ## 技能
 
@@ -35,7 +35,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 
 退出码：0 通过，1 失败，2 无法判定或请求无效。数据缺失、NaN、未知 QoS、缺失 TF、没有执行测试不能视为成功。IMU 检查先通过 TF 转到基座坐标系；重力不能验证 yaw。里程计检查只验证方向，不验证距离标定。运行时检查不发布运动命令。
 
-CI 覆盖安装保护、判定逻辑、真实临时 Python/CMake 软件包构建与测试、合成 Jazzy 通信和 TF，以及评估工具。新开发工作流尚未做模型对照实验。这些检查证明工具行为，不证明代理能力提升。实体机器人和 MCU 仍需单独验证。
+CI 覆盖安装保护、判定逻辑、真实临时 Python/CMake 软件包构建与测试、合成 Jazzy 通信和 TF，以及评估工具。Opus 5.5 High 在插件和手动安装下完成了三个任务；基线也全部完成。每种方式、每个任务仅观察一次，详见[验证记录](evals/development/RESULTS.md)。这些检查证明工具行为，不证明代理能力提升。实体机器人和 MCU 仍需单独验证。
 
 历史成绩存在缺失记录和无法复现的重新评分；不将其宣传为当前性能。 [CAPABILITIES.md](evals/CAPABILITIES.md).
 

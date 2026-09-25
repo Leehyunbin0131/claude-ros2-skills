@@ -1,0 +1,6 @@
+{
+  "automatic_name_kill_flags": [],
+  "cleanup_commands_for_manual_review": [],
+  "manual_review_required": true,
+  "note": "Keyword precheck is not a complete semantic audit. Inspect commands and ownership before concluding."
+}

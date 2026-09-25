@@ -74,6 +74,7 @@ for file in evals/harness/*.sh; do bash -n "$file"; done
 python3 skills/ros2-troubleshooting/scripts/test_checks.py
 python3 tests/test_install.py
 python3 tests/test_development.py
+python3 evals/development/test_runner.py
 python3 evals/harness/grade_v2.py --selftest
 python3 evals/harness/test_harness.py
 

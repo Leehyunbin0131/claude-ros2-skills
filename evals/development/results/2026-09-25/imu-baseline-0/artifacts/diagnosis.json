@@ -1,0 +1,14 @@
+{
+  "/fixture/imu_a": {
+    "status": "pass",
+    "evidence": "465 live messages over ~12 s (~39 Hz), header.frame_id=fixture_a, linear_acceleration constant at (0, 0, -9.81) m/s^2 in the sensor frame, zero angular velocity. /tf_static declares base_link->fixture_a with rotation q=(x=1,y=0,z=0,w=0), i.e. 180 deg about X, zero translation. tf2 lookup base_link<-fixture_a rotates every sample to (0, 0, +9.81) in base_link; max deviation from (0,0,+9.81) = 0.0000 m/s^2. Consistent with +9.81 m/s^2 on base +Z."
+  },
+  "/fixture/imu_b": {
+    "status": "fail",
+    "evidence": "464 live messages over ~12 s (~39 Hz), header.frame_id=fixture_b, linear_acceleration constant at (0, 0, +9.81) m/s^2 in the sensor frame, zero angular velocity. /tf_static declares base_link->fixture_b with rotation q=(x=1,y=0,z=0,w=0), i.e. 180 deg about X, zero translation. tf2 lookup base_link<-fixture_b rotates every sample to (0, 0, -9.81) in base_link; deviation from (0,0,+9.81) = 19.62 m/s^2 on every sample. Magnitude is correct (9.81) but the sign on base Z is inverted: confirmed inconsistency between the measured data and the declared mounting transform."
+  },
+  "/fixture/imu_c": {
+    "status": "inconclusive",
+    "evidence": "464 live messages over ~12 s (~39 Hz), header.frame_id=fixture_c, linear_acceleration constant at (0, 0, +9.81) m/s^2 in the sensor frame, zero angular velocity. No transform for fixture_c exists: /tf_static contains only base_link->fixture_a and base_link->fixture_b, there is no /tf publisher, and tf2 lookup base_link<-fixture_c raised LookupException (frame does not exist). The magnitude (9.81) is plausible for gravity, but without a declared sensor-to-base transform the reading cannot be expressed in base_link, so consistency with +Z cannot be confirmed or refuted. Assuming an identity mount would be a guess, not evidence."
+  }
+}

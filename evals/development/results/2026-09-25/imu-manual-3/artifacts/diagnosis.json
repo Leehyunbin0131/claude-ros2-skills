@@ -1,0 +1,14 @@
+{
+  "/fixture_v3/imu_a": {
+    "status": "fail",
+    "evidence": "Live messages (frame_id fixture_v3_a) report linear_acceleration (0, 0, +9.81) m/s^2 in the sensor frame. /tf_static (sole publisher: imu_sim) declares base_link -> fixture_v3_a as quaternion xyzw (1,0,0,0) = 180 deg roll; tf2_echo confirms RPY (180, 0, 0). Rotated into base_link the mean over 50 samples is (0.00, 0.00, -9.81), |a| = 9.81. check_imu_gravity.py --topic /fixture_v3/imu_a --base base_link exited 1 (FAIL). Measured gravity is on base -Z: the data contradicts the declared mount (either the TF's 180 deg roll or the sensor's sign convention is wrong). The data alone cannot say which of the two is at fault."
+  },
+  "/fixture_v3/imu_b": {
+    "status": "inconclusive",
+    "evidence": "Live messages (frame_id fixture_v3_b) report linear_acceleration (0, 0, +9.81) m/s^2 in the sensor frame, but no transform base_link -> fixture_v3_b exists: /tf_static only contains fixture_v3_a and fixture_v3_c, there is no /tf topic, and tf2_echo reports 'fixture_v3_b ... frame does not exist'. check_imu_gravity.py --topic /fixture_v3/imu_b --base base_link exited 2 (0/50 usable, TF unavailable). Because the mount orientation is undeclared, the reading cannot be expressed in base_link. It is not confirmed consistent or inconsistent; assuming identity alignment would be a guess."
+  },
+  "/fixture_v3/imu_c": {
+    "status": "pass",
+    "evidence": "Live messages (frame_id fixture_v3_c) report linear_acceleration (0, 0, -9.81) m/s^2 in the sensor frame. /tf_static declares base_link -> fixture_v3_c as quaternion xyzw (1,0,0,0) = 180 deg roll; tf2_echo confirms RPY (180, 0, 0). Rotated into base_link the mean over 50 samples is (0.00, 0.00, +9.81), |a| = 9.81. check_imu_gravity.py --topic /fixture_v3/imu_c --base base_link exited 0 (PASS). The declared upside-down mount is consistent with the measured gravity direction. Only roll/pitch and the Z sign are verified; yaw cannot be observed from gravity."
+  }
+}

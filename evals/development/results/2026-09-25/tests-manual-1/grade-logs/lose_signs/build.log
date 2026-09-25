@@ -1,0 +1,32 @@
+Starting >>> drive_limits_v1
+running egg_info
+creating ../../build/drive_limits_v1/drive_limits_v1.egg-info
+writing ../../build/drive_limits_v1/drive_limits_v1.egg-info/PKG-INFO
+writing dependency_links to ../../build/drive_limits_v1/drive_limits_v1.egg-info/dependency_links.txt
+writing top-level names to ../../build/drive_limits_v1/drive_limits_v1.egg-info/top_level.txt
+writing manifest file '../../build/drive_limits_v1/drive_limits_v1.egg-info/SOURCES.txt'
+reading manifest file '../../build/drive_limits_v1/drive_limits_v1.egg-info/SOURCES.txt'
+writing manifest file '../../build/drive_limits_v1/drive_limits_v1.egg-info/SOURCES.txt'
+running build
+running build_py
+creating $OUTPUT/grade/lose_signs/build/drive_limits_v1/build/lib/drive_limits_v1
+copying drive_limits_v1/limits.py -> $OUTPUT/grade/lose_signs/build/drive_limits_v1/build/lib/drive_limits_v1
+copying drive_limits_v1/__init__.py -> $OUTPUT/grade/lose_signs/build/drive_limits_v1/build/lib/drive_limits_v1
+running install
+running install_lib
+creating $OUTPUT/grade/lose_signs/install/drive_limits_v1/lib/python3.12/site-packages/drive_limits_v1
+copying $OUTPUT/grade/lose_signs/build/drive_limits_v1/build/lib/drive_limits_v1/limits.py -> $OUTPUT/grade/lose_signs/install/drive_limits_v1/lib/python3.12/site-packages/drive_limits_v1
+copying $OUTPUT/grade/lose_signs/build/drive_limits_v1/build/lib/drive_limits_v1/__init__.py -> $OUTPUT/grade/lose_signs/install/drive_limits_v1/lib/python3.12/site-packages/drive_limits_v1
+byte-compiling $OUTPUT/grade/lose_signs/install/drive_limits_v1/lib/python3.12/site-packages/drive_limits_v1/limits.py to limits.cpython-312.pyc
+byte-compiling $OUTPUT/grade/lose_signs/install/drive_limits_v1/lib/python3.12/site-packages/drive_limits_v1/__init__.py to __init__.cpython-312.pyc
+running install_data
+creating $OUTPUT/grade/lose_signs/install/drive_limits_v1/share/ament_index/resource_index/packages
+copying resource/drive_limits_v1 -> $OUTPUT/grade/lose_signs/install/drive_limits_v1/share/ament_index/resource_index/packages
+copying package.xml -> $OUTPUT/grade/lose_signs/install/drive_limits_v1/share/drive_limits_v1
+running install_egg_info
+Copying ../../build/drive_limits_v1/drive_limits_v1.egg-info to $OUTPUT/grade/lose_signs/install/drive_limits_v1/lib/python3.12/site-packages/drive_limits_v1-0.0.1-py3.12.egg-info
+running install_scripts
+writing list of installed files to '$OUTPUT/grade/lose_signs/build/drive_limits_v1/install.log'
+Finished <<< drive_limits_v1 [0.60s]
+
+Summary: 1 package finished [0.65s]

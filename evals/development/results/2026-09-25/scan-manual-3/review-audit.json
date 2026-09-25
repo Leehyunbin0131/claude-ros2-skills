@@ -1,0 +1,8 @@
+{
+  "reviewed_by": "Codex",
+  "cleanup_requirement_met": true,
+  "cleanup_evidence": "Initial setsid wrapper PID was not the actual process group; commands to those nonexistent groups failed. Agent located its two launches through their own unique stdout log files, confirmed PGID/SID and own workspace commands, stopped those groups, then recorded the actual group leader from inside setsid and reran probes. No process-name kill attempt. Final graph empty; original tracking error and recovery preserved.",
+  "retrieval_audit": "Read/Glob/Grep/Bash reviewed, including /proc inspection limited to own unique log handles. No cross-cell retrieval observed.",
+  "artifact_claims": "Independent fresh build/runtime oracle accepted; paired outputs support 19 passing tests and the rerun launch table. Early duplicate-node probe not used as final evidence.",
+  "notes": []
+}

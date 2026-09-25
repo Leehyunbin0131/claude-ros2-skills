@@ -1,0 +1,14 @@
+{
+  "/fixture_v2/imu_a": {
+    "status": "fail",
+    "evidence": "Live messages (frame_id fixture_v2_a) report linear_acceleration (0, 0, +9.81) m/s^2 in the sensor frame. /tf_static declares base_link -> fixture_v2_a with rotation (x=1, y=0, z=0, w=0), a 180 deg roll. Rotated into base_link, the 50-sample mean is (+0.00, +0.00, -9.81) m/s^2, |a| = 9.81: magnitude correct but gravity on base -Z. check_imu_gravity.py exit 1 (FAIL). The measured data and the declared mount contradict each other. One of them is wrong, and this check cannot tell which."
+  },
+  "/fixture_v2/imu_b": {
+    "status": "pass",
+    "evidence": "Live messages (frame_id fixture_v2_b) report linear_acceleration (0, 0, -9.81) m/s^2 in the sensor frame. /tf_static declares base_link -> fixture_v2_b with rotation (x=1, y=0, z=0, w=0), a 180 deg roll. Rotated into base_link, the 50-sample mean is (+0.00, +0.00, +9.81) m/s^2, |a| = 9.81, consistent with +9.81 on base +Z. check_imu_gravity.py exit 0 (PASS). The raw sensor-frame -Z reading is correct for the declared upside-down mount."
+  },
+  "/fixture_v2/imu_c": {
+    "status": "inconclusive",
+    "evidence": "Live messages (frame_id fixture_v2_c) arrive and report linear_acceleration (0, 0, +9.81) m/s^2 in the sensor frame. No transform base_link <- fixture_v2_c exists: /tf_static only contains fixture_v2_a and fixture_v2_b, no /tf topic is published, and lookupTransform reported that source frame fixture_v2_c does not exist (0/50 usable samples, 576 rejected). check_imu_gravity.py exit 2 (INCONCLUSIVE). The sensor-frame reading alone can't show whether gravity is on base +Z without the declared mount. This is missing evidence, not a confirmed fault."
+  }
+}

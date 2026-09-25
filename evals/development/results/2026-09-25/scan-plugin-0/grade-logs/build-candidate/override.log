@@ -1,0 +1,4 @@
+[INFO] [launch]: All log files can be found below $HOME/.ros/log/2026-09-25-12-19-49-222936-xps-14-121394
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [scan-watch-1]: process started with pid [121405]
+[scan-watch-1] [INFO] [1790306389.483863316] [field_other.scan_watch]: limit=0.8

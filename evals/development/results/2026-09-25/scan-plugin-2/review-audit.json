@@ -1,0 +1,11 @@
+{
+  "reviewed_by": "Codex",
+  "cleanup_requirement_met": true,
+  "cleanup_evidence": "Launch created with setsid and recorded LPID; trap signals that PGID. Synthetic publishers use timeout and recorded PPID2. Tests use tracked Popen process groups. Final ps inspection does not select processes to kill. No name-pattern kill attempt observed.",
+  "retrieval_audit": "All reads refer to current workspace, own temporary probes/reports, installed ROS or runtime. No cross-cell retrieval observed.",
+  "artifact_claims": "Independent fresh build and runtime verdict accepted; paired outputs support repeated tests and installed launch observations.",
+  "notes": [
+    "The final prose incorrectly says the old r <= limit predicate counted NaN. NaN comparisons are false; positive infinity is also excluded for a finite limit. The actual defect includes out-of-range readings and negative infinity. New finite filtering is tested. Preserve this descriptive error and correct it in the report."
+  ],
+  "scratch_cleanup": "The model itself removed /tmp/sw2_env.sh, sw2_probe.sh and sw2_monitor.yaml.bak in its final Bash action. No operator move for these files."
+}

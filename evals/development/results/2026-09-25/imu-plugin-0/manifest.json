@@ -1,0 +1,59 @@
+{
+  "task": "imu",
+  "condition": "plugin",
+  "seed": 0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "settings": {
+    "autoMemoryEnabled": false,
+    "syncClaudeAiSkills": false,
+    "syncClaudeAiPlugins": false,
+    "ultracode": false
+  },
+  "payload_sha256": {
+    ".claude-plugin/marketplace.json": "3cab12dfeeee0725d74157d2e234d36574a88bd8d0ef4c5ec04de8b813918485",
+    ".claude-plugin/plugin.json": "800f4d3101077bc41273a2dc9592e191359212f49bbb37a52b43b4fe7a77f4f4",
+    "CLAUDE.md": "d18730db9d787974437cb3eed8c4fa3ea5db3ae38cce819b6eea457d12d3a6e2",
+    "LICENSE": "c139cb09b5343ea4c69c06d727d06b91531218893724d9c668fdd2f7c3b75cb2",
+    "hooks/hooks.json": "d4a5bf59a398e0ba7187274cd0d8fe04a215aa14515937ae5fc95dad02dcef8e",
+    "skills/ros2-development/SKILL.md": "acf2fd3acb170bab915a68883739d942c06c850ee02c0ac55f8bf09de6a45453",
+    "skills/ros2-development/references/verification.md": "48f38e7f134b147fd13cc243c1dcc0bd8dd0aaa139c8321ff3c541eff1c1f056",
+    "skills/ros2-development/scripts/check_test_results.py": "2aff4df47efb4499fb2ba8c3a80cebd0b6adfd622828092b5d77a18f3c10eca0",
+    "skills/ros2-microros/SKILL.md": "6f4dabe616d7975913db48efcd88646684f459c725e8d1acb733df8b53022d0f",
+    "skills/ros2-troubleshooting/SKILL.md": "d473609d412da7b301c20f5d6c5196ddadc1f6f4f175f77667bc454ed9270faf",
+    "skills/ros2-troubleshooting/references/calibration.md": "cab02b715cb8a93e3134e0cd5403bf351cd5828e2a7761a6be596345dfbe4e06",
+    "skills/ros2-troubleshooting/references/frames.md": "99e2b4c2156d91173288e2bdd7318b166c737f8517a5ff3808bffc1ca20888cb",
+    "skills/ros2-troubleshooting/references/runtime.md": "73ab2a9c4a01e5dfc23ff4a6f81cd005ade60a7b16b64e8ea7d0692380926928",
+    "skills/ros2-troubleshooting/scripts/_check_common.py": "5770c9b707cf79113212950aa56a2037ba1207ed269215a76ec0e4743832f7d6",
+    "skills/ros2-troubleshooting/scripts/check_imu_gravity.py": "17792921e5aa574043382d5f58f75258116f4539857f1e97f338cde2dedda8bb",
+    "skills/ros2-troubleshooting/scripts/check_odom_direction.py": "cf9228301830c35a809e1e16e2413ea350740e80ada900ec046fcd03ab49e9fe",
+    "skills/ros2-troubleshooting/scripts/check_qos_compat.py": "c8ed80dab25dbf27e37aebb5ac9f90c87a2931a18b32c57551235ed3651185de",
+    "skills/ros2-troubleshooting/scripts/check_tf_tree.py": "da062d413c9ac06cb4a7d1453611465fa8136003ce4d983c43572b730fe7efab",
+    "skills/ros2-troubleshooting/scripts/test_checks.py": "8cc80ca393fb72effdee62bca5e7060c46c34edbb99062fa63c3002acc428a60"
+  },
+  "prompt_sha256": "e5e74e382def69f5c5e90c84d316f1f08acd373b928a8db04fe72086f3ef9868",
+  "fixture_sha256": {
+    "FROZEN.json": "cc8f08af3ce496a2cbf337c7ba928d9eee4f4a94bee38cbe9455ee3064867a4b",
+    "PROTOCOL.md": "33f8b1a7d758353592bfa0fc89297be793694ccccb36a60ec8da6bcb6e9f983a",
+    "fixtures.py": "6bcc60824aac6024bb6fca3583a203702c7d05ba8a6d09520d1519c51a8cc1eb",
+    "grade.py": "0b217310605bc09aa34deaa4d868f1fd47a4758322d4522dbe24c44015c96487",
+    "imu_scene.py": "7f31eec21dafe9b4155fe9cc11220976166bbf83f1554f3bc4ec18ec27f779fc",
+    "run_acceptance.py": "0ef86f40f1861ebfdb40c01f2f5bef2bd47017cab7bc5986543067fef0cac2f0",
+    "test_oracles.py": "13ef23ae2f5083ad2a9a5256bdc60a2d548bdf1a55a4a33ab3741a42da014b54",
+    "test_runner.py": "c0d74540f2d4b36884c780a7071168a9c386561ae00a8cf6871d8ff5b0db3d16"
+  },
+  "cli_version": "2.1.281 (Claude Code)",
+  "versions": {
+    "pytest": "7.4.4",
+    "setuptools": "79.0.1",
+    "colcon-core": "0.21.3",
+    "rclpy": "7.1.12"
+  },
+  "domain": "211",
+  "workspace": "$WORKSPACE",
+  "started_at": 1790306461.556058,
+  "timeout": 1800,
+  "source_head": "fb0aeebb6c145a0a01b236ccda2e3855394873af",
+  "freeze_sha256": "cc8f08af3ce496a2cbf337c7ba928d9eee4f4a94bee38cbe9455ee3064867a4b",
+  "ended_at": 1790306663.0074532
+}

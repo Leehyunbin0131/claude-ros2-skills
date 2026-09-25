@@ -1,0 +1,92 @@
+[
+  {
+    "cell": "imu-baseline-0",
+    "accepted": true,
+    "action_count": 6,
+    "artifact_files": 1
+  },
+  {
+    "cell": "imu-manual-1",
+    "accepted": true,
+    "action_count": 6,
+    "artifact_files": 1
+  },
+  {
+    "cell": "imu-manual-3",
+    "accepted": true,
+    "action_count": 8,
+    "artifact_files": 1
+  },
+  {
+    "cell": "imu-plugin-0",
+    "accepted": true,
+    "action_count": 9,
+    "artifact_files": 1
+  },
+  {
+    "cell": "imu-plugin-2",
+    "accepted": true,
+    "action_count": 8,
+    "artifact_files": 1
+  },
+  {
+    "cell": "scan-baseline-0",
+    "accepted": true,
+    "action_count": 28,
+    "artifact_files": 12
+  },
+  {
+    "cell": "scan-manual-1",
+    "accepted": true,
+    "action_count": 25,
+    "artifact_files": 14
+  },
+  {
+    "cell": "scan-manual-3",
+    "accepted": true,
+    "action_count": 29,
+    "artifact_files": 12
+  },
+  {
+    "cell": "scan-plugin-0",
+    "accepted": true,
+    "action_count": 24,
+    "artifact_files": 12
+  },
+  {
+    "cell": "scan-plugin-2",
+    "accepted": true,
+    "action_count": 42,
+    "artifact_files": 13
+  },
+  {
+    "cell": "smoke-manual",
+    "accepted": true,
+    "action_count": 4,
+    "artifact_files": 1
+  },
+  {
+    "cell": "smoke-plugin",
+    "accepted": true,
+    "action_count": 5,
+    "artifact_files": 1
+  },
+  {
+    "cell": "tests-baseline-0",
+    "accepted": true,
+    "action_count": 16,
+    "artifact_files": 8
+  },
+  {
+    "cell": "tests-manual-1",
+    "accepted": true,
+    "action_count": 9,
+    "artifact_files": 8
+  },
+  {
+    "cell": "tests-plugin-0",
+    "accepted": true,
+    "action_count": 9,
+    "artifact_files": 8
+  }
+]

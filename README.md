@@ -126,15 +126,24 @@ while the bundled evidence check returns 2.
 ## Validation and evidence limits
 
 CI checks installation/update preservation, Python and shell code, deterministic
-verdicts, real temporary Python/CMake package builds and tests, synthetic Jazzy
-pub/sub and TF, and the evaluation harness. A live Claude Code plugin smoke test
-also verified protocol delivery. Commands are in [CONTRIBUTING.md](CONTRIBUTING.md).
+verdicts, real Python/CMake and ament test wrappers, synthetic Jazzy pub/sub and
+TF, and independent acceptance-oracle controls. Commands are in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-These checks establish tool behaviour and loading, **not a measured improvement
-in an agent's development ability**. The new development workflow has not had a
-controlled model comparison. Physical robots, MCU firmware and calibration
-still need their own validation. Full Nav2/MoveIt/Gazebo development was not
-re-tested for this change.
+Real Claude Code **Opus 5.5 High** sessions completed three targeted workflows
+under both plugin and manual installation: a namespaced sensor package with
+installed YAML/launch, meaningful wheel-speed tests, and live IMU/TF diagnosis.
+Both loading smokes verified protocol delivery and actual bundled-script use.
+The three baseline sessions also passed: the observed task outcomes were the
+same. This is **one run per method and task, not evidence of a performance gain
+or equivalent reliability**. Follow-up runtime sessions review owned-process
+cleanup after a focused instruction fix; all attempts and limits are in the
+[release acceptance report](evals/development/RESULTS.md).
+
+Physical robots, MCU firmware, calibration and full Nav2/MoveIt/Gazebo
+applications remain unverified. Downstream interface consumers, stale-overlay
+remediation and `--packages-up-to` guidance also need independent behavioral
+validation beyond these cases.
 
 ## Evals
 

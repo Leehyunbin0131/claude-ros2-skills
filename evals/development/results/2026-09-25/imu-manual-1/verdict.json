@@ -1,0 +1,80 @@
+{
+  "accepted": true,
+  "statuses_correct": true,
+  "scene_unchanged": true,
+  "observed": {
+    "/fixture_v1/imu_a": {
+      "status": "pass",
+      "base_acceleration": [
+        0.0,
+        0.0,
+        9.81
+      ],
+      "frame": "fixture_v1_a"
+    },
+    "/fixture_v1/imu_b": {
+      "status": "inconclusive",
+      "frame": "fixture_v1_b"
+    },
+    "/fixture_v1/imu_c": {
+      "status": "fail",
+      "base_acceleration": [
+        0.0,
+        0.0,
+        -9.81
+      ],
+      "frame": "fixture_v1_c"
+    }
+  },
+  "answer": {
+    "/fixture_v1/imu_a": {
+      "status": "pass",
+      "evidence": "frame_id fixture_v1_a; raw linear_acceleration (0, 0, -9.81) in sensor frame. /tf_static declares base_link->fixture_v1_a with quaternion (x=1,y=0,z=0,w=0) = 180 deg roll, zero translation. check_imu_gravity.py --topic /fixture_v1/imu_a --base base_link: 50 samples, mean in base_link (+0.00, +0.00, +9.81) m/s^2, |a|=9.81, exit 0 (PASS). Measured acceleration is consistent with the declared mount."
+    },
+    "/fixture_v1/imu_b": {
+      "status": "inconclusive",
+      "evidence": "frame_id fixture_v1_b; raw linear_acceleration (0, 0, +9.81) in sensor frame. No transform to fixture_v1_b exists: /tf_static only contains fixture_v1_a and fixture_v1_c, there is no /tf topic, tf2_echo base_link fixture_v1_b never resolved, and check_imu_gravity.py exited 2 (0/50 usable; lookupTransform: source_frame fixture_v1_b does not exist). The raw data would only match base +Z if the sensor were assumed to be aligned with base_link, and nothing in the system declares that. Consistency cannot be decided without a declared sensor-to-base transform."
+    },
+    "/fixture_v1/imu_c": {
+      "status": "fail",
+      "evidence": "frame_id fixture_v1_c; raw linear_acceleration (0, 0, +9.81) in sensor frame. /tf_static declares base_link->fixture_v1_c with quaternion (x=1,y=0,z=0,w=0) = 180 deg roll, zero translation. check_imu_gravity.py --topic /fixture_v1/imu_c --base base_link: 50 samples, mean in base_link (+0.00, +0.00, -9.81) m/s^2, |a|=9.81, exit 1 (FAIL). Gravity lands on base -Z, so the data contradicts the declared TF: either the TF (roll) or the sensor's sign convention is wrong."
+    }
+  },
+  "scene": {
+    "pid": 129213,
+    "original": {
+      "/fixture_v1/imu_a": [
+        "010f4860bdf8da460000000000001303"
+      ],
+      "/fixture_v1/imu_b": [
+        "010f4860bdf8da460000000000001403"
+      ],
+      "/fixture_v1/imu_c": [
+        "010f4860bdf8da460000000000001503"
+      ],
+      "/tf": [],
+      "/tf_static": [
+        "010f4860bdf8da460000000000001603"
+      ]
+    },
+    "current": {
+      "/fixture_v1/imu_a": [
+        "010f4860bdf8da460000000000001303"
+      ],
+      "/fixture_v1/imu_b": [
+        "010f4860bdf8da460000000000001403"
+      ],
+      "/fixture_v1/imu_c": [
+        "010f4860bdf8da460000000000001503"
+      ],
+      "/tf": [],
+      "/tf_static": [
+        "010f4860bdf8da460000000000001603"
+      ]
+    },
+    "unexpected_topics": [],
+    "heartbeat": 1790307273.6682756,
+    "use_sim_time": false
+  },
+  "timed_out": false
+}

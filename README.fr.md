@@ -21,7 +21,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 # --user: alternative to --project
 ```
 
-Démarrez une nouvelle session. Le plugin charge le protocole de 30 lignes via SessionStart ; la portée utilisateur concerne tous les projets. L’installation manuelle préserve CLAUDE.md et les autres skills et place le protocole dans .claude/rules/ros2-verification.md. Les modifications locales ne sont pas écrasées. ROS, colcon et les pilotes sont à installer séparément.
+Démarrez une nouvelle session. Le plugin charge le protocole via SessionStart ; la portée utilisateur concerne tous les projets. L’installation manuelle préserve CLAUDE.md et les autres skills et place le protocole dans .claude/rules/ros2-verification.md. Les modifications locales ne sont pas écrasées. ROS, colcon et les pilotes sont à installer séparément.
 
 ## Skills
 
@@ -35,7 +35,7 @@ Mentionnez le skill dans la demande : « Utilise ros2-development pour modifier 
 
 Codes : 0 PASS, 1 FAIL, 2 INCONCLUSIVE ou demande invalide. Données absentes, NaN, QoS indéterminée, TF manquante ou aucun test exécuté ne constituent pas un succès. L’IMU est transformée dans le repère de base ; la gravité ne vérifie pas le yaw. L’odométrie vérifie la direction, pas l’échelle des distances. Les diagnostics ne publient pas de commande de mouvement.
 
-CI vérifie la préservation des installations, la logique, de vrais paquets temporaires Python/CMake, les communications et TF synthétiques Jazzy et l’évaluateur. Le nouveau flux de développement n’a pas encore fait l’objet d’une comparaison contrôlée de modèles. Ces essais valident les outils, pas un gain mesuré du modèle. Robots physiques et MCU demandent une validation distincte.
+CI vérifie la préservation des installations, la logique, de vrais paquets temporaires Python/CMake, les communications et TF synthétiques Jazzy et l’évaluateur. Opus 5.5 High a terminé trois tâches avec le plugin et avec l’installation manuelle ; la référence sans le pack a aussi terminé les trois. Il s’agit d’une observation par méthode et tâche : voir le [rapport de validation](evals/development/RESULTS.md). Ces essais valident les outils, pas un gain mesuré du modèle. Robots physiques et MCU demandent une validation distincte.
 
 Certains scores historiques manquent de transcriptions ou de nouvelles notations reproductibles ; ils ne sont pas présentés comme les performances actuelles. [CAPABILITIES.md](evals/CAPABILITIES.md).
 

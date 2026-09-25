@@ -21,7 +21,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 # --user: alternative to --project
 ```
 
-Inicia una sesión nueva. El plugin carga el protocolo de 30 líneas mediante SessionStart; la instalación de usuario afecta a todos los proyectos. El instalador manual conserva CLAUDE.md y otros skills, y copia el protocolo a .claude/rules/ros2-verification.md. No sobrescribe cambios locales. ROS, colcon y los controladores deben estar instalados por separado.
+Inicia una sesión nueva. El plugin carga el protocolo mediante SessionStart; la instalación de usuario afecta a todos los proyectos. El instalador manual conserva CLAUDE.md y otros skills, y copia el protocolo a .claude/rules/ros2-verification.md. No sobrescribe cambios locales. ROS, colcon y los controladores deben estar instalados por separado.
 
 ## Skills
 
@@ -35,7 +35,7 @@ Puedes mencionar el skill en tu petición: «Usa ros2-development para modificar
 
 Códigos: 0 PASS, 1 FAIL, 2 INCONCLUSIVE o solicitud inválida. Datos ausentes, NaN, QoS desconocido, TF ausente o cero pruebas no cuentan como éxito. La IMU se transforma al marco base; la gravedad no verifica yaw. La odometría verifica dirección, no calibración de distancia. Los diagnósticos no publican órdenes de movimiento.
 
-CI comprueba conservación de instalaciones, lógica, paquetes temporales Python/CMake reales, comunicación y TF sintéticos en Jazzy y el evaluador. El nuevo flujo de desarrollo aún no tiene una comparación controlada entre modelos. Las pruebas acreditan herramientas, no una mejora medida del agente. Robots físicos y MCU requieren validación aparte.
+CI comprueba conservación de instalaciones, lógica, paquetes temporales Python/CMake reales, comunicación y TF sintéticos en Jazzy y el evaluador. Opus 5.5 High completó tres tareas con plugin y con instalación manual; la referencia sin el paquete también completó las tres. Es una observación por método y tarea: consulta el [registro de aceptación](evals/development/RESULTS.md). Las pruebas acreditan herramientas, no una mejora medida del agente. Robots físicos y MCU requieren validación aparte.
 
 Algunas cifras históricas carecen de registros o reevaluaciones reproducibles; no se presentan como rendimiento actual. [CAPABILITIES.md](evals/CAPABILITIES.md).
 

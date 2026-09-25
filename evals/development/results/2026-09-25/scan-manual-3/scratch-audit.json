@@ -1,0 +1,11 @@
+{
+  "moved_after_session": [
+    "/tmp/scan_watch_v3_launch_edited_yaml.log",
+    "/tmp/scan_watch_v3_launch_edited_yaml_override.log",
+    "/tmp/scan_watch_v3_launch_default.log",
+    "/tmp/scan_watch_v3_launch_explicit.log",
+    "/tmp/scan_watch_v3_probe.py"
+  ],
+  "time": 1790308418.031455,
+  "reason": "Own model probe and launch logs preserved under masked output after scan-manual-3 ended. IMU-manual-3 already started; audit its actions for any retrieval."
+}
