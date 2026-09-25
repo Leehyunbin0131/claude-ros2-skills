@@ -146,6 +146,16 @@ corresponding calls. See [control logs](results/2026-09-25/controls) and the
 [validation inventory](../VALIDATION.md) for the other local regressions. CI runs
 the deterministic and synthetic checks without making model calls.
 
+The [first new-head CI run](https://github.com/Leehyunbin0131/claude-ros2-skills/actions/runs/36092877217)
+passed the code and link jobs but exposed a TF integration-test precondition
+error. A fresh checker received no frames within a 0.2-second lookup; its correct
+INCONCLUSIVE result contradicted the test's expected FAIL. The test now observes
+a known chain and the missing chain in the **same invocation**, allows middleware
+discovery, and asserts both observations. The separate empty-domain test retains
+the short deadline and expected INCONCLUSIVE. Both targeted tests pass locally;
+the product and all frozen paid-run inputs are unchanged. This failed CI run is
+retained, and release acceptance still requires all jobs at the updated head.
+
 Concrete build/test/runtime claims were checked against paired outputs. One
 out-of-contract remark in the math manual final answer is partly inaccurate: it says
 non-finite inputs pass straight through. Reproduction gives `(inf, 1, 1) ->

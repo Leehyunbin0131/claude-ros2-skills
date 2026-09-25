@@ -289,10 +289,16 @@ class RosChecks(unittest.TestCase):
                                        '--no-global', '--timeout', '6'])
             self.assertEqual(code, 0, text)
             self.assertIn('UPSIDE-DOWN', text)
+            # A new checker has a new TF buffer: the preceding subprocess's
+            # successful lookup is not evidence for this one. Observe a known
+            # chain in the same invocation before asserting a missing chain.
             code, text = self.command('check_tf_tree.py',
-                                      ['--base', msg.header.frame_id, '--sensors', 'missing_'+frame,
-                                       '--no-global', '--timeout', '0.2'])
+                                      ['--base', msg.header.frame_id,
+                                       '--sensors', frame+',missing_'+frame,
+                                       '--no-global', '--timeout', '6'], limit=20)
             self.assertEqual(code, 1, text)
+            self.assertIn(f'[OK] {msg.header.frame_id} -> {frame} ', text)
+            self.assertIn(f'[MISSING] {msg.header.frame_id} -> missing_{frame} ', text)
         finally:
             self.node.destroy_publisher(broadcaster.pub_tf)
 
