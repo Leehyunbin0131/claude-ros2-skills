@@ -24,7 +24,7 @@
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-새 세션을 시작하면 `SessionStart` 훅이 [30줄 프로토콜](CLAUDE.md)을 전달합니다.
+새 세션을 시작하면 `SessionStart` 훅이 [검증 지침](CLAUDE.md)을 전달합니다.
 플러그인 루트의 `CLAUDE.md`는 그 자체로 자동 로드되지 않습니다.
 기본 사용자 범위 설치는 모든 프로젝트에 적용됩니다. ROS 작업 공간에만 적용하려면 프로젝트 설치를 사용하세요.
 
@@ -41,6 +41,18 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 기존 `CLAUDE.md`와 다른 스킬은 보존합니다. 사용자가 수정한 파일은 덮어쓰지 않으며,
 예전에 설치한 폐기 스킬은 검토할 수 있도록 알려줍니다. 설치 후 Claude Code를 다시 시작하세요.
 ROS, colcon, 로봇 드라이버는 설치하지 않으므로 작업 공간에 필요한 의존성은 별도로 준비해야 합니다.
+이미 Jazzy가 설치된 Ubuntu에서는 검사 도구의 의존성을 다음과 같이 준비할 수 있습니다.
+
+```bash
+sudo apt install python3-colcon-common-extensions python3-pytest \
+  ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs
+source /opt/ros/jazzy/setup.bash
+```
+
+Ubuntu/Jazzy에서 제공하는 테스트 도구나 별도로 검증한 환경을 사용하세요.
+검증 당시 Jazzy의 `launch_testing`은 pytest 9에서 시작 오류가 났으며,
+ROS 환경을 포함한 검사는 Ubuntu의 pytest 7.4.4로 확인했습니다.
+테스트 실행기 오류와 구현의 검증 실패를 구분해야 합니다.
 
 ## 스킬과 사용 예시
 
@@ -67,7 +79,7 @@ Claude는 설명을 보고 필요한 스킬을 선택합니다. 명시적으로 
 
 | 스크립트 | 확인하는 증거 |
 | :--- | :--- |
-| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | 지정한 각 패키지에서 테스트가 실제 실행되고 통과했는지 확인. 스킬 예시처럼 새로운 결과 폴더를 사용 |
+| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | 새 colcon 결과에서 실행·통과한 테스트 확인. 기능 변경은 `--require-test PACKAGE::test_name`으로 필요한 테스트를 지정. 스타일 검사만으로 기능 검증을 대신하지 않음 |
 | `check_qos_compat.py --topic /scan` | 발견된 발행자·구독자 조합의 실제 Jazzy QoS 호환성 |
 | `check_tf_tree.py --sensors laser_frame,imu_link` | TF 연결과 실물에 대조할 장착 각도. 특이한 각도 표시는 참고 사항 |
 | `check_imu_gravity.py --topic /imu/data` | 정지·수평 상태에서 가속도를 `--base base_link`로 변환한 뒤 중력 확인. TF가 없으면 판정 불가, 중력만으로 yaw 확인 불가 |
@@ -92,14 +104,21 @@ Nav2·MoveIt·ros2_control을 포함한 개발에서도 이 흐름을 활용하�
 
 ## 검증 범위와 한계
 
-CI는 설치·업데이트 시 파일 보존, Python·셸 코드, 판정 로직, 실제 임시 Python/CMake 패키지의
-빌드·테스트, 합성 데이터 기반 Jazzy 통신·TF, 평가 도구를 검사합니다.
-실제 Claude Code 플러그인 세션에서도 프로토콜 전달을 확인했습니다.
+CI는 설치·업데이트 시 파일 보존, Python·셸 코드, 판정 로직, 실제 Python/CMake 및 ament 테스트,
+합성 Jazzy 통신·TF, 독립적인 평가 판정기의 정상·오류 사례를 검사합니다.
 명령은 [기여 안내](CONTRIBUTING.md)에 있습니다.
 
-이는 도구 동작과 로딩 검증이며 **에이전트 개발 능력이 얼마나 향상되는지 측정한 결과는 아닙니다.**
-새 개발 지침은 아직 모델 대조 실험을 하지 않았습니다.
-실물 로봇·MCU·보정 작업은 별도 검증이 필요하며, 이번 변경에서 Nav2·MoveIt·Gazebo 전체 개발을 다시 시험하지 않았습니다.
+실제 Claude Code **Opus 5.5 High**로 센서 패키지 개발, 휠 속도 기능 테스트 수정,
+IMU/TF 진단을 플러그인·수동 설치 방식에서 각각 완료했습니다.
+두 설치 방식의 로딩 검사에서는 지침 전달과 제공 스크립트 실행도 확인했습니다.
+스킬 없는 기본 실행도 세 과제를 모두 통과했습니다. **방식·과제마다 한 번의 관측이며,
+성능 향상이나 같은 신뢰성을 입증한 결과가 아닙니다.**
+종료 지침을 보강한 뒤의 런타임 재검증을 포함한 모든 시도와 한계는
+[배포 검증 기록](evals/development/RESULTS.md)에 공개합니다.
+
+실물 로봇·MCU·물리 보정과 Nav2·MoveIt·Gazebo 전체 애플리케이션은 검증하지 않았습니다.
+인터페이스를 사용하는 다른 패키지, 오래된 overlay의 복구, `--packages-up-to` 지침의 효과도
+이번 사례 밖의 별도 검증이 필요합니다.
 
 ## 평가 기록
 

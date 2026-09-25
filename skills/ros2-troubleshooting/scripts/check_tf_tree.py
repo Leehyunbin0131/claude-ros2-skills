@@ -12,7 +12,8 @@ is level on the robot but shows roll/pitch/yaw = 180 deg here is the classic
 Usage:
   python3 check_tf_tree.py --sensors laser_frame,imu_link
   python3 check_tf_tree.py --no-global --base base_link --sensors laser_frame
-Exit codes: 0 all chains resolve, 1 something missing, 2 invalid request/no ROS.
+Exit codes: 0 chains resolve, 1 missing chain in an observed graph,
+2 no TF graph evidence, invalid request or missing ROS.
 """
 import argparse
 import math
@@ -118,10 +119,14 @@ def main():
                 print(f"     ^ VERIFY PHYSICALLY: {w}. If the sensor is NOT "
                       f"physically mounted that way, this TF is the bug.")
 
+        observed_frames = buf.all_frames_as_yaml().strip() not in ('', '{}', '[]')
     finally:
         node.destroy_node()
         rclpy.try_shutdown()
     if failed:
+        if not observed_frames:
+            print('[INCONCLUSIVE] No TF frames received. Check bringup, ROS_DOMAIN_ID and discovery.')
+            return 2
         return 1
     print("All checked chains resolve. Compare the rpy values above against "
           "the physical sensor mounting before trusting them.")

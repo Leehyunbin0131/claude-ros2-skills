@@ -80,6 +80,14 @@ install(TARGETS fixture DESTINATION lib/${{PROJECT_NAME}})
                 check = self.run_command([sys.executable, str(CHECK), str(results),
                                           '--packages', package])
                 self.assertEqual(check.returncode, expected, check.stdout + check.stderr)
+                if package in ('passing_py', 'passing_cpp'):
+                    test_name = 'test_add' if package == 'passing_py' else 'runs'
+                    named = self.run_command([sys.executable, str(CHECK), str(results),
+                        '--packages', package, '--require-test', package+'::'+test_name])
+                    self.assertEqual(named.returncode, 0, named.stdout + named.stderr)
+                    absent = self.run_command([sys.executable, str(CHECK), str(results),
+                        '--packages', package, '--require-test', package+'::missing_behavior'])
+                    self.assertEqual(absent.returncode, 2, absent.stdout + absent.stderr)
                 if package == 'empty_cpp':
                     # The raw command succeeds despite having executed no test.
                     raw = self.run_command(['colcon', 'test-result', '--test-result-base', str(results)])

@@ -1,0 +1,9 @@
+{
+  "moved_after_session": [
+    "/tmp/scan_watch_probe.py",
+    "/tmp/monitor.yaml.bak",
+    "/tmp/sw_launch.log"
+  ],
+  "time": 1790306453.4819748,
+  "reason": "Model disclosed loose temporary probe; preserve it under masked output root before later sessions can use it. No observed cross-cell retrieval. Audit all later tool actions before reporting."
+}

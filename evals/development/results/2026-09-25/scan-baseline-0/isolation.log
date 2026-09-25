@@ -1,0 +1,12 @@
+isolation ok: 11 path(s) masked, agent uid 1000
+  masked: d $HOME/.claude/plugins
+  masked: d $HOME/.claude/projects
+  masked: d $HOME/.claude/skills
+  masked: d $HOME/.codex
+  masked: d $HOME/Development/claude-ros2-skills
+  masked: d $HOME/Development/claude-ros2-team/claude
+  masked: d $REPOSITORY
+  masked: d $COORDINATION
+  masked: d /tmp/ros2-acceptance-workspaces-20260925/smoke-manual
+  masked: d /tmp/ros2-acceptance-workspaces-20260925/smoke-plugin
+  masked: f $HOME/.claude/history.jsonl

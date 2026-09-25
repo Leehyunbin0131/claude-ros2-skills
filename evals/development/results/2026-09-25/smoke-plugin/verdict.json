@@ -1,0 +1,18 @@
+{
+  "accepted": true,
+  "answer": {
+    "package": "drive_math",
+    "test": "test_math.test_ratio",
+    "executed": false,
+    "command": "python3 .acceptance-plugin/skills/ros2-development/scripts/check_test_results.py fresh-results --packages drive_math --require-test drive_math::test_ratio",
+    "exit_code": 2,
+    "observation": "Checker reported 'drive_math::test_math.test_ratio: skipped' and 'INCONCLUSIVE drive_math: required test test_ratio did not execute successfully' (exit 2). fresh-results/drive_math/pytest.xml contains <testcase classname=\"test_math\" name=\"test_ratio\"><skipped/></testcase>; the suite summary is tests=2 errors=0 failures=0 skipped=1. The only passing test is the style check test_style.test_lint, so this run gives no functional evidence for the changed ratio behavior.",
+    "report": "fresh-results/drive_math/pytest.xml"
+  },
+  "delivery": {
+    "inventory_correct": true,
+    "protocol_transport_verified": true,
+    "smoke_script_executed": true
+  },
+  "timed_out": false
+}

@@ -29,19 +29,37 @@ fresh result directory so a previous passing report cannot satisfy this run:
 
 ```bash
 # After building, in the workspace root. Replace my_package with actual names.
+# For pytest packages; omit --python-testing pytest for other test frameworks.
 results="$(mktemp -d /tmp/ros2-test-results.XXXXXX)"
 colcon test --packages-select my_package --return-code-on-test-failure \
-  --test-result-base "$results" &&
+  --python-testing pytest --test-result-base "$results" &&
 python3 "${CLAUDE_SKILL_DIR}/scripts/check_test_results.py" "$results" \
-  --packages my_package
+  --packages my_package --require-test my_package::test_changed_behavior
 ```
 
-The bundled check uses installed `colcon test-result`, accepts JUnit/CTest
-formats it supports, and requires at least one non-skipped test in **each named
-package**. Exit **0** means those reports contain executed, passing tests;
-**1** means a test failure; **2** means missing, empty or unparseable evidence.
+Replace `test_changed_behavior` with the actual regression test for the change;
+repeat `--require-test PACKAGE::ID` when more than one test is needed. It matches
+a full JUnit `classname.name` or a dot-delimited suffix, or a CTest name. Omitting
+a pytest `[parameter]` suffix selects that test's parameter group and requires
+at least one non-skipped case. The output lists observed test IDs and states.
+For ament CMake tests, the checker follows the current CTest wrapper's recorded
+JUnit path and checks the inner cases, even if that path was configured in the
+build directory. A passed wrapper cannot substitute for all-skipped inner tests.
+
+The bundled check uses installed `colcon test-result` and requires at least one
+non-skipped test in **each named package**, plus the requested tests. Exit **0**
+means those reports contain executed, passing tests; **1** means a recorded test
+or test-process failure/error; **2** means missing, empty or unparseable evidence.
+An ament CTest crash/timeout is a recorded failure. Colcon's Python
+`pytest.missing_result` placeholder alone is inconclusive: inspect the test log
+to distinguish a runner problem from a crash before editing the implementation.
+Without `--require-test`, even linters alone can satisfy the check. A test name
+does not establish assertion quality: choose a regression that would reject the
+reported defect, or exercise the changed behaviour with a runtime probe. Do not
+describe style checks or a vacuous smoke test as functional verification.
 It reads reports and sends no ROS commands. Keep the printed result directory
-when reporting a failure. A package intentionally without tests is not a failed
+when reporting a failure. Inspect `colcon test`'s own exit status and diagnostics
+as well; reports cannot clear an invocation error. A package intentionally without tests is not a failed
 implementation; state the missing coverage and verify its changed behaviour.
 
 For a Python package that uses pytest, pass `--python-testing pytest` to

@@ -21,7 +21,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 # --user: alternative to --project
 ```
 
-Starten Sie eine neue Sitzung. Das Plugin lädt das 30-zeilige Protokoll über SessionStart; die Benutzerebene gilt für alle Projekte. Die manuelle Installation erhält CLAUDE.md und fremde Skills und legt das Protokoll unter .claude/rules/ros2-verification.md ab. Lokale Änderungen werden nicht überschrieben. ROS, colcon und Treiber sind separat erforderlich.
+Starten Sie eine neue Sitzung. Das Plugin lädt das Protokoll über SessionStart; die Benutzerebene gilt für alle Projekte. Die manuelle Installation erhält CLAUDE.md und fremde Skills und legt das Protokoll unter .claude/rules/ros2-verification.md ab. Lokale Änderungen werden nicht überschrieben. ROS, colcon und Treiber sind separat erforderlich.
 
 ## Skills
 
@@ -35,7 +35,7 @@ Nennen Sie den Skill im Auftrag: „Nutze ros2-development, um dieses Jazzy-Pake
 
 Exit-Codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE oder ungültige Anfrage. Fehlende Daten, NaN, unbekanntes QoS, fehlende TF oder keine ausgeführten Tests zählen nicht als Erfolg. Die IMU wird in den Basisrahmen transformiert; Gravitation prüft kein Yaw. Der Odometrietest prüft Richtung, nicht Entfernungskalibrierung. Laufzeitdiagnosen senden keine Bewegungsbefehle.
 
-CI prüft Installationsschutz, Entscheidungslogik, echte temporäre Python/CMake-Pakete, synthetische Jazzy-Kommunikation und TF sowie den Evaluator. Für den neuen Entwicklungsablauf gibt es noch keinen kontrollierten Modellvergleich. Die Tests belegen Werkzeugverhalten, keinen gemessenen Fähigkeitsgewinn des Agenten. Reale Roboter und MCUs benötigen eigene Validierung.
+CI prüft Installationsschutz, Entscheidungslogik, echte temporäre Python/CMake-Pakete, synthetische Jazzy-Kommunikation und TF sowie den Evaluator. Opus 5.5 High hat drei Aufgaben sowohl mit Plugin als auch mit manueller Installation abgeschlossen; die Baseline ohne das Paket ebenfalls. Das ist eine Beobachtung pro Methode und Aufgabe, siehe [Abnahmebericht](evals/development/RESULTS.md). Die Tests belegen Werkzeugverhalten, keinen gemessenen Fähigkeitsgewinn des Agenten. Reale Roboter und MCUs benötigen eigene Validierung.
 
 Einigen historischen Zahlen fehlen Transkripte oder reproduzierbare Neubewertungen; sie werden nicht als aktuelle Leistung beworben. [CAPABILITIES.md](evals/CAPABILITIES.md).
 

@@ -1,0 +1,80 @@
+{
+  "accepted": true,
+  "statuses_correct": true,
+  "scene_unchanged": true,
+  "observed": {
+    "/fixture/imu_a": {
+      "status": "pass",
+      "base_acceleration": [
+        0.0,
+        0.0,
+        9.81
+      ],
+      "frame": "fixture_a"
+    },
+    "/fixture/imu_b": {
+      "status": "fail",
+      "base_acceleration": [
+        0.0,
+        0.0,
+        -9.81
+      ],
+      "frame": "fixture_b"
+    },
+    "/fixture/imu_c": {
+      "status": "inconclusive",
+      "frame": "fixture_c"
+    }
+  },
+  "answer": {
+    "/fixture/imu_a": {
+      "status": "pass",
+      "evidence": "Live messages: frame_id fixture_a, raw linear_acceleration (0.0, 0.0, -9.81) m/s^2, ~37 Hz from /imu_sim. /tf_static declares base_link->fixture_a rotation quaternion xyzw (1,0,0,0) = 180 deg roll (tf2_echo base_link fixture_a confirms). Rotated into base_link, the 50-sample mean is (+0.00, +0.00, +9.81), |a| = 9.81, matching +9.81 on base +Z. check_imu_gravity.py --topic /fixture/imu_a --base base_link exited 0 (PASS). The raw -Z reading is consistent with the declared upside-down mount."
+    },
+    "/fixture/imu_b": {
+      "status": "fail",
+      "evidence": "Live messages: frame_id fixture_b, raw linear_acceleration (0.0, 0.0, +9.81) m/s^2, ~39 Hz from /imu_sim. /tf_static declares base_link->fixture_b rotation quaternion xyzw (1,0,0,0) = 180 deg roll (tf2_echo confirms). Rotated into base_link, the 50-sample mean is (+0.00, +0.00, -9.81), |a| = 9.81: gravity lands on base -Z. check_imu_gravity.py --topic /fixture/imu_b --base base_link exited 1 (FAIL). The data and the declared transform contradict each other: either the declared 180 deg roll is wrong, or the sensor data is sign-flipped (e.g. NED or gravity-sign convention). This check cannot tell which of the two is at fault."
+    },
+    "/fixture/imu_c": {
+      "status": "inconclusive",
+      "evidence": "Live messages: frame_id fixture_c, raw linear_acceleration (0.0, 0.0, +9.81) m/s^2, ~39 Hz from /imu_sim. /tf_static (the only TF topic, from /imu_sim) holds only base_link->fixture_a and base_link->fixture_b; there is no /tf topic, and no transform for fixture_c exists. check_imu_gravity.py --topic /fixture/imu_c --base base_link exited 2 (INCONCLUSIVE): 0/50 usable messages, lookupTransform says source_frame fixture_c does not exist. With no declared sensor-to-base rotation, the raw +Z reading cannot be expressed in base_link. It is not evidence of a fault, and it would be a pass only if the frame were assumed to be aligned with base_link, which nothing here declares."
+    }
+  },
+  "scene": {
+    "pid": 122493,
+    "original": {
+      "/fixture/imu_a": [
+        "010f48607ddee4a30000000000001303"
+      ],
+      "/fixture/imu_b": [
+        "010f48607ddee4a30000000000001403"
+      ],
+      "/fixture/imu_c": [
+        "010f48607ddee4a30000000000001503"
+      ],
+      "/tf": [],
+      "/tf_static": [
+        "010f48607ddee4a30000000000001603"
+      ]
+    },
+    "current": {
+      "/fixture/imu_a": [
+        "010f48607ddee4a30000000000001303"
+      ],
+      "/fixture/imu_b": [
+        "010f48607ddee4a30000000000001403"
+      ],
+      "/fixture/imu_c": [
+        "010f48607ddee4a30000000000001503"
+      ],
+      "/tf": [],
+      "/tf_static": [
+        "010f48607ddee4a30000000000001603"
+      ]
+    },
+    "unexpected_topics": [],
+    "heartbeat": 1790306662.7022707,
+    "use_sim_time": false
+  },
+  "timed_out": false
+}

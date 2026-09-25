@@ -1,0 +1,142 @@
+{
+  "model": "claude-opus-5-5",
+  "skills": [
+    "claude-ros2-skills:ros2-development",
+    "claude-ros2-skills:ros2-microros",
+    "claude-ros2-skills:ros2-troubleshooting",
+    "design",
+    "design-sync",
+    "dataviz",
+    "update-config",
+    "verify",
+    "debug",
+    "code-review",
+    "simplify",
+    "batch",
+    "fewer-permission-prompts",
+    "doctor",
+    "loop",
+    "schedule",
+    "claude-api",
+    "run",
+    "run-skill-generator"
+  ],
+  "plugins": [
+    {
+      "name": "claude-ros2-skills",
+      "path": "$WORKSPACE/.acceptance-plugin",
+      "source": "claude-ros2-skills@inline",
+      "version": "0.1.1"
+    },
+    {
+      "name": "agents-md",
+      "path": "builtin",
+      "source": "agents-md@builtin"
+    },
+    {
+      "name": "telemetry",
+      "path": "builtin",
+      "source": "telemetry@builtin"
+    }
+  ],
+  "tools": [
+    "Bash",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Skill",
+    "WebFetch",
+    "Write"
+  ],
+  "routing": [
+    {
+      "tool": "Skill",
+      "input": {
+        "skill": "claude-ros2-skills:ros2-troubleshooting",
+        "args": "IMU gravity check on /fixture_v2/imu_a, imu_b, imu_c against base_link +Z"
+      },
+      "result_excerpt": "Launching skill: claude-ros2-skills:ros2-troubleshooting"
+    },
+    {
+      "tool": "Bash",
+      "input": {
+        "command": "cd $WORKSPACE; ls -la; S=.acceptance-plugin/skills/ros2-troubleshooting/scripts; ls $S; python3 $S/check_imu_gravity.py --help",
+        "description": "List workspace and show gravity check usage"
+      },
+      "result_excerpt": "total 20\ndrwxrwxr-x  3 $USER $USER 4096 Sep 25 12:46 .\ndrwxrwxr-x 15 $USER $USER 4096 Sep 25 12:46 ..\ndrwxrwxr-x  5 $USER $USER 4096 Sep 25 12:46 .acceptance-plugin\n-rw-rw-r--  1 $USER $USER  869 Sep 25 12:46 TASK.txt\n-rw-rw-r--  1 $USER $USER    3 Sep 25 12:46 colcon-defaults.yaml\n_check_common.py\ncheck_imu_gravity.py\ncheck_odom_direction.py\ncheck_qos_compat.py\ncheck_tf_tree.py\ntest_checks.py\nusage: check_imu_gravity.py [-h] [--topic TOPIC] [--base BASE]\n                            [--assume-aligned] [--samples SAMPLES]\n                            [--timeout TIMEOUT] [--tol-mag TOL_MAG]\n\nVerify IMU mounting: with the robot resting flat and still, gravity must\nappear as ~+9.81 m/s^2 on +Z after transforming acceleration into base_link. A\ncorrectly declared rotated IMU can report gravity on any axis in its own\nframe. TF is required by default; --assume-aligned explicitly skips rotation\nwhen you know the message axes already align with the level robot's base. Use\nacceleration that includes gravity, not a gravity-compensated estimate. Usage:\npython3 check_imu_gravity.py [--topic /imu/data] Exit codes: 0 PASS, 1 FAIL, 2\ninconclusive (unusable/insufficient data / no ROS).\n\noptions:\n  -h, --help         show this help message and exit\n  --topic TOPIC\n  --base BASE        level robot body frame\n  --assume-aligned   explicitly assume message axes align with --base; skip TF\n  --samples SAMPLES\n  --timeout TIMEOUT  seconds\n  --tol-mag TOL_MAG"
+    },
+    {
+      "tool": "Bash",
+      "input": {
+        "command": "cd $WORKSPACE; cat TASK.txt colcon-defaults.yaml; cat .acceptance-plugin/skills/ros2-troubleshooting/scripts/check_imu_gravity.py",
+        "description": "Read task file and gravity check script"
+      },
+      "result_excerpt": "This is a ROS 2 Jazzy simulation fixture; no physical robot is connected. The simulated base frame is level and stationary and the accelerometers include gravity. Three independent IMU streams are already running: /fixture_v2/imu_a, /fixture_v2/imu_b, and /fixture_v2/imu_c. Their declared sensor-to-base transforms, when available, are on TF; the base frame is base_link. Diagnose whether the measured acceleration is consistent with +9.81 m/s² on base +Z, distinguishing a confirmed inconsistency from insufficient evidence. Do not change or restart the publishers or add transforms. Save diagnosis.json in this directory, an object keyed by each full topic name with `status` equal to `pass`, `fail`, or `inconclusive`, and an `evidence` string describing the observation. Verify using live messages and TF, and explain what these results can and cannot establish.\n{}\n#!/usr/bin/env python3\n\"\"\"Verify IMU mounting: with the robot resting flat and still, gravity must\nappear as ~+9.81 m/s^2 on +Z after transforming acceleration into base_link.\n\nA correctly declared rotated IMU can report gravity on any axis in its own\nframe. TF is required by default; --assume-aligned explicitly skips rotation\nwhen you know the message axes already align with the level robot's base.\nUse acceleration that includes gravity, not a gravity-compensated estimate.\n\nUsage: python3 check_imu_gravity.py [--topic /imu/data]\nExit codes: 0 PASS, 1 FAIL, 2 inconclusive (unusable/insufficient data / no ROS).\n\"\"\"\nimport argparse\nimport math\nimport sys\nimport time\n\nfrom _check_common import exit_code, positive_float, positive_int, unit_quaternion\n\nG = 9.81\n# Fixed tolerances assume a robot at rest on flat ground; consumer-grade IMU\n# bias/noise sits well inside +/-1.5 m/s^2. Widen --tol-mag if uncalibrated.\nDEFAULT_MAG_TOL = 1.5      # |a| must be within G ± this (m/s^2)\nDEFAULT_AXIS_RATIO = 0.8   # dominant axis must carry >= this fraction of |a|\n\n\ndef rotate_acceleration(vector, quaternion):\n    \"\"\"Rotate a sensor vector into the target frame using target<-sensor TF.\"\"\"\n    x, y, z, w = unit_quaternion(*quaternion)\n    ax, ay, az = vector\n    tx, ty, tz = 2*(y*az-z*ay), 2*(z*ax-x*az), 2*(x*ay-y*ax)\n    return (ax+w*tx+y*tz-z*ty, ay+w*ty+z*tx-x*tz, az+w*tz+x*ty-y*tx)\n\n\ndef analyze(samples, mag_tol=DEFAULT_MAG_TOL, axis_ratio=DEFAULT_AXIS_RATIO):\n    \"\"\"Pure logic, unit-tested without ROS.\n\n    samples: list of (ax, ay, az) tuples.\n    Returns (verdict, message) where verdict is 'PASS' | 'FAIL' | 'INCONCLUSIVE'.\n    \"\"\"\n    if not samples:\n        return \"INCONCLUSIVE\", \"no samples collected\"\n    if not math.isfinite(mag_tol) or mag_tol <= 0:\n        raise ValueError(\"mag_tol must be finite and greater than zero\")\n    if not math.isfinite(axis_ratio) or not 0 < axis_ratio <= 1:\n        raise ValueError(\"axis_ratio must be in (0, 1]\")\n    if any(not math.isfinite(value) for sample in samples for value in sample):\n        return \"INCONCLUSIVE\", \"acceleration contains non-finite values\"\n    n = len(samples)\n    ax = sum(s[0] for s in samples) / n\n    ay = sum(s[1] for s in samples) / n\n    az = sum(s[2] for s in samples) / n\n    mag = math.sqrt(ax * ax + ay * ay + az * az)\n    if not math.isfinite(mag):\n        return \"INCONCLUSIVE\", \"acceleration magnitude is not finite\"\n    detail = f\"mean accel = ({ax:+.2f}, {ay:+.2f}, {az:+.2f}) m/s^2, |a| = {mag:.2f}\"\n\n    if abs(mag - G) > mag_tol:\n        return \"FAIL\", (f\"{detail}. Magnitude is not ~{G}: robot is moving, \"\n                        \"vibrating, the scale/units are wrong, or this topic \"\n                        \"has gravity removed. Check those before changing the mount.\")\n    axes = {\"X\": ax, \"Y\": ay, \"Z\": az}\n    dom = max(axes, key=lambda k: abs(axes[k]))\n    if abs(axes[dom]) < axis_ratio * mag:\n        return \"FAIL\", (f\"{detail}. Gravity is split across axes: IMU is \"\n                        \"mounted tilted relative to its TF frame.\")\n    if dom != \"Z\":\n        return \"FAIL\", (f\"{detail}. Gravity is predominantly on {dom}, not Z. \"\n                        \"Compare the physical mount, declared TF and driver axis convention.\")\n    if az < 0:\n        return \"FAIL\", (f\"{detail}. Z is negative: IMU is upside-down relative \"\n                        \"to its declared TF frame (or reports acceleration in \"\n                        \"NED instead of REP 103 ENU/body convention).\")\n    return \"PASS\", f\"{detail}. Gravity on +Z as REP 103 requires.\"\n\n\ndef main():\n    p = argparse.ArgumentParser(description=__doc__)\n    p.add_argument(\"--topic\", default=\"/imu/data\")\n    p.add_argument(\"--base\", default=\"base_link\", help=\"level robot body frame\")\n    p.add_argument(\"--assume-aligned\", action=\"store_true\",\n                   help=\"explicitly assume message axes align with --base; skip TF\")\n    p.add_argument(\"--samples\", type=positive_int, default=50)\n    p.add_argument(\"--timeout\", type=positive_float, default=10.0, help=\"seconds\")\n    p.add_argument(\"--tol-mag\", type=positive_float, default=DEFAULT_MAG_TOL)\n    args = p.parse_args()\n    if not args.base.strip():\n        p.error(\"--base must name a frame\")\n\n    try:\n        import rclpy\n        from rclpy.qos import qos_profile_sensor_data\n        from sensor_msgs.msg import Imu\n        if not args.assume_aligned:\n            from rclpy.time import Time\n            from tf2_ros import Buffer, TransformListener, TransformException\n    except ImportError:\n        print(\"ERROR: ROS Python messages/TF support not found. Source ROS 2 first:\\n\"\n              \"  source /opt/ros/jazzy/setup.bash\", file=sys.stderr)\n        return 2\n\n    print(f\"Keep the robot RESTING FLAT and STILL. Sampling {args.samples} \"\n          f\"messages from {args.topic} (timeout {args.timeout}s)...\")\n\n    rclpy.init()\n    node = rclpy.create_node(\"check_imu_gravity\")\n    samples = []\n    unavailable = 0\n    last_error = \"\"\n    buffer = None\n\n    def receive(message):\n        nonlocal unavailable, last_error\n        # sensor_msgs/Imu explicitly declares this estimate unavailable"
+    },
+    {
+      "tool": "Bash",
+      "input": {
+        "command": "cd $WORKSPACE; source /opt/ros/jazzy/setup.bash; S=.acceptance-plugin/skills/ros2-troubleshooting/scripts; for t in a b c; do echo \"== /fixture_v2/imu_$t\"; timeout 30 python3 $S/check_imu_gravity.py --topic /fixture_v2/imu_$t --base base_link --timeout 15; echo \"exit=$?\"; done; echo \"== tf2_echo c\"; timeout 6 ros2 run tf2_ros tf2_echo base_link fixture_v2_c 2>&1 | head -8",
+        "description": "Run gravity checker on each IMU topic and probe TF for imu_c",
+        "timeout": 150000
+      },
+      "result_excerpt": "Exit code 143\n== /fixture_v2/imu_a\nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture_v2/imu_a (timeout 15.0s)...\n[FAIL] In base_link: mean accel = (+0.00, +0.00, -9.81) m/s^2, |a| = 9.81. Z is negative: IMU is upside-down relative to its declared TF frame (or reports acceleration in NED instead of REP 103 ENU/body convention).\nexit=1\n== /fixture_v2/imu_b\nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture_v2/imu_b (timeout 15.0s)...\n[PASS] In base_link: mean accel = (+0.00, +0.00, +9.81) m/s^2, |a| = 9.81. Gravity on +Z as REP 103 requires.\nexit=0\n== /fixture_v2/imu_c\n[INCONCLUSIVE] collected 0/50 usable messages on /fixture_v2/imu_c; 576 unavailable. TF base_link <- fixture_v2_c: \"fixture_v2_c\" passed to lookupTransform argument source_frame does not exist. \nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture_v2/imu_c (timeout 15.0s)...\nexit=2\n== tf2_echo c\nTerminated"
+    },
+    {
+      "tool": "Write",
+      "input": {
+        "file_path": "$WORKSPACE/diagnosis.json",
+        "content": "{\n  \"/fixture_v2/imu_a\": {\n    \"status\": \"fail\",\n    \"evidence\": \"Live messages (frame_id fixture_v2_a) report linear_acceleration (0, 0, +9.81) m/s^2 in the sensor frame. /tf_static declares base_link -> fixture_v2_a with rotation (x=1, y=0, z=0, w=0), a 180 deg roll. Rotated into base_link, the 50-sample mean is (+0.00, +0.00, -9.81) m/s^2, |a| = 9.81: magnitude correct but gravity on base -Z. check_imu_gravity.py exit 1 (FAIL). The measured data and the declared mount contradict each other. One of them is wrong, and this check cannot tell which.\"\n  },\n  \"/fixture_v2/imu_b\": {\n    \"status\": \"pass\",\n    \"evidence\": \"Live messages (frame_id fixture_v2_b) report linear_acceleration (0, 0, -9.81) m/s^2 in the sensor frame. /tf_static declares base_link -> fixture_v2_b with rotation (x=1, y=0, z=0, w=0), a 180 deg roll. Rotated into base_link, the 50-sample mean is (+0.00, +0.00, +9.81) m/s^2, |a| = 9.81, consistent with +9.81 on base +Z. check_imu_gravity.py exit 0 (PASS). The raw sensor-frame -Z reading is correct for the declared upside-down mount.\"\n  },\n  \"/fixture_v2/imu_c\": {\n    \"status\": \"inconclusive\",\n    \"evidence\": \"Live messages (frame_id fixture_v2_c) arrive and report linear_acceleration (0, 0, +9.81) m/s^2 in the sensor frame. No transform base_link <- fixture_v2_c exists: /tf_static only contains fixture_v2_a and fixture_v2_b, no /tf topic is published, and lookupTransform reported that source frame fixture_v2_c does not exist (0/50 usable samples, 576 rejected). check_imu_gravity.py exit 2 (INCONCLUSIVE). The sensor-frame reading alone can't show whether gravity is on base +Z without the declared mount. This is missing evidence, not a confirmed fault.\"\n  }\n}\n"
+      },
+      "result_excerpt": "File created successfully at: $WORKSPACE/diagnosis.json (file state is current in your context — no need to Read it back)"
+    }
+  ],
+  "is_error": false,
+  "result": "One IMU fails, one passes, and one can't be judged because its transform is missing. The results are saved in `diagnosis.json`, which I checked parses as valid JSON.\n\n| Topic | Raw accel (sensor frame) | Declared TF (`base_link` → sensor) | In `base_link` | Status |\n|---|---|---|---|---|\n| `/fixture_v2/imu_a` | (0, 0, +9.81) | 180° roll (q = 1,0,0,0) | (0, 0, **−9.81**) | **fail** (exit 1) |\n| `/fixture_v2/imu_b` | (0, 0, −9.81) | 180° roll (q = 1,0,0,0) | (0, 0, **+9.81**) | **pass** (exit 0) |\n| `/fixture_v2/imu_c` | (0, 0, +9.81) | **none** | — | **inconclusive** (exit 2) |\n\n**How I checked:** I read one live message from each topic and the latched `/tf_static` (published by `imu_sim`; there is no `/tf` topic). Then I ran the bundled checker once per topic:\n```\npython3 .acceptance-plugin/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture_v2/imu_X --base base_link --timeout 15\n```\nThe checker looks up TF for each message, rotates it into `base_link` and averages 50 samples. I didn't touch the publishers or TF, and my probes all ran under timeouts and have exited.\n\n**What this shows:**\n- **imu_a:** the magnitude is right but gravity lands on base −Z. The data and the declared mount contradict each other.\n- **imu_b:** the raw −Z reading looks wrong on its own, but it is correct for the declared upside-down mount. It shows why you can't judge an IMU without its TF.\n- **imu_c:** the data arrives, but frame `fixture_v2_c` has no transform to `base_link`. The lookup failed on all 576 messages received. The +9.81 on sensor Z would pass only if the sensor were assumed aligned with the base, and nothing declares that. This is missing evidence, not a confirmed fault.\n\n**What this can't show:**\n- **Which side is wrong for imu_a.** The data and the declared mount disagree, but the check can't tell whether the TF, the driver's sign convention or the mount is the error.\n- **Yaw.** Rotation about the gravity axis doesn't change the reading, so a yaw error in any declared mount would go undetected. imu_b's pass covers roll/pitch and sign only.\n- **Dynamic behaviour.** The robot was level and still, so only the static gravity vector was tested. Gyro axes, dynamic accelerometer response, timing and scale beyond the 9.81 magnitude weren't checked.\n- **Physical correctness.** The mounts are simulated declarations. A pass means the fixture is self-consistent, not that any real hardware is mounted this way.\n- **Anything about imu_c** until a `base_link` → `fixture_v2_c` transform is published and the check is re-run.",
+  "usage": {
+    "input_tokens": 18,
+    "cache_creation_input_tokens": 15970,
+    "cache_read_input_tokens": 142093,
+    "output_tokens": 3808,
+    "output_tokens_details": {
+      "thinking_tokens": 346
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 15970,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1056,
+        "cache_read_input_tokens": 22319,
+        "cache_creation_input_tokens": 249,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 249
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "num_turns": 10,
+  "duration_ms": 75726,
+  "returncode": 0,
+  "wall_seconds": 79.98345255851746,
+  "timed_out": false,
+  "pack_unchanged": true,
+  "extra_config_files": [],
+  "delivery": {
+    "inventory_correct": true,
+    "protocol_transport_verified": true,
+    "smoke_script_executed": false
+  }
+}

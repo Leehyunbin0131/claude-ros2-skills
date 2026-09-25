@@ -1,0 +1,39 @@
+{
+  "task": "tests",
+  "condition": "baseline",
+  "seed": 0,
+  "model": "claude-opus-5-5",
+  "effort": "high",
+  "settings": {
+    "autoMemoryEnabled": false,
+    "syncClaudeAiSkills": false,
+    "syncClaudeAiPlugins": false,
+    "ultracode": false
+  },
+  "payload_sha256": {},
+  "prompt_sha256": "fbe9e35818875d50b98436cdd7be401fce1a498ff83e399e60f507ee889970c8",
+  "fixture_sha256": {
+    "FROZEN.json": "cc8f08af3ce496a2cbf337c7ba928d9eee4f4a94bee38cbe9455ee3064867a4b",
+    "PROTOCOL.md": "33f8b1a7d758353592bfa0fc89297be793694ccccb36a60ec8da6bcb6e9f983a",
+    "fixtures.py": "6bcc60824aac6024bb6fca3583a203702c7d05ba8a6d09520d1519c51a8cc1eb",
+    "grade.py": "0b217310605bc09aa34deaa4d868f1fd47a4758322d4522dbe24c44015c96487",
+    "imu_scene.py": "7f31eec21dafe9b4155fe9cc11220976166bbf83f1554f3bc4ec18ec27f779fc",
+    "run_acceptance.py": "0ef86f40f1861ebfdb40c01f2f5bef2bd47017cab7bc5986543067fef0cac2f0",
+    "test_oracles.py": "13ef23ae2f5083ad2a9a5256bdc60a2d548bdf1a55a4a33ab3741a42da014b54",
+    "test_runner.py": "c0d74540f2d4b36884c780a7071168a9c386561ae00a8cf6871d8ff5b0db3d16"
+  },
+  "cli_version": "2.1.281 (Claude Code)",
+  "versions": {
+    "pytest": "7.4.4",
+    "setuptools": "79.0.1",
+    "colcon-core": "0.21.3",
+    "rclpy": "7.1.12"
+  },
+  "domain": "211",
+  "workspace": "$WORKSPACE",
+  "started_at": 1790305833.17954,
+  "timeout": 1800,
+  "source_head": "fb0aeebb6c145a0a01b236ccda2e3855394873af",
+  "freeze_sha256": "cc8f08af3ce496a2cbf337c7ba928d9eee4f4a94bee38cbe9455ee3064867a4b",
+  "ended_at": 1790305934.3493266
+}

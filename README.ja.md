@@ -21,7 +21,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 # --user: alternative to --project
 ```
 
-新しいセッションで反映されます。プラグインは SessionStart フックで30行のプロトコルを読み込み、ユーザー範囲では全プロジェクトに適用されます。手動インストールは既存の CLAUDE.md と他のスキルを保持し、.claude/rules/ros2-verification.md にプロトコルを配置します。ローカル変更は上書きしません。ROS、colcon、ドライバーは別途必要です。
+新しいセッションで反映されます。プラグインは SessionStart フックでプロトコルを読み込み、ユーザー範囲では全プロジェクトに適用されます。手動インストールは既存の CLAUDE.md と他のスキルを保持し、.claude/rules/ros2-verification.md にプロトコルを配置します。ローカル変更は上書きしません。ROS、colcon、ドライバーは別途必要です。
 
 ## スキル
 
@@ -35,7 +35,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 
 終了コードは0が合格、1が失敗、2が判定不能または無効な要求です。欠落データ、NaN、不明なQoS、欠落TF、テスト未実行を成功と扱いません。IMUはTFで基準フレームに変換し、重力ではyawを検証できません。オドメトリは方向のみで距離校正は対象外です。実行時診断は移動指令を送信しません。
 
-CIはインストール保護、判定ロジック、実際の一時Python/CMakeパッケージのビルドとテスト、合成Jazzy通信・TF、評価ツールを確認します。新しい開発手順のモデル対照実験は未実施です。ツールの動作検証はエージェント能力の向上を証明しません。実機とMCUは別途検証が必要です。
+CIはインストール保護、判定ロジック、実際の一時Python/CMakeパッケージのビルドとテスト、合成Jazzy通信・TF、評価ツールを確認します。Opus 5.5 High による3課題はプラグイン・手動インストールの両方で完了しました。ベースラインも全課題を完了しており、方式・課題ごとに1回の観測です。[検証記録](evals/development/RESULTS.md)を参照してください。ツールの動作検証はエージェント能力の向上を証明しません。実機とMCUは別途検証が必要です。
 
 過去の成績には欠落記録や再現できない再採点があります。現在の性能として宣伝しません。 [CAPABILITIES.md](evals/CAPABILITIES.md).
 

@@ -1,0 +1,32 @@
+{
+  "reviewers": [
+    "Codex",
+    "Claude Code claude-opus-5-5, high effort"
+  ],
+  "decision": "Release-ready for the declared scope, conditional only on green CI for the pushed head.",
+  "scope": "Ubuntu 24.04 / ROS 2 Jazzy; declared installation, development test-evidence/installed-artifact and diagnostic workflows. See RESULTS.md for coverage limits.",
+  "source_product_reference": "b93a594 plus the disclosed paragraph reorder in CLAUDE.md",
+  "final_freeze_sha256": "65f61b7b41677e83d10d19aa052855300cc4c5a639c354bb520f28de02dd960f",
+  "model_cells": {
+    "original": 9,
+    "followup": 4,
+    "loading_smoke": 2
+  },
+  "independently_reviewed": [
+    "ament wrapper pass/skip/crash behavior",
+    "required behavioral test selection",
+    "runner isolation and controls",
+    "all model verdicts and artifact hashes",
+    "final manual cleanup recovery and IMU trace",
+    "marketplace relative-source install and payload hashes",
+    "report claim limits, privacy and prose corrections"
+  ],
+  "remaining_condition": "Verify all new-head GitHub CI jobs and ensure real integration checks ran rather than skipped; a real product failure requires correction and review.",
+  "nonblocking_limits": [
+    "One observed run per original condition/task; baselines also passed; no causal improvement/equivalence inference.",
+    "Shared temporary storage and argv expose harness context; per-action audit found no cross-cell retrieval.",
+    "Final paragraph reorder has delivery tests, no additional model run.",
+    "Marketplace smoke used a local source; remote fetching and upgrade not exercised.",
+    "Hardware/MCU/full Nav2/MoveIt/Gazebo and downstream/overlay guidance unverified."
+  ]
+}

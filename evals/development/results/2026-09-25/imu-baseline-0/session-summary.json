@@ -1,0 +1,91 @@
+{
+  "model": "claude-opus-5-5",
+  "skills": [
+    "design",
+    "design-sync",
+    "dataviz",
+    "update-config",
+    "verify",
+    "debug",
+    "code-review",
+    "simplify",
+    "batch",
+    "fewer-permission-prompts",
+    "doctor",
+    "loop",
+    "schedule",
+    "claude-api",
+    "run",
+    "run-skill-generator"
+  ],
+  "plugins": [
+    {
+      "name": "agents-md",
+      "path": "builtin",
+      "source": "agents-md@builtin"
+    },
+    {
+      "name": "telemetry",
+      "path": "builtin",
+      "source": "telemetry@builtin"
+    }
+  ],
+  "tools": [
+    "Bash",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Skill",
+    "WebFetch",
+    "Write"
+  ],
+  "routing": [],
+  "is_error": false,
+  "result": "One IMU passes, one fails, and one can't be judged. The results are saved in `diagnosis.json`, which I checked parses correctly.\n\n| Topic | Status | Why |\n|---|---|---|\n| `/fixture/imu_a` | **pass** | The sensor reads (0, 0, −9.81). TF says `base_link→fixture_a` is flipped 180° about X, so in `base_link` that becomes (0, 0, **+9.81**). Every sample matched exactly. |\n| `/fixture/imu_b` | **fail** | The sensor reads (0, 0, +9.81). TF declares the same 180° flip, so in `base_link` that becomes (0, 0, **−9.81**): the right size, but pointing the wrong way. Every sample was off by 19.62 m/s². |\n| `/fixture/imu_c` | **inconclusive** | The sensor reads (0, 0, +9.81), but there is no transform for `fixture_c`. `/tf_static` only has frames a and b, there is no `/tf` topic, and asking tf2 for the transform failed with \"frame does not exist\". |\n\n**How I checked:** I used a temporary rclpy node that listened to all three topics with the sensor-data QoS settings. It collected about 465 messages per topic over 12 seconds (about 39 Hz). It fetched the transforms with tf2, not by reading the numbers off by hand, and rotated every sample into `base_link`. Nothing was published, the publishers were not touched or restarted, no transforms were added, and I deleted the script afterwards.\n\n**What this establishes:**\n- For imu_a, the data agrees with its declared mounting.\n- For imu_b, the data and the declared mounting contradict each other. That is a confirmed inconsistency, not noise: the readings are constant, and the error is 2g in sign, not a small offset.\n- For imu_c, the data alone can't be checked. Its 9.81 magnitude looks like gravity, but without a declared mounting its direction in the base frame is unknown. Assuming no rotation would give \"pass\" and assuming a flip would give \"fail\", so any verdict would be a guess.\n\n**What it can't establish:**\n- **Which side is wrong for imu_b.** The fail means the reading and the declared transform disagree. The sign could be wrong in the sensor, or the transform could be wrong (for example, a flip that shouldn't be there). This test can't tell which.\n- **Anything about x/y axes or rotation about Z.** With only gravity to measure, the check only covers which way the sensor's up axis points. A wrong rotation about Z, or x and y swapped, would still pass.\n- **Real sensor behaviour.** The values are exact and noiseless, so bias, noise and scale factor weren't tested. Behaviour while moving wasn't tested either, since the base only sits still.\n- **Other fields.** Every message reports an identity `orientation` with all-zero covariances. I didn't use it, and it doesn't match the flipped mounting declared for a and b. That's worth a separate look if anything downstream relies on it.",
+  "usage": {
+    "input_tokens": 14,
+    "cache_creation_input_tokens": 13123,
+    "cache_read_input_tokens": 96203,
+    "output_tokens": 4682,
+    "output_tokens_details": {
+      "thinking_tokens": 450
+    },
+    "server_tool_use": {
+      "web_search_requests": 0,
+      "web_fetch_requests": 0
+    },
+    "service_tier": "standard",
+    "cache_creation": {
+      "ephemeral_1h_input_tokens": 13123,
+      "ephemeral_5m_input_tokens": 0
+    },
+    "inference_geo": "not_available",
+    "iterations": [
+      {
+        "input_tokens": 2,
+        "output_tokens": 1027,
+        "cache_read_input_tokens": 19465,
+        "cache_creation_input_tokens": 256,
+        "cache_creation": {
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 256
+        },
+        "type": "message"
+      }
+    ],
+    "speed": "standard"
+  },
+  "num_turns": 7,
+  "duration_ms": 68229,
+  "returncode": 0,
+  "wall_seconds": 72.22999310493469,
+  "timed_out": false,
+  "pack_unchanged": true,
+  "extra_config_files": [],
+  "delivery": {
+    "inventory_correct": true,
+    "protocol_transport_verified": true,
+    "smoke_script_executed": false
+  }
+}

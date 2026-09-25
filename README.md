@@ -29,7 +29,7 @@ Choose one installation method.
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Start a new session. A `SessionStart` hook loads the [30-line protocol](CLAUDE.md);
+Start a new session. A `SessionStart` hook loads the [protocol](CLAUDE.md);
 plugin-root `CLAUDE.md` is not automatically loaded on its own. The default user
 scope applies to all projects. Prefer a project install when you want it limited
 to a ROS workspace.
@@ -47,7 +47,19 @@ The installer copies the three skills and `.claude/rules/ros2-verification.md`.
 It preserves existing `CLAUDE.md` files and unrelated skills, refuses to overwrite
 local edits, and reports retired skill directories for manual review. Restart
 Claude Code afterwards. ROS, colcon and robot drivers are not installed by this
-pack; install the dependencies needed by your workspace.
+pack; install the dependencies needed by your workspace. For these checks on an
+existing Jazzy installation:
+
+```bash
+sudo apt install python3-colcon-common-extensions python3-pytest \
+  ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs
+source /opt/ros/jazzy/setup.bash
+```
+
+Prefer Ubuntu/Jazzy's test-tool versions or a separately verified environment.
+The tested Jazzy `launch_testing` plugin fails to start with pytest 9; our
+ROS-sourced checks use Ubuntu's pytest 7.4.4. A runner crash is not evidence that
+the implementation's assertions failed.
 
 ## Skills
 
@@ -79,7 +91,7 @@ files, not ROS packages to invoke with `ros2 run`.
 
 | Script | Evidence it checks |
 | :--- | :--- |
-| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | Every named package has at least one executed, passing test in the supplied colcon reports; use a fresh results directory as shown in the skill |
+| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | Check executed, passing cases in fresh colcon reports; use `--require-test PACKAGE::test_name` for the changed behaviour, since linters alone can otherwise pass |
 | `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | Native Jazzy QoS compatibility for discovered publisher/subscriber pairs |
 | `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF connectivity and mounting RPY for physical comparison; an unusual angle is an advisory |
 | `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Gravity at rest on level ground, transformed into `--base base_link`; missing TF is inconclusive, and gravity cannot establish yaw |
@@ -114,15 +126,24 @@ while the bundled evidence check returns 2.
 ## Validation and evidence limits
 
 CI checks installation/update preservation, Python and shell code, deterministic
-verdicts, real temporary Python/CMake package builds and tests, synthetic Jazzy
-pub/sub and TF, and the evaluation harness. A live Claude Code plugin smoke test
-also verified protocol delivery. Commands are in [CONTRIBUTING.md](CONTRIBUTING.md).
+verdicts, real Python/CMake and ament test wrappers, synthetic Jazzy pub/sub and
+TF, and independent acceptance-oracle controls. Commands are in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-These checks establish tool behaviour and loading, **not a measured improvement
-in an agent's development ability**. The new development workflow has not had a
-controlled model comparison. Physical robots, MCU firmware and calibration
-still need their own validation. Full Nav2/MoveIt/Gazebo development was not
-re-tested for this change.
+Real Claude Code **Opus 5.5 High** sessions completed three targeted workflows
+under both plugin and manual installation: a namespaced sensor package with
+installed YAML/launch, meaningful wheel-speed tests, and live IMU/TF diagnosis.
+Both loading smokes verified protocol delivery and actual bundled-script use.
+The three baseline sessions also passed: the observed task outcomes were the
+same. This is **one run per method and task, not evidence of a performance gain
+or equivalent reliability**. Follow-up runtime sessions review owned-process
+cleanup after a focused instruction fix; all attempts and limits are in the
+[release acceptance report](evals/development/RESULTS.md).
+
+Physical robots, MCU firmware, calibration and full Nav2/MoveIt/Gazebo
+applications remain unverified. Downstream interface consumers, stale-overlay
+remediation and `--packages-up-to` guidance also need independent behavioral
+validation beyond these cases.
 
 ## Evals
 

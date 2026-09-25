@@ -1,5 +1,7 @@
 # What the baseline agent reaches unaided, and where it stops
 
+The shared protocol was revised again for release acceptance after these historical runs. In particular, the historical 2/10 → 10/10 observation applies to the old text, not the current protocol.
+
 A historical capability report, followed by a reconciliation against the
 committed evidence. **The published tables below are not all reproducible from
 this checkout.** Some transcripts were deleted and some claimed re-grades were
@@ -302,8 +304,8 @@ The current contents mix historically reported effects with retained, unverified
 
 | Kept | Why |
 | :--- | :--- |
-| `ros2-development` (new after these historical rounds) | package development workflow and a colcon test-evidence check, validated on real temporary Python/CMake packages; no controlled agent performance comparison yet |
-| `CLAUDE.md`, 30 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
+| `ros2-development` (new after these historical rounds) | package development workflow and a colcon test-evidence check; [current release acceptance](development/RESULTS.md) covers concrete live workflows, without establishing a performance gain |
+| `CLAUDE.md` | historically motivated by the old verify paragraph (reported 2/10 → 10/10) and "done means it ran"; current task scope, inconclusive-result and owned-process cleanup instructions postdate those scores |
 | `ros2-troubleshooting` scripts | 0/10 → 10/10 on producing a checked verdict |
 | `references/frames.md` | physical mount vs REP 103 — no ladder can test it without hardware, and no doc contains the robot's real geometry |
 | `references/calibration.md` | same category, and nearly lost: `diff_drive_controller` wheel calibration was deleted with `ros2-control`, but `ctl1`–`ctl3` never tested it. Restored to the physical-verification skill that owns the script it cites. |

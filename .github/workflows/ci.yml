@@ -17,14 +17,16 @@ jobs:
           python-version: "3.12"
       - name: Compile scripts
         run: |
-          python3 -m compileall -q skills scripts tests evals/harness
+          python3 -m compileall -q skills scripts tests evals/harness evals/development
           for file in evals/harness/*.sh; do bash -n "$file"; done
       - name: Unit tests (pure logic, no ROS required)
         run: python3 skills/ros2-troubleshooting/scripts/test_checks.py
       - name: Installation and protocol transport
         run: python3 tests/test_install.py
       - name: Development evidence gate
-        run: python3 tests/test_development.py
+        run: |
+          python3 tests/test_development.py
+          python3 evals/development/test_runner.py
       - name: Install isolated package-workflow test tools
         run: python3 -m pip install colcon-common-extensions==0.3.0
       - name: Real Python and CMake package workflow
@@ -39,15 +41,27 @@ jobs:
     container: ros:jazzy-ros-base
     steps:
       - uses: actions/checkout@v4
-      - name: Install message and TF dependencies
+      - name: Install message, TF and package-test dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs
+          apt-get install -y --no-install-recommends ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs ros-jazzy-launch-testing ros-jazzy-ament-cmake-pytest python3-colcon-common-extensions python3-pytest cmake g++
       - name: Synthetic ROS integration checks (no hardware)
         shell: bash
         run: |
           source /opt/ros/jazzy/setup.bash
           python3 tests/test_ros_checks.py
+      - name: Package tests with the sourced Jazzy environment
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          python3 tests/test_colcon_workflow.py
+          python3 tests/test_ament_test_results.py
+      - name: Acceptance oracle positive and negative controls (no model calls)
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          python3 evals/development/test_oracles.py
+          ROS2_ACCEPTANCE_SEED=1 python3 evals/development/test_oracles.py
 
   links:
     runs-on: ubuntu-latest

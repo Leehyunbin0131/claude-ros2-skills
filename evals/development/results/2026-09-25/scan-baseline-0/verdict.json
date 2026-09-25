@@ -1,0 +1,119 @@
+{
+  "build": true,
+  "tests": {
+    "passed": true,
+    "executed": 18,
+    "failed": 0,
+    "returncode": 0
+  },
+  "yaml_installed": true,
+  "default": [
+    {
+      "expected": 2,
+      "observed": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    },
+    {
+      "expected": 1,
+      "observed": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "observed": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    }
+  ],
+  "yaml_parameter_present": true,
+  "yaml_effective": [
+    {
+      "expected": 3,
+      "observed": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    },
+    {
+      "expected": 2,
+      "observed": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "observed": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    }
+  ],
+  "argument_override": [
+    {
+      "expected": 5,
+      "observed": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    },
+    {
+      "expected": 2,
+      "observed": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "observed": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "nodes_namespaced": true,
+      "passed": true
+    }
+  ],
+  "accepted": true,
+  "gradable": true,
+  "timed_out": false
+}

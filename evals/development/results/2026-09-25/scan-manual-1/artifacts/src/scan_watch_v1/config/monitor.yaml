@@ -1,0 +1,6 @@
+# Parameters for scan_watch_v1. The `/**` key matches the node in any namespace,
+# so this file applies unchanged with `namespace:=...`.
+/**:
+  ros__parameters:
+    # Ranges at or below this distance [m] are counted.
+    limit: 0.41

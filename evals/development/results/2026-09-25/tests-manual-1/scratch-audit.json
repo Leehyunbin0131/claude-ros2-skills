@@ -1,0 +1,14 @@
+{
+  "moved_after_session": [
+    "/tmp/drive_limits_old"
+  ],
+  "files": [
+    "limits_old.py",
+    "pkg/drive_limits_v1/limits.py",
+    "pkg/drive_limits_v1/__init__.py",
+    "pkg/drive_limits_v1/__pycache__/__init__.cpython-312.pyc",
+    "pkg/drive_limits_v1/__pycache__/limits.cpython-312.pyc"
+  ],
+  "time": 1790307347.1433296,
+  "reason": "Own temporary old-code control moved under masked output after the original batch. No later retrieval observed."
+}

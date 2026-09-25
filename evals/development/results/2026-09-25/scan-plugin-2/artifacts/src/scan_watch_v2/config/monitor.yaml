@@ -1,0 +1,6 @@
+# Default parameters for scan_watch_v2, loaded by monitor.launch.py.
+# `/**` matches the node under any namespace passed as namespace:=...
+# A limit:=... launch argument overrides the value below.
+/**:
+  ros__parameters:
+    limit: 0.42

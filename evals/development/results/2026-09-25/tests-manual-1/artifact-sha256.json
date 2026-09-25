@@ -1,0 +1,10 @@
+{
+  "src/drive_limits_v1/drive_limits_v1/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "src/drive_limits_v1/drive_limits_v1/limits.py": "34434718ad71701f3bd79a21490cff3920afb129693bb19ef4e7c23216d70aa4",
+  "src/drive_limits_v1/package.xml": "56935d13fe8de83baa5c93c09362ec7d86ebe33e2ff52bef83bb2bf6e35eb5c0",
+  "src/drive_limits_v1/resource/drive_limits_v1": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "src/drive_limits_v1/setup.cfg": "95c9960161c1846e2450858b020d0cddbe947d4278734b4e7e7fbb8f2d39eb42",
+  "src/drive_limits_v1/setup.py": "3f2de89d316601ee307201ac6cdf053e507f9b81d5081b4479100459b04341ef",
+  "src/drive_limits_v1/test/test_limits.py": "8c389553c3943a62999d5d82a2d17dcfe8f2cf163fd5f4ca12c9b5ec425e9f33",
+  "src/drive_limits_v1/test/test_smoke.py": "21f6fb8e5808ca15f31598543443e5b509f265c1eca322a59a1f4936671d32b4"
+}

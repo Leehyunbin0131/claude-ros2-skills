@@ -1,0 +1,19 @@
+{
+  "build": true,
+  "installed_behavior": true,
+  "tests": {
+    "passed": true,
+    "executed": 12,
+    "failed": 0,
+    "returncode": 0
+  },
+  "test_oracles": {
+    "reference": true,
+    "independent_clamp": true,
+    "always_scale": true,
+    "lose_signs": true
+  },
+  "accepted": true,
+  "gradable": true,
+  "timed_out": false
+}
