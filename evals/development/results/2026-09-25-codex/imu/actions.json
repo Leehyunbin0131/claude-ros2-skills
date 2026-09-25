@@ -1,0 +1,197 @@
+[
+  {
+    "id": "item_1",
+    "type": "command_execution",
+    "command": "/bin/bash -lc \"pwd; rg --files -g AGENTS.md -g '*SKILL.md' -g '\"'!build/**'\"' -g '\"'!install/**'\"' -g '\"'!log/**'\"' . .agents; cat .agents/skills/ros2-troubleshooting/SKILL.md\"",
+    "aggregated_output": "$WORKSPACE\n.agents/skills/ros2-microros/SKILL.md\n.agents/skills/ros2-development/SKILL.md\n.agents/skills/ros2-troubleshooting/SKILL.md\n---\nname: ros2-troubleshooting\ndescription: \"Diagnose ROS 2 Jazzy faults that reading the code cannot settle: QoS mismatch, sensor-mount and frame errors (REP 103/105), and odometry calibrated against CAD instead of the floor. Ships four runnable pass/fail checks.\"\n---\n\n# READ THIS FIRST — ROS 2 verification protocol\n\nDo NOT answer ROS 2 / Gazebo / Nav2 / MoveIt / ros2_control / perception questions from memorized knowledge. Pretrained API details are frequently wrong or outdated for Jazzy.\n\nOn every ROS 2 task, before writing code or answering:\n\n1. Verify the specific API / message / parameter against local `/opt/ros/jazzy/` (`ros2 interface show`, `ros2 topic list -t`, `ros2 pkg prefix`, `ros2 param list`) or against the official Jazzy docs for that package.\n2. Resolve any frame/TF question against `ros2-troubleshooting` (REP 103/105) as ground truth.\n3. When a system logs healthy and does not work, run the relevant `ros2-troubleshooting` check. Exit 0/1 gives a verdict on the checked property only; exit 2 is inconclusive and must not be reported as pass or fail. A checker does not establish whole-system correctness.\n\nNever invent message types, API method names, QoS signatures, param names, or TF frames. Look them up.\n\n**`rclcpp` is C++ only, `rclpy` is Python only.** They are separate libraries, not two spellings of one: `rclcpp.qos` in Python and `rclpy::` in C++ do not exist. An example found in one language translates as a concept, never as a namespace. Answer in the language the user is using, and if you are unsure a symbol exists in that language, check (`python3 -c \"import rclpy.qos\"`).\n\n## Establish before writing (no doc can tell you these)\n\nAsk only for facts relevant to the task that the user or workspace has not already supplied:\n\n- **Real hardware, simulation, or both?** Sets `use_sim_time`, decides whether physical checks apply, and whether any tuning transfers.\n- **Existing workspace or greenfield?** Match the package layout, naming, and launch conventions already in the repo before inventing your own.\n- **Who already publishes the topic or TF you're about to add?** Two publishers on one transform is a silent failure that looks healthy in every log.\n- **Real geometry** — sensor mounting orientation, wheel radius/separation — whenever the task touches them. The robot is not its CAD model.\n\n## Done means it ran\n\nWriting the code is not the deliverable. Report what you actually observed — a build succeeding, `ros2 topic echo` showing data, a lifecycle node reaching `active`, a check script passing — or state plainly that you could not verify and what you'd need to.\n\nThis is the single highest-value line here. Config that reads correctly and is never started is this pack's most reproducible failure: a Nav2 parameter file that names every plugin correctly and puts every value in the right place, which the servers then refuse to configure. Bringing the same file up once finds it in one sitting. Run what you wrote.\n\nBound runtime probes with a timeout and keep the PID or process group of anything you start. Stop only those owned processes, including when a probe hangs. Never clean up by process-name patterns (`pkill -f`, `killall`, or matching names then killing the matches): another terminal or robot bringup may own them. Leave existing publishers and transforms running unless the user requested their modification.\n\nTarget: **Ubuntu 24.04 LTS / ROS 2 Jazzy Jalisco**. Legacy (Gazebo Classic, pre-Jazzy APIs) is out of scope unless explicitly asked.\n\n# ROS 2 troubleshooting\n\nMost of this skill is scripts that turn a suspicion into an exit code. Run one\nbefore reasoning about the symptom.\n\n## Bundled checks\n\n`scripts/` sits next to this file — resolve the path from this skill's own\ndirectory, not the user's CWD. Set `ROS2_SKILL_DIR` to the absolute directory\ncontaining the loaded `SKILL.md`; this variable is not supplied by the assistant.\nThis works with Claude Code and Codex, for project and user installations.\n\nThey are plain scripts: invoke with `python3` and a real path. There is no\npackage to `ros2 run`, and inventing one is a known failure mode. Exit code\n**0 = PASS, 1 = FAIL, 2 = inconclusive/invalid request**. Tell the user the command you ran.\n\n```bash\nsource /opt/ros/jazzy/setup.bash\nROS2_SKILL_DIR=\"/absolute/path/to/ros2-troubleshooting\" # Replace with the loaded skill directory.\npython3 \"${ROS2_SKILL_DIR}/scripts/check_qos_compat.py\" --topic /scan\n```\n\n| Script | Answers |\n| :--- | :--- |\n| `check_qos_compat.py --topic /scan` | Why a healthy publisher delivers nothing to this subscriber |\n| `check_tf_tree.py --sensors laser_frame,imu_link` | Does `map->odom->base_link` resolve? Prints sensor mount RPY for comparison with the hardware |\n| `check_imu_gravity.py [--topic /imu/data]` | At rest on level ground, is gravity ~+9.81 on +Z after TF into `--base base_link`? Yaw is not observable. Missing TF is inconclusive; `--assume-aligned` skips TF |\n| `check_odom_direction.py [--topic /odom]` | Does odometry agree with the direction the robot physically moved |\n\n`check_tf_tree.py` prints `VERIFY PHYSICALLY` for any ~180° roll or yaw **even\nwhen that mounting is deliberate**. It asks for a comparison against the\nhardware; it is not a verdict. Report it that way.\n\n## References\n\nLoad the one the symptom points at.\n\n- **`references/frames.md`** — REP 103/105 axis conventions, and the\n  misalignment symptoms that follow from getting them wrong. `CLAUDE.md` treats\n  this file as ground truth for any frame or TF question.\n- **`references/runtime.md`** — what a QoS mismatch actually looks like on\n  Jazzy, the two other policies that fail the same way, and why `ros2 topic\n  echo` cannot detect any of them.\n- **`references/calibration.md`** — correcting `diff_drive_controller` wheel\n  radius and separation against a tape measure, in the order that works. Read\n  when odometry is consistent but wrong by a ratio.\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_2",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'ls -la; cat .agents/skills/ros2-troubleshooting/references/frames.md; cat .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py; source /opt/ros/jazzy/setup.bash\n timeout 10s ros2 interface show sensor_msgs/msg/Imu\n timeout 10s ros2 topic list -t'",
+    "aggregated_output": "# This is a message to hold data from an IMU (Inertial Measurement Unit)\n#\n# Accelerations should be in m/s^2 (not in g's), and rotational velocity should be in rad/sec\n#\n# If the covariance of the measurement is known, it should be filled in (if all you know is the\n# variance of each measurement, e.g. from the datasheet, just put those along the diagonal)\n# A covariance matrix of all zeros will be interpreted as \"covariance unknown\", and to use the\n# data a covariance will have to be assumed or gotten from some other source\n#\n# If you have no estimate for one of the data elements (e.g. your IMU doesn't produce an\n# orientation estimate), please set element 0 of the associated covariance matrix to -1\n# If you are interpreting this message, please check for a value of -1 in the first element of each\n# covariance matrix, and disregard the associated estimate.\n\nstd_msgs/Header header\n\tbuiltin_interfaces/Time stamp\n\t\tint32 sec\n\t\tuint32 nanosec\n\tstring frame_id\n\ngeometry_msgs/Quaternion orientation\n\tfloat64 x 0\n\tfloat64 y 0\n\tfloat64 z 0\n\tfloat64 w 1\nfloat64[9] orientation_covariance # Row major about x, y, z axes\n\ngeometry_msgs/Vector3 angular_velocity\n\tfloat64 x\n\tfloat64 y\n\tfloat64 z\nfloat64[9] angular_velocity_covariance # Row major about x, y, z axes\n\ngeometry_msgs/Vector3 linear_acceleration\n\tfloat64 x\n\tfloat64 y\n\tfloat64 z\nfloat64[9] linear_acceleration_covariance # Row major x, y z\nFailed opening file $HOME/.ros/log/python3_19_1790318202160.log for writing: Read-only file system\n",
+    "exit_code": 1,
+    "status": "failed"
+  },
+  {
+    "id": "item_3",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'mkdir -p .ros/log\nsource /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 10s ros2 topic list -t'",
+    "aggregated_output": "/fixture/imu_a [sensor_msgs/msg/Imu]\n/fixture/imu_b [sensor_msgs/msg/Imu]\n/fixture/imu_c [sensor_msgs/msg/Imu]\n/parameter_events [rcl_interfaces/msg/ParameterEvent]\n/rosout [rcl_interfaces/msg/Log]\n/tf_static [tf2_msgs/msg/TFMessage]\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_4",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'cat TASK.txt; rg --files .agents/skills/ros2-troubleshooting/scripts; ls /opt/ros/jazzy/lib/python3.12/site-packages/tf2_ros'",
+    "aggregated_output": "This is a ROS 2 Jazzy simulation fixture; no physical robot is connected. The simulated base frame is level and stationary and the accelerometers include gravity. Three independent IMU streams are already running: /fixture/imu_a, /fixture/imu_b, and /fixture/imu_c. Their declared sensor-to-base transforms, when available, are on TF; the base frame is base_link. Diagnose whether the measured acceleration is consistent with +9.81 m/s² on base +Z, distinguishing a confirmed inconsistency from insufficient evidence. Do not change or restart the publishers or add transforms. Save diagnosis.json in this directory, an object keyed by each full topic name with `status` equal to `pass`, `fail`, or `inconclusive`, and an `evidence` string describing the observation. Verify using live messages and TF, and explain what these results can and cannot establish.\n.agents/skills/ros2-troubleshooting/scripts/_check_common.py\n.agents/skills/ros2-troubleshooting/scripts/check_tf_tree.py\n.agents/skills/ros2-troubleshooting/scripts/test_checks.py\n.agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py\n.agents/skills/ros2-troubleshooting/scripts/check_odom_direction.py\n.agents/skills/ros2-troubleshooting/scripts/check_qos_compat.py\n__init__.py\n__pycache__\nbuffer.py\nbuffer_client.py\nbuffer_interface.py\nstatic_transform_broadcaster.py\ntransform_broadcaster.py\ntransform_listener.py\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_7",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 15s python3 .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture/imu_b --base base_link --samples 50 --timeout 10'",
+    "aggregated_output": "[INCONCLUSIVE] collected 0/50 usable messages on /fixture/imu_b; 0 unavailable. Check the topic, QoS and sensor output.\nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_b (timeout 10.0s)...\n",
+    "exit_code": 2,
+    "status": "failed"
+  },
+  {
+    "id": "item_6",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 15s python3 .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture/imu_c --base base_link --samples 50 --timeout 10'",
+    "aggregated_output": "[INCONCLUSIVE] collected 0/50 usable messages on /fixture/imu_c; 0 unavailable. Check the topic, QoS and sensor output.\nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_c (timeout 10.0s)...\n",
+    "exit_code": 2,
+    "status": "failed"
+  },
+  {
+    "id": "item_5",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 15s python3 .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture/imu_a --base base_link --samples 50 --timeout 10'",
+    "aggregated_output": "Keep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_a (timeout 10.0s)...\n[INCONCLUSIVE] collected 0/50 usable messages on /fixture/imu_a; 0 unavailable. Check the topic, QoS and sensor output.\n",
+    "exit_code": 2,
+    "status": "failed"
+  },
+  {
+    "id": "item_9",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 6s ros2 topic echo /fixture/imu_b sensor_msgs/msg/Imu --once --qos-reliability best_effort'",
+    "aggregated_output": "",
+    "exit_code": 124,
+    "status": "failed"
+  },
+  {
+    "id": "item_8",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 6s ros2 topic echo /fixture/imu_a sensor_msgs/msg/Imu --once --qos-reliability best_effort'",
+    "aggregated_output": "",
+    "exit_code": 124,
+    "status": "failed"
+  },
+  {
+    "id": "item_10",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 6s ros2 topic echo /fixture/imu_c sensor_msgs/msg/Imu --once --qos-reliability best_effort'",
+    "aggregated_output": "",
+    "exit_code": 124,
+    "status": "failed"
+  },
+  {
+    "id": "item_11",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\ntimeout 6s ros2 topic echo /tf_static tf2_msgs/msg/TFMessage --once --qos-durability transient_local'",
+    "aggregated_output": "",
+    "exit_code": 124,
+    "status": "failed"
+  },
+  {
+    "id": "item_13",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nprintenv | sort | rg \"ROS|RMW|DDS|FAST|CYCLONE\"\ntimeout 5s ros2 topic info /fixture/imu_a --verbose\ntimeout 5s ros2 topic info /tf_static --verbose\nls /opt/ros/jazzy/lib/librmw*'",
+    "aggregated_output": "Type: sensor_msgs/msg/Imu\n\nPublisher count: 1\n\nNode name: _NODE_NAME_UNKNOWN_\nNode namespace: _NODE_NAMESPACE_UNKNOWN_\nTopic type: sensor_msgs/msg/Imu\nTopic type hash: RIHS01_7d9a00ff131080897a5ec7e26e315954b8eae3353c3f995c55faf71574000b5b\nEndpoint type: PUBLISHER\nGID: 01.0f.48.60.ab.c2.30.71.00.00.00.00.00.00.13.03\nQoS profile:\n  Reliability: BEST_EFFORT\n  History (Depth): UNKNOWN\n  Durability: VOLATILE\n  Lifespan: Infinite\n  Deadline: Infinite\n  Liveliness: AUTOMATIC\n  Liveliness lease duration: Infinite\n\nSubscription count: 0\n\nType: tf2_msgs/msg/TFMessage\n\nPublisher count: 1\n\nNode name: _NODE_NAME_UNKNOWN_\nNode namespace: _NODE_NAMESPACE_UNKNOWN_\nTopic type: tf2_msgs/msg/TFMessage\nTopic type hash: RIHS01_e369d0f05a23ae52508854b66f6aa0437f3449d652e8cbf22d5abe85d020f087\nEndpoint type: PUBLISHER\nGID: 01.0f.48.60.ab.c2.30.71.00.00.00.00.00.00.16.03\nQoS profile:\n  Reliability: RELIABLE\n  History (Depth): UNKNOWN\n  Durability: TRANSIENT_LOCAL\n  Lifespan: Infinite\n  Deadline: Infinite\n  Liveliness: AUTOMATIC\n  Liveliness lease duration: Infinite\n\nSubscription count: 0\n\n/opt/ros/jazzy/lib/librmw.so\n/opt/ros/jazzy/lib/librmw_dds_common.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_generator_c.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_generator_py.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_typesupport_c.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_typesupport_cpp.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_typesupport_fastrtps_c.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_typesupport_fastrtps_cpp.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_typesupport_introspection_c.so\n/opt/ros/jazzy/lib/librmw_dds_common__rosidl_typesupport_introspection_cpp.so\n/opt/ros/jazzy/lib/librmw_fastrtps_cpp.so\n/opt/ros/jazzy/lib/librmw_fastrtps_shared_cpp.so\n/opt/ros/jazzy/lib/librmw_implementation.so\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_14",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'rg -n \"FASTDDS_BUILTIN_TRANSPORTS|UDPv4\" /opt/ros/jazzy/share/fastdds /opt/ros/jazzy/include/fastdds 2>/dev/null | head -20\nsource /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\ntimeout 8s ros2 topic echo /fixture/imu_a sensor_msgs/msg/Imu --once --qos-reliability best_effort'",
+    "aggregated_output": "",
+    "exit_code": 124,
+    "status": "failed"
+  },
+  {
+    "id": "item_15",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'cat .agents/skills/ros2-troubleshooting/scripts/check_qos_compat.py'",
+    "aggregated_output": "#!/usr/bin/env python3\n\"\"\"Check every publisher/subscriber QoS pair using the installed Jazzy RMW.\n\nA BEST_EFFORT publisher cannot satisfy a RELIABLE subscriber even though both\nappear in the graph. Deadline, durability and liveliness can also prevent\ncommunication. Unresolved policies are inconclusive, never a proven match.\n\nUsage: python3 check_qos_compat.py --topic /scan\nExit codes: 0 all pairs compatible, 1 a definite mismatch, 2 inconclusive/no ROS.\n\"\"\"\nimport argparse\nimport sys\nimport time\n\nfrom _check_common import exit_code, positive_float\n\n\ndef compatibility_verdict(compatibility):\n    \"\"\"Map an RMW result name; remain conservative for future/unknown values.\"\"\"\n    return {\"OK\": \"PASS\", \"ERROR\": \"FAIL\"}.get(compatibility, \"INCONCLUSIVE\")\n\n\ndef combined_verdict(verdicts):\n    \"\"\"A proven mismatch takes priority; otherwise every pair must be proven.\"\"\"\n    if \"FAIL\" in verdicts:\n        return \"FAIL\"\n    if not verdicts or any(v != \"PASS\" for v in verdicts):\n        return \"INCONCLUSIVE\"\n    return \"PASS\"\n\n\ndef main():\n    p = argparse.ArgumentParser(description=__doc__)\n    p.add_argument(\"--topic\", required=True)\n    p.add_argument(\"--wait\", type=positive_float, default=5.0,\n                   help=\"seconds to allow DDS discovery before reading\")\n    args = p.parse_args()\n    try:\n        import rclpy\n        from rclpy.qos import qos_check_compatible\n    except ImportError:\n        print(\"ERROR: rclpy not found. Source your ROS 2 setup first:\\n\"\n              \"  source /opt/ros/jazzy/setup.bash\", file=sys.stderr)\n        return 2\n\n    rclpy.init()\n    node = rclpy.create_node(\"check_qos_compat\")\n    try:\n        deadline = time.monotonic() + args.wait\n        while time.monotonic() < deadline:\n            rclpy.spin_once(node, timeout_sec=min(0.1, max(0.0, deadline-time.monotonic())))\n        pubs = node.get_publishers_info_by_topic(args.topic)\n        subs = node.get_subscriptions_info_by_topic(args.topic)\n    finally:\n        node.destroy_node()\n        rclpy.try_shutdown()\n\n    if not pubs or not subs:\n        print(f\"[INCONCLUSIVE] {args.topic}: discovered {len(pubs)} publishers \"\n              f\"and {len(subs)} subscribers; both are needed to check QoS. \"\n              \"Check ROS_DOMAIN_ID/discovery configuration or increase --wait.\")\n        return 2\n\n    verdicts = []\n    for pub in pubs:\n        for sub in subs:\n            compatibility, reason = qos_check_compatible(pub.qos_profile, sub.qos_profile)\n            verdict = compatibility_verdict(compatibility.name)\n            verdicts.append(verdict)\n            pub_name = f\"{pub.node_namespace.rstrip('/')}/{pub.node_name}\"\n            sub_name = f\"{sub.node_namespace.rstrip('/')}/{sub.node_name}\"\n            print(f\"[{verdict}] {pub_name} -> {sub_name}\")\n            if reason:\n                print(f\"       {reason}\")\n    return exit_code(combined_verdict(verdicts))\n\n\nif __name__ == \"__main__\":\n    try:\n        sys.exit(main())\n    except KeyboardInterrupt:\n        sys.exit(130)\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_16",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 10s ros2 topic echo /fixture/imu_a sensor_msgs/msg/Imu --once --qos-reliability best_effort'",
+    "aggregated_output": "header:\n  stamp:\n    sec: 1790318284\n    nanosec: 421812959\n  frame_id: fixture_a\norientation:\n  x: 0.0\n  y: 0.0\n  z: 0.0\n  w: 1.0\norientation_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\nangular_velocity:\n  x: 0.0\n  y: 0.0\n  z: 0.0\nangular_velocity_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\nlinear_acceleration:\n  x: 0.0\n  y: 0.0\n  z: -9.81\nlinear_acceleration_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n---\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_20",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 6s ros2 topic echo /fixture/imu_c sensor_msgs/msg/Imu --qos-reliability best_effort --once'",
+    "aggregated_output": "header:\n  stamp:\n    sec: 1790318299\n    nanosec: 117729826\n  frame_id: fixture_c\norientation:\n  x: 0.0\n  y: 0.0\n  z: 0.0\n  w: 1.0\norientation_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\nangular_velocity:\n  x: 0.0\n  y: 0.0\n  z: 0.0\nangular_velocity_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\nlinear_acceleration:\n  x: 0.0\n  y: 0.0\n  z: 9.81\nlinear_acceleration_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n---\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_22",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 6s ros2 topic echo /fixture/imu_b sensor_msgs/msg/Imu --qos-reliability best_effort --once'",
+    "aggregated_output": "header:\n  stamp:\n    sec: 1790318299\n    nanosec: 117693623\n  frame_id: fixture_b\norientation:\n  x: 0.0\n  y: 0.0\n  z: 0.0\n  w: 1.0\norientation_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\nangular_velocity:\n  x: 0.0\n  y: 0.0\n  z: 0.0\nangular_velocity_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\nlinear_acceleration:\n  x: 0.0\n  y: 0.0\n  z: 9.81\nlinear_acceleration_covariance:\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n- 0.0\n---\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_18",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 15s python3 .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture/imu_a --base base_link --samples 50 --timeout 10'",
+    "aggregated_output": "Keep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_a (timeout 10.0s)...\n[PASS] In base_link: mean accel = (+0.00, +0.00, +9.81) m/s^2, |a| = 9.81. Gravity on +Z as REP 103 requires.\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_17",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 15s python3 .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture/imu_b --base base_link --samples 50 --timeout 10'",
+    "aggregated_output": "Keep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_b (timeout 10.0s)...\n[FAIL] In base_link: mean accel = (+0.00, +0.00, -9.81) m/s^2, |a| = 9.81. Z is negative: IMU is upside-down relative to its declared TF frame (or reports acceleration in NED instead of REP 103 ENU/body convention).\n",
+    "exit_code": 1,
+    "status": "failed"
+  },
+  {
+    "id": "item_21",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 6s ros2 topic echo /tf_static tf2_msgs/msg/TFMessage --qos-durability transient_local --once'",
+    "aggregated_output": "",
+    "exit_code": 124,
+    "status": "failed"
+  },
+  {
+    "id": "item_19",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 15s python3 .agents/skills/ros2-troubleshooting/scripts/check_imu_gravity.py --topic /fixture/imu_c --base base_link --samples 50 --timeout 10'",
+    "aggregated_output": "[INCONCLUSIVE] collected 0/50 usable messages on /fixture/imu_c; 305 unavailable. TF base_link <- fixture_c: \"fixture_c\" passed to lookupTransform argument source_frame does not exist. \nKeep the robot RESTING FLAT and STILL. Sampling 50 messages from /fixture/imu_c (timeout 10.0s)...\n",
+    "exit_code": 2,
+    "status": "failed"
+  },
+  {
+    "id": "item_23",
+    "type": "command_execution",
+    "command": "/bin/bash -lc 'source /opt/ros/jazzy/setup.bash\nexport ROS_LOG_DIR=\"$PWD/.ros/log\"\nexport FASTDDS_BUILTIN_TRANSPORTS=UDPv4\nexport ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET\ntimeout 8s ros2 topic echo /tf_static tf2_msgs/msg/TFMessage --once --qos-durability transient_local --qos-reliability reliable'",
+    "aggregated_output": "transforms:\n- header:\n    stamp:\n      sec: 0\n      nanosec: 0\n    frame_id: base_link\n  child_frame_id: fixture_a\n  transform:\n    translation:\n      x: 0.0\n      y: 0.0\n      z: 0.0\n    rotation:\n      x: 1.0\n      y: 0.0\n      z: 0.0\n      w: 0.0\n- header:\n    stamp:\n      sec: 0\n      nanosec: 0\n    frame_id: base_link\n  child_frame_id: fixture_b\n  transform:\n    translation:\n      x: 0.0\n      y: 0.0\n      z: 0.0\n    rotation:\n      x: 1.0\n      y: 0.0\n      z: 0.0\n      w: 0.0\n---\n",
+    "exit_code": 0,
+    "status": "completed"
+  },
+  {
+    "id": "item_25",
+    "type": "file_change",
+    "changes": [
+      {
+        "path": "$WORKSPACE/diagnosis.json",
+        "kind": "add"
+      }
+    ],
+    "status": "completed"
+  },
+  {
+    "id": "item_26",
+    "type": "command_execution",
+    "command": "/bin/bash -lc \"python3 - <<'PY'\nimport json\nfrom pathlib import Path\np = Path('diagnosis.json')\nd = json.loads(p.read_text())\nassert set(d) == {f'/fixture/imu_{s}' for s in 'abc'}\nassert all(set(v) == {'status', 'evidence'} and v['status'] in {'pass','fail','inconclusive'} and isinstance(v['evidence'], str) and v['evidence'] for v in d.values())\nprint('diagnosis.json validated')\nPY\"",
+    "aggregated_output": "diagnosis.json validated\n",
+    "exit_code": 0,
+    "status": "completed"
+  }
+]

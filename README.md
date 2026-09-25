@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="Claude Code skills for ROS 2 Jazzy" width="100%"/>
+<img src="assets/hero.png" alt="ROS 2 Jazzy skills for Claude Code and Codex" width="100%"/>
 
 **ROS 2 development with evidence that the result works.**
 
@@ -12,7 +12,7 @@
 
 </div>
 
-Three Claude Code skills for **Ubuntu 24.04 / ROS 2 Jazzy**: develop packages,
+Three skills for **Claude Code and Codex**, targeting **Ubuntu 24.04 / ROS 2 Jazzy**: develop packages,
 verify tests and installed behaviour, and diagnose runtime faults. The goal is
 less time spent correcting plausible code that was never exercised. This pack
 supplies targeted workflows and executable checks, not a replacement for the
@@ -20,7 +20,34 @@ workspace's conventions or the installed ROS documentation.
 
 ## Quickstart
 
-Choose one installation method.
+Choose your assistant. For Claude Code, choose either plugin or manual installation.
+
+**Codex — native skills for an existing project:**
+
+```bash
+git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
+python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# Alternative: install for this user across all projects
+# python3 claude-ros2-skills/scripts/install.py --agent codex --user
+```
+
+The [Codex skill locations](https://learn.chatgpt.com/docs/build-skills) are
+`<project>/.agents/skills` and `~/.agents/skills` for these two scopes. Choose one
+scope to avoid duplicate skill names. Each installed Codex skill includes the
+shared [verification protocol](CLAUDE.md), loaded when that skill is used.
+No Claude hooks or rules are required. Existing `AGENTS.md`, `CLAUDE.md`, Codex
+configuration and unrelated skills are preserved; local edits stop an update.
+Start a new Codex session in the target workspace. To select a skill explicitly
+in Codex CLI or the IDE, use `$ros2-development` or `$ros2-troubleshooting`.
+In the desktop skill picker, select the same skill by name.
+
+Live ROS checks also need access to the intended ROS graph. In a restricted
+Codex environment, a denied ROS log directory can be redirected with
+`ROS_LOG_DIR` to a writable workspace directory. Discovered topics with no
+received messages can reflect sandbox/DDS transport constraints. Keep the
+workspace's domain and discovery scope; widening discovery to `SUBNET` is not a
+general installation fix. Report unavailable observations as inconclusive.
+See the [observed Codex runtime limitations](evals/CODEX.md).
 
 **Plugin — from a Claude Code session:**
 
@@ -34,7 +61,7 @@ plugin-root `CLAUDE.md` is not automatically loaded on its own. The default user
 scope applies to all projects. Prefer a project install when you want it limited
 to a ROS workspace.
 
-**Manual — into an existing project:**
+**Claude Code manual — into an existing project:**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
@@ -69,7 +96,7 @@ the implementation's assertions failed.
 | [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md) | A live publisher, callback, TF, IMU or odometry behaves incorrectly | Four executable diagnostics and focused frame, runtime and calibration references |
 | [ros2-microros](skills/ros2-microros/SKILL.md) | MCU transport, agent, rclc or message memory work | Source pointers and troubleshooting guidance; **not MCU-validated** |
 
-Claude selects a skill from its description. To request it explicitly, mention
+Both assistants can select a skill from its description. To request it explicitly, mention
 its name in your task. Examples:
 
 - “Use ros2-development to add a service to this existing Jazzy package. Build
@@ -85,8 +112,9 @@ making assumptions about them.
 
 ## Verification scripts
 
-Scripts ship with their skill. In Claude Code, resolve them from
-`${CLAUDE_SKILL_DIR}/scripts/`, not the current working directory. They are Python
+Scripts ship with their skill. Resolve `scripts/` from the absolute directory
+of the loaded `SKILL.md`, not the current working directory. The examples use
+`ROS2_SKILL_DIR`, a shell variable you set to that directory. They are Python
 files, not ROS packages to invoke with `ros2 run`.
 
 | Script | Evidence it checks |
@@ -140,6 +168,10 @@ or equivalent reliability**. Follow-up runtime sessions review owned-process
 cleanup after a focused instruction fix; all attempts and limits are in the
 [release acceptance report](evals/development/RESULTS.md).
 
+Codex support is tracked separately in the [Codex compatibility report](evals/CODEX.md).
+Earlier Claude observations are not Codex performance evidence. The Codex installer
+embeds the protocol on skill activation; it does not install a session-wide hook.
+
 Physical robots, MCU firmware, calibration and full Nav2/MoveIt/Gazebo
 applications remain unverified. Downstream interface consumers, stale-overlay
 remediation and `--packages-up-to` guidance also need independent behavioral
@@ -167,7 +199,8 @@ claude plugin update claude-ros2-skills@claude-ros2-skills
 
 For a manual installation, pull the repository and rerun the same installer
 command. Local edits are preserved by refusing the update until you review the
-conflict. Start a new Claude Code session afterwards.
+conflict. Include `--agent codex` when updating Codex. Start a new session in the
+corresponding assistant afterwards.
 
 ## Contributing
 

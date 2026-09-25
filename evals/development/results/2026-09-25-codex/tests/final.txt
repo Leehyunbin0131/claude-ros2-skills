@@ -1,0 +1,12 @@
+Fixed `limit_speeds` to scale both wheels by the same factor only above the limit, preserving their ratio and signs. Zero and in-range values remain unchanged.
+
+Removed the blanket test skip and restored automatic discovery using the public import.
+
+Observed evidence:
+
+- Old implementation: **5 failed, 5 passed**, confirming the tests reject independent clamping.
+- `colcon build --packages-up-to drive_limits`: succeeded.
+- Colcon with explicit pytest runner: **10 passed, 0 skipped**; fresh-result checker confirmed execution.
+- Installed library: verified its import path under `install/drive_limits`, then ran the suite: **10 passed**.
+
+The underlay’s `ament_python` prefix lookup was unavailable, but build and verification succeeded. No nodes, controllers, or hardware were started.

@@ -2,9 +2,21 @@
 
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-Drei Claude-Code-Skills für Ubuntu 24.04 / ROS 2 Jazzy: Pakete entwickeln, Tests und installierte Artefakte prüfen und Laufzeitfehler diagnostizieren. Bestehende Projektkonventionen bleiben maßgeblich; installierte Dokumentation wird gezielt herangezogen.
+Drei Skills für Claude Code und Codex für Ubuntu 24.04 / ROS 2 Jazzy: Pakete entwickeln, Tests und installierte Artefakte prüfen und Laufzeitfehler diagnostizieren. Bestehende Projektkonventionen bleiben maßgeblich; installierte Dokumentation wird gezielt herangezogen.
 
 ## Installation
+
+### Installation für Codex
+
+Nach dem Klonen des Repositorys den folgenden Befehl ausführen. Projekt-Skills liegen unter `.agents/skills`; mit `--user` statt `--project` wird `~/.agents/skills` verwendet. Jeder Skill enthält das gemeinsame Prüfprotokoll, das bei seiner Verwendung geladen wird. Bestehende `AGENTS.md`, `CLAUDE.md` und Einstellungen bleiben erhalten. Eine neue Sitzung im Projekt starten. In CLI/IDE ist der explizite Aufruf mit `$ros2-development` möglich. Siehe [Codex-Prüfbericht](evals/CODEX.md). Das Plugin und die folgenden manuellen Standardbefehle gelten für Claude Code.
+
+```bash
+git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
+python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# python3 claude-ros2-skills/scripts/install.py --agent codex --user
+```
+
+### Claude Code
 
 Wählen Sie eine Methode. Für das Plugin in einer Claude-Code-Sitzung:
 

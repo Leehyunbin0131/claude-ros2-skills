@@ -1,6 +1,6 @@
 {
   "name": "claude-ros2-skills",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "ROS 2 Jazzy development workflows, test evidence and executable runtime diagnostics.",
   "license": "Apache-2.0",
   "author": {"name": "Leehyunbin0131"}

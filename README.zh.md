@@ -2,9 +2,21 @@
 
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-适用于 Ubuntu 24.04 / ROS 2 Jazzy 的三个 Claude Code 技能：开发软件包、核实测试与安装产物、诊断运行故障。保留项目现有约定，按需要查阅官方文档。
+适用于 Ubuntu 24.04 / ROS 2 Jazzy 的三个 Claude Code 和 Codex 技能：开发软件包、核实测试与安装产物、诊断运行故障。保留项目现有约定，按需要查阅官方文档。
 
 ## 安装
+
+### Codex 安装
+
+在克隆仓库后运行以下命令。项目安装使用 `.agents/skills`；使用 `--user` 代替 `--project` 可安装到 `~/.agents/skills`。每个 Codex 技能包含共享验证协议，在使用技能时读取。保留现有 `AGENTS.md`、`CLAUDE.md` 和配置。安装后在工作区启动新会话。CLI/IDE 可用 `$ros2-development` 明确调用。Codex 的验证范围见 [兼容性记录](evals/CODEX.md)。下面的插件与默认手动命令用于 Claude Code。
+
+```bash
+git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
+python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# python3 claude-ros2-skills/scripts/install.py --agent codex --user
+```
+
+### Claude Code
 
 选择一种安装方式。在 Claude Code 会话中安装插件：
 
