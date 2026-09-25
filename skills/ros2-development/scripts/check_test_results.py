@@ -151,7 +151,7 @@ def check(base, packages, *, required=(), run=subprocess.run):
             code, detail = verdict(result.returncode, result.stdout, result.stderr)
             cases, missing, actual_failure = test_cases(directory)
             if actual_failure:
-                code, detail = 1, 'recorded test/process failure; missing ament results can mean crash, timeout or runner failure; inspect the test log'
+                code, detail = 1, 'recorded test/process failure; inspect the test log for its cause'
             elif missing:
                 code, detail = 2, 'test process produced no results (runner failure or crash); inspect the package test log'
             if code == 0 and cases and not any('passed' in states for states in cases.values()):
