@@ -17,7 +17,7 @@ jobs:
           python-version: "3.12"
       - name: Compile scripts
         run: |
-          python3 -m compileall -q skills scripts tests evals/harness evals/development
+          python3 -m compileall -q skills scripts tests evals/harness evals/development evals/workflow_value
           for file in evals/harness/*.sh; do bash -n "$file"; done
       - name: Unit tests (pure logic, no ROS required)
         run: python3 skills/ros2-troubleshooting/scripts/test_checks.py
@@ -27,6 +27,8 @@ jobs:
         run: |
           python3 tests/test_development.py
           python3 evals/development/test_runner.py
+          python3 evals/workflow_value/test_runner.py
+          python3 evals/workflow_value/test_oracle.py
       - name: Install isolated package-workflow test tools
         run: python3 -m pip install colcon-common-extensions==0.3.0
       - name: Real Python and CMake package workflow
@@ -44,7 +46,7 @@ jobs:
       - name: Install message, TF and package-test dependencies
         run: |
           apt-get update
-          apt-get install -y --no-install-recommends ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs ros-jazzy-launch-testing ros-jazzy-ament-cmake-pytest python3-colcon-common-extensions python3-pytest cmake g++
+          apt-get install -y --no-install-recommends ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs ros-jazzy-launch-testing ros-jazzy-ament-cmake-pytest ros-jazzy-ament-cmake-gtest ros-jazzy-rosidl-default-generators python3-colcon-common-extensions python3-pytest cmake g++
       - name: Synthetic ROS integration checks (no hardware)
         shell: bash
         run: |
@@ -62,6 +64,11 @@ jobs:
           source /opt/ros/jazzy/setup.bash
           python3 evals/development/test_oracles.py
           ROS2_ACCEPTANCE_SEED=1 python3 evals/development/test_oracles.py
+      - name: Workflow usefulness oracle controls (no model calls)
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          WV_ORACLE_CONTROLS=1 WV_SEEDS=0 python3 evals/workflow_value/test_oracle.py
 
   links:
     runs-on: ubuntu-latest
