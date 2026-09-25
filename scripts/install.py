@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Install/update the skills and protocol without replacing CLAUDE.md.
+"""Install/update ROS 2 skills for Claude Code or Codex without replacing user instructions.
 
 python3 scripts/install.py --project /path/to/robot-workspace
+python3 scripts/install.py --agent codex --project /path/to/robot-workspace
+python3 scripts/install.py --agent codex --user
 python3 scripts/install.py --user
 
 Only files recorded by this installer are replaced on update. Local edits and
@@ -26,18 +28,30 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def payload():
-    files = {'rules/ros2-verification.md': (ROOT / 'CLAUDE.md').read_bytes()}
+def payload(agent='claude'):
+    if agent not in ('claude', 'codex'):
+        raise ValueError(f'unsupported agent: {agent}')
+    protocol = (ROOT / 'CLAUDE.md').read_bytes()
+    files = {'rules/ros2-verification.md': protocol} if agent == 'claude' else {}
     for name in SKILLS:
         for source in (ROOT / 'skills' / name).rglob('*'):
             if source.is_file() and '__pycache__' not in source.parts and source.suffix != '.pyc':
-                files[source.relative_to(ROOT).as_posix()] = source.read_bytes()
+                data = source.read_bytes()
+                if agent == 'codex' and source.name == 'SKILL.md':
+                    # Codex does not consume the Claude SessionStart hook or
+                    # .claude/rules. Keep each installed skill self-contained,
+                    # with the same protocol, only when that skill is loaded.
+                    frontmatter, separator, body = data.partition(b'\n---\n')
+                    if not data.startswith(b'---\n') or not separator:
+                        raise ValueError(f'invalid skill frontmatter: {source}')
+                    data = frontmatter + separator + b'\n' + protocol.rstrip() + b'\n\n' + body.lstrip(b'\n')
+                files[source.relative_to(ROOT).as_posix()] = data
     return files
 
 
-def checked_path(target, relative):
+def checked_path(target, relative, agent='claude'):
     path = Path(relative)
-    allowed = path == Path('rules/ros2-verification.md') or any(
+    allowed = (agent == 'claude' and path == Path('rules/ros2-verification.md')) or any(
         path.is_relative_to(Path('skills') / skill) for skill in SKILLS)
     if path.is_absolute() or '..' in path.parts or not allowed:
         raise ValueError(f'invalid managed path: {relative}')
@@ -50,7 +64,8 @@ def checked_path(target, relative):
     return destination
 
 
-def install(target):
+def install(target, agent='claude'):
+    files = payload(agent)
     if target.is_symlink():
         raise ValueError(f'refusing symlink destination: {target}')
     target = target.resolve()
@@ -65,13 +80,12 @@ def install(target):
     previous = json.loads(manifest.read_text()) if manifest.exists() else {}
     if not isinstance(previous, dict) or any(not isinstance(v, str) for v in previous.values()):
         raise ValueError('invalid installation manifest')
-    files = payload()
     for skill in SKILLS:
         directory = target/'skills'/skill
         if directory.exists() and not any(name.startswith(f'skills/{skill}/') for name in previous):
             raise ValueError(f'preserving pre-existing skill directory: {directory}; move it aside first')
     for relative in sorted(set(previous) | set(files)):
-        path = checked_path(target, relative)
+        path = checked_path(target, relative, agent)
         if path.exists():
             if not path.is_file() or relative not in previous or digest(path.read_bytes()) != previous[relative]:
                 raise ValueError(f'preserving existing or locally edited file: {path}; '
@@ -115,21 +129,26 @@ def install(target):
             else:
                 manifest.unlink(missing_ok=True)
             raise
-    print(f'Installed {len(SKILLS)} skills and rules/ros2-verification.md in {target}')
-    print('Existing CLAUDE.md and unrelated skills were preserved. Start a new Claude Code session.')
+    delivery = 'rules/ros2-verification.md' if agent == 'claude' else 'the shared protocol inside each skill'
+    host = 'Claude Code' if agent == 'claude' else 'Codex'
+    print(f'Installed {len(SKILLS)} skills and {delivery} in {target}')
+    print(f'Existing AGENTS.md, CLAUDE.md and unrelated skills were preserved. Start a new {host} session.')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--agent', choices=('claude', 'codex'), default='claude',
+                        help='target assistant (default: claude)')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('--project', type=Path, help='existing project directory')
     group.add_argument('--user', action='store_true', help='install for every project of this user')
     args = parser.parse_args()
     if args.project is not None and not args.project.is_dir():
         parser.error('--project must name an existing directory')
-    target = (args.project if args.project is not None else Path.home()) / '.claude'
+    directory = '.claude' if args.agent == 'claude' else '.agents'
+    target = (args.project if args.project is not None else Path.home()) / directory
     try:
-        install(target)
+        install(target, args.agent)
     except (OSError, ValueError) as error:
         print(f'Installation stopped: {error}', file=sys.stderr)
         return 1

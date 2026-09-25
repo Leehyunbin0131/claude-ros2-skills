@@ -62,9 +62,12 @@ test run. Runtime probes need bounded waits and cleanup. Test fixtures must be
 separated from operational robots; never use host-wide process-name cleanup.
 
 Installation changes must preserve user instructions and unrelated skills.
-The plugin hook and manual rules currently transport the source `CLAUDE.md`
-unchanged. Treat changes to that shared protocol as behaviour changes and
-validate them separately from delivery mechanics.
+The Claude plugin hook and manual rules transport the source `CLAUDE.md`
+unchanged. The Codex installer embeds the same protocol after each skill's
+frontmatter, so it arrives when the skill is loaded without modifying AGENTS.md.
+Keep source skills and scripts shared; do not maintain separate agent-specific
+ROS implementations. Treat changes to that shared protocol as behaviour changes
+and validate them separately from delivery mechanics.
 
 ## Before opening a PR
 
@@ -96,6 +99,12 @@ CI runs these checks plus documentation links. Immutable `evals/runs/`
 transcripts are excluded from link checks: historical failed URLs are evidence,
 not maintained documentation. A skipped integration test is not a passing
 integration test; report the missing dependency.
+
+With Codex CLI installed, also run `python3 tests/test_codex_discovery.py`.
+It checks native skill discovery at the project root and a nested directory via
+the local app server, without a model call or user configuration changes. Without
+Codex this optional test is skipped; installation regressions still run in CI.
+Actual Codex workflow observations and limits are recorded in [evals/CODEX.md](evals/CODEX.md).
 
 The harness requires additional packages for individual tasks. Read its
 [README](evals/harness/README.md) before running evaluations. Do not edit it

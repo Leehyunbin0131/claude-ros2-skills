@@ -1,0 +1,79 @@
+{
+  "accepted": true,
+  "statuses_correct": true,
+  "scene_unchanged": true,
+  "observed": {
+    "/fixture/imu_a": {
+      "status": "pass",
+      "base_acceleration": [
+        0.0,
+        0.0,
+        9.81
+      ],
+      "frame": "fixture_a"
+    },
+    "/fixture/imu_b": {
+      "status": "fail",
+      "base_acceleration": [
+        0.0,
+        0.0,
+        -9.81
+      ],
+      "frame": "fixture_b"
+    },
+    "/fixture/imu_c": {
+      "status": "inconclusive",
+      "frame": "fixture_c"
+    }
+  },
+  "answer": {
+    "/fixture/imu_a": {
+      "status": "pass",
+      "evidence": "Live sensor_msgs/msg/Imu messages declare frame_id fixture_a and raw acceleration (0, 0, -9.81) m/s^2. Live /tf_static declares base_link <- fixture_a with quaternion (x,y,z,w)=(1,0,0,0), a 180-degree X rotation. The bounded gravity checker collected 50 usable messages, applying TF at each message timestamp: mean base acceleration (0,0,+9.81) m/s^2, magnitude 9.81; exit 0. Consistent with the stated level, stationary, gravity-including fixture. This checks acceleration consistency with declared TF, not yaw, independent mounting truth, or overall IMU correctness."
+    },
+    "/fixture/imu_b": {
+      "status": "fail",
+      "evidence": "Live sensor_msgs/msg/Imu messages declare frame_id fixture_b and raw acceleration (0,0,+9.81) m/s^2. Live /tf_static declares base_link <- fixture_b with quaternion (x,y,z,w)=(1,0,0,0), a 180-degree X rotation. The bounded gravity checker collected 50 usable messages, applying TF at each message timestamp: mean base acceleration (0,0,-9.81) m/s^2, magnitude 9.81; exit 1. This confirms an acceleration/declared-TF inconsistency under the supplied stationary, level assumptions; it does not identify whether the acceleration convention, frame label, or declared transform is responsible."
+    },
+    "/fixture/imu_c": {
+      "status": "inconclusive",
+      "evidence": "Live sensor_msgs/msg/Imu messages declare frame_id fixture_c and raw acceleration (0,0,+9.81) m/s^2, with acceleration covariance[0]=0 (unknown covariance, not unavailable acceleration). During the 10-second gravity probe, 305 messages could not be transformed and 0/50 usable base-frame samples were collected; TF reported source frame fixture_c does not exist; checker exit 2. Live /tf_static supplied fixture_a and fixture_b transforms only. The prerequisite base_link <- fixture_c transform was unavailable during this bounded observation. Raw +Z alone cannot establish base +Z consistency, so neither pass nor fail is justified."
+    }
+  },
+  "scene": {
+    "pid": 180907,
+    "original": {
+      "/fixture/imu_a": [
+        "010f4860abc230710000000000001303"
+      ],
+      "/fixture/imu_b": [
+        "010f4860abc230710000000000001403"
+      ],
+      "/fixture/imu_c": [
+        "010f4860abc230710000000000001503"
+      ],
+      "/tf": [],
+      "/tf_static": [
+        "010f4860abc230710000000000001603"
+      ]
+    },
+    "current": {
+      "/fixture/imu_a": [
+        "010f4860abc230710000000000001303"
+      ],
+      "/fixture/imu_b": [
+        "010f4860abc230710000000000001403"
+      ],
+      "/fixture/imu_c": [
+        "010f4860abc230710000000000001503"
+      ],
+      "/tf": [],
+      "/tf_static": [
+        "010f4860abc230710000000000001603"
+      ]
+    },
+    "unexpected_topics": [],
+    "heartbeat": 1790318350.3580954,
+    "use_sim_time": false
+  }
+}

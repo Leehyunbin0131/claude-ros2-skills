@@ -2,9 +2,21 @@
 
 [English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-Ubuntu 24.04 / ROS 2 Jazzy 向けの Claude Code スキルを3つ提供します。パッケージ開発、テストとインストール成果物の確認、実行時の障害診断を支援し、既存プロジェクトの規約を尊重します。
+Ubuntu 24.04 / ROS 2 Jazzy 向けの Claude Code と Codex スキルを3つ提供します。パッケージ開発、テストとインストール成果物の確認、実行時の障害診断を支援し、既存プロジェクトの規約を尊重します。
 
 ## インストール
+
+### Codex へのインストール
+
+リポジトリを clone してから以下を実行します。プロジェクトでは `.agents/skills`、`--project` の代わりに `--user` を使うと `~/.agents/skills` に配置します。共通の検証手順は各スキルに含まれ、スキル使用時に読み込まれます。既存の `AGENTS.md`、`CLAUDE.md` と設定を保持します。作業フォルダーで新しいセッションを開始してください。CLI/IDE では `$ros2-development` で明示的に呼び出せます。[Codex 検証記録](evals/CODEX.md)。以下のプラグインと既定の手動コマンドは Claude Code 用です。
+
+```bash
+git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
+python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# python3 claude-ros2-skills/scripts/install.py --agent codex --user
+```
+
+### Claude Code
 
 インストール方法は1つ選んでください。Claude Code セッションでプラグインを追加します：
 

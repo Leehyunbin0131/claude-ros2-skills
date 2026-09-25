@@ -1,0 +1,14 @@
+{
+  "/fixture/imu_a": {
+    "status": "pass",
+    "evidence": "Live sensor_msgs/msg/Imu messages declare frame_id fixture_a and raw acceleration (0, 0, -9.81) m/s^2. Live /tf_static declares base_link <- fixture_a with quaternion (x,y,z,w)=(1,0,0,0), a 180-degree X rotation. The bounded gravity checker collected 50 usable messages, applying TF at each message timestamp: mean base acceleration (0,0,+9.81) m/s^2, magnitude 9.81; exit 0. Consistent with the stated level, stationary, gravity-including fixture. This checks acceleration consistency with declared TF, not yaw, independent mounting truth, or overall IMU correctness."
+  },
+  "/fixture/imu_b": {
+    "status": "fail",
+    "evidence": "Live sensor_msgs/msg/Imu messages declare frame_id fixture_b and raw acceleration (0,0,+9.81) m/s^2. Live /tf_static declares base_link <- fixture_b with quaternion (x,y,z,w)=(1,0,0,0), a 180-degree X rotation. The bounded gravity checker collected 50 usable messages, applying TF at each message timestamp: mean base acceleration (0,0,-9.81) m/s^2, magnitude 9.81; exit 1. This confirms an acceleration/declared-TF inconsistency under the supplied stationary, level assumptions; it does not identify whether the acceleration convention, frame label, or declared transform is responsible."
+  },
+  "/fixture/imu_c": {
+    "status": "inconclusive",
+    "evidence": "Live sensor_msgs/msg/Imu messages declare frame_id fixture_c and raw acceleration (0,0,+9.81) m/s^2, with acceleration covariance[0]=0 (unknown covariance, not unavailable acceleration). During the 10-second gravity probe, 305 messages could not be transformed and 0/50 usable base-frame samples were collected; TF reported source frame fixture_c does not exist; checker exit 2. Live /tf_static supplied fixture_a and fixture_b transforms only. The prerequisite base_link <- fixture_c transform was unavailable during this bounded observation. Raw +Z alone cannot establish base +Z consistency, so neither pass nor fail is justified."
+  }
+}

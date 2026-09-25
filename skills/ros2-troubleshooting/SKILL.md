@@ -11,8 +11,9 @@ before reasoning about the symptom.
 ## Bundled checks
 
 `scripts/` sits next to this file — resolve the path from this skill's own
-directory, not the user's CWD: `${CLAUDE_SKILL_DIR}/scripts/` in Claude Code,
-under both plugin and manual installations.
+directory, not the user's CWD. Set `ROS2_SKILL_DIR` to the absolute directory
+containing the loaded `SKILL.md`; this variable is not supplied by the assistant.
+This works with Claude Code and Codex, for project and user installations.
 
 They are plain scripts: invoke with `python3` and a real path. There is no
 package to `ros2 run`, and inventing one is a known failure mode. Exit code
@@ -20,7 +21,8 @@ package to `ros2 run`, and inventing one is a known failure mode. Exit code
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/check_qos_compat.py" --topic /scan
+ROS2_SKILL_DIR="/absolute/path/to/ros2-troubleshooting" # Replace with the loaded skill directory.
+python3 "${ROS2_SKILL_DIR}/scripts/check_qos_compat.py" --topic /scan
 ```
 
 | Script | Answers |

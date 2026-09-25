@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -23,21 +24,25 @@ class Installation(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.project = Path(self.temp.name)
         self.target = self.project/'.claude'
+        self.agent = 'claude'
+        self.protocol_file = 'rules/ros2-verification.md'
 
     def install(self):
         with contextlib.redirect_stdout(io.StringIO()):
-            installer.install(self.target)
+            installer.install(self.target, self.agent)
 
     def test_repeat_install_preserves_instructions_and_unrelated_files(self):
         (self.project/'CLAUDE.md').write_text('My existing project instructions')
+        (self.project/'AGENTS.md').write_text('My existing Codex instructions')
         unrelated = self.target/'skills/other/SKILL.md'
         unrelated.parent.mkdir(parents=True)
         unrelated.write_text('unrelated skill')
         self.install()
         self.install()
         self.assertEqual((self.project/'CLAUDE.md').read_text(), 'My existing project instructions')
+        self.assertEqual((self.project/'AGENTS.md').read_text(), 'My existing Codex instructions')
         self.assertEqual(unrelated.read_text(), 'unrelated skill')
-        self.assertEqual((self.target/'rules/ros2-verification.md').read_bytes(), (ROOT/'CLAUDE.md').read_bytes())
+        self.assertIn((ROOT/'CLAUDE.md').read_bytes().rstrip(), (self.target/self.protocol_file).read_bytes())
         self.assertFalse(list(self.target.rglob('*.pyc')))
         for name in installer.SKILLS:
             self.assertTrue((self.target/'skills'/name/'SKILL.md').is_file())
@@ -50,15 +55,15 @@ class Installation(unittest.TestCase):
 
     def test_update_replaces_only_managed_unchanged_files(self):
         self.install()
-        payload = installer.payload()
-        payload['rules/ros2-verification.md'] += b'\nfixture update\n'
+        payload = installer.payload(self.agent)
+        payload[self.protocol_file] += b'\nfixture update\n'
         with patch.object(installer, 'payload', return_value=payload):
             self.install()
-        self.assertEqual((self.target/'rules/ros2-verification.md').read_bytes(), payload['rules/ros2-verification.md'])
+        self.assertEqual((self.target/self.protocol_file).read_bytes(), payload[self.protocol_file])
 
     def test_edit_conflict_does_not_partially_update(self):
         self.install()
-        path = self.target/'rules/ros2-verification.md'
+        path = self.target/self.protocol_file
         path.write_text('my local change')
         before = (self.target/installer.MANIFEST).read_bytes()
         with self.assertRaisesRegex(ValueError, 'locally edited'):
@@ -72,12 +77,13 @@ class Installation(unittest.TestCase):
         (path/'custom').write_text('mine')
         with self.assertRaisesRegex(ValueError, 'pre-existing'):
             self.install()
-        self.assertFalse((self.target/'rules/ros2-verification.md').exists())
+        self.assertFalse((self.target/self.protocol_file).exists())
         self.assertEqual((path/'custom').read_text(), 'mine')
 
     def test_refuses_symlink_rule_destination(self):
-        rule = self.target/'rules/ros2-verification.md'
-        rule.parent.mkdir(parents=True)
+        self.install()
+        rule = self.target/self.protocol_file
+        rule.unlink()
         outside = self.project/'original'
         outside.write_text('outside')
         rule.symlink_to(outside)
@@ -95,8 +101,8 @@ class Installation(unittest.TestCase):
     def test_write_error_rolls_back_content(self):
         self.install()
         before = {p.relative_to(self.target): p.read_bytes() for p in self.target.rglob('*') if p.is_file()}
-        payload = installer.payload()
-        payload['rules/ros2-verification.md'] += b'changed'
+        payload = installer.payload(self.agent)
+        payload[self.protocol_file] += b'changed'
         original_replace = Path.replace
         calls = 0
         def fail_second(path, destination):
@@ -117,7 +123,7 @@ class Installation(unittest.TestCase):
         (stale/'SKILL.md').write_text('old')
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            installer.install(self.target)
+            installer.install(self.target, self.agent)
         self.assertIn('ros2-moveit', output.getvalue())
         self.assertEqual((stale/'SKILL.md').read_text(), 'old')
 
@@ -132,6 +138,64 @@ class Installation(unittest.TestCase):
                                 env={**os.environ, 'CLAUDE_PLUGIN_ROOT': str(root)}, cwd=self.project)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, (ROOT/'CLAUDE.md').read_text())
+
+
+class CodexInstallation(Installation):
+    def setUp(self):
+        super().setUp()
+        self.target = self.project/'.agents'
+        self.agent = 'codex'
+        self.protocol_file = 'skills/ros2-development/SKILL.md'
+
+    def test_each_skill_delivers_protocol_and_original_resources(self):
+        self.install()
+        protocol = (ROOT/'CLAUDE.md').read_bytes().rstrip()
+        self.assertFalse((self.target/'rules').exists())
+        self.assertFalse((self.project/'AGENTS.md').exists())
+        self.assertFalse((self.project/'.claude').exists())
+        for name in installer.SKILLS:
+            source = ROOT/'skills'/name
+            installed = self.target/'skills'/name
+            original_header, _, original_body = (source/'SKILL.md').read_bytes().partition(b'\n---\n')
+            header, _, body = (installed/'SKILL.md').read_bytes().partition(b'\n---\n')
+            self.assertEqual(header, original_header)
+            self.assertEqual(body, b'\n'+protocol+b'\n\n'+original_body.lstrip(b'\n'))
+            for path in source.rglob('*'):
+                if path.is_file() and path.name != 'SKILL.md' and '__pycache__' not in path.parts and path.suffix != '.pyc':
+                    self.assertEqual((installed/path.relative_to(source)).read_bytes(), path.read_bytes())
+
+    def test_project_cli_can_coexist_with_default_claude_installation(self):
+        for options in ([], ['--agent', 'codex']):
+            result = subprocess.run([sys.executable, str(ROOT/'scripts/install.py'),
+                                     '--project', str(self.project), *options],
+                                    capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue((self.project/'.claude/rules/ros2-verification.md').is_file())
+        self.assertTrue((self.target/self.protocol_file).is_file())
+        for host in ('.claude', '.agents'):
+            self.assertEqual(len(list((self.project/host/'skills').glob('*/SKILL.md'))), 3)
+
+    def test_user_install_uses_agents_under_home_and_preserves_global_instructions(self):
+        codex = self.project/'.codex'
+        codex.mkdir()
+        instructions = codex/'AGENTS.md'
+        instructions.write_text('Global user instructions')
+        config = codex/'config.toml'
+        config.write_text('model = "user-choice"\n')
+        with patch.object(Path, 'home', return_value=self.project), \
+             patch.object(sys, 'argv', ['install.py', '--agent', 'codex', '--user']), \
+             contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(installer.main(), 0)
+        self.assertTrue((self.target/self.protocol_file).is_file())
+        self.assertEqual(instructions.read_text(), 'Global user instructions')
+        self.assertEqual(config.read_text(), 'model = "user-choice"\n')
+
+    def test_manifest_cannot_manage_claude_rules(self):
+        self.target.mkdir()
+        (self.target/installer.MANIFEST).write_text(json.dumps({'rules/ros2-verification.md': 'bad'}))
+        with self.assertRaisesRegex(ValueError, 'invalid managed path'):
+            self.install()
+        self.assertFalse((self.target/'rules').exists())
 
 
 if __name__ == '__main__':

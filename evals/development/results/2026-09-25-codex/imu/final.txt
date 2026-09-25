@@ -1,0 +1,13 @@
+Saved and validated [diagnosis.json]($WORKSPACE/diagnosis.json).
+
+| Topic | Status | Live evidence |
+|---|---|---|
+| `/fixture/imu_a` | pass | 50 TF-transformed samples average `(0, 0, +9.81)` m/s². |
+| `/fixture/imu_b` | fail | 50 TF-transformed samples average `(0, 0, −9.81)` m/s². |
+| `/fixture/imu_c` | inconclusive | Messages arrive, but TF from `fixture_c` to `base_link` is unavailable. |
+
+Ran `check_imu_gravity.py --topic <topic> --base base_link --samples 50 --timeout 10` for each stream and inspected live messages and static TF.
+
+These results establish acceleration consistency with **declared TF** under your stated conditions. They cannot validate yaw or independently establish mounting correctness; B’s failure does not isolate the cause. C’s raw positive Z cannot establish base-frame alignment.
+
+Only probe-local logging/discovery settings were adjusted. Publishers and transforms were unchanged.

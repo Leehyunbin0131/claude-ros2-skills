@@ -27,13 +27,18 @@ validate the source change.
 `colcon test` and `colcon test-result` can both succeed with zero tests. Use a
 fresh result directory so a previous passing report cannot satisfy this run:
 
+Resolve the absolute directory containing this loaded `SKILL.md` and set
+`ROS2_SKILL_DIR` to it. This is a shell variable you set, not one supplied by
+the assistant. Scripts and references are relative to the skill, not the workspace.
+
 ```bash
 # After building, in the workspace root. Replace my_package with actual names.
 # For pytest packages; omit --python-testing pytest for other test frameworks.
+ROS2_SKILL_DIR="/absolute/path/to/ros2-development" # Replace with the loaded skill directory.
 results="$(mktemp -d /tmp/ros2-test-results.XXXXXX)"
 colcon test --packages-select my_package --return-code-on-test-failure \
   --python-testing pytest --test-result-base "$results" &&
-python3 "${CLAUDE_SKILL_DIR}/scripts/check_test_results.py" "$results" \
+python3 "${ROS2_SKILL_DIR}/scripts/check_test_results.py" "$results" \
   --packages my_package --require-test my_package::test_changed_behavior
 ```
 
