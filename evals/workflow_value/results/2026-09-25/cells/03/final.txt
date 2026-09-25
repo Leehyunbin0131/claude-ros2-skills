@@ -1,0 +1,29 @@
+The message now carries `temperature_c` (degrees Celsius) and `valid`, and both `normalize` helpers and both `monitor` nodes output degrees Celsius for a valid reading and NaN for an invalid one. A clean build, the full test suite and a live run of both nodes all passed. Nothing is committed.
+
+## What I changed (sources only)
+
+- **`src/thermal_interfaces/msg/ThermalReading.msg`**: replaced `temperature_millic` with `float64 temperature_c` and added `bool valid`, with comments giving the units and what `valid` means.
+- **`src/thermal_interfaces/CHANGELOG.rst`**: added a "Forthcoming" entry at the top saying this is a breaking change. I left the version numbers alone, as CONTRIBUTING asks.
+- **`thermal_py_monitor/conversion.py`**: `normalize(msg)` returns `math.nan` if `valid` is false, otherwise `msg.temperature_c`. I removed the `/1000` scale.
+- **`thermal_cpp_monitor/src/conversion.cpp`**: the same logic, returning `std::numeric_limits<double>::quiet_NaN()` for an invalid reading. I also updated the comment in `conversion.hpp`.
+- **Both `monitor` nodes**: no code change was needed. They already publish whatever `normalize` returns, and the helper names, executables and topics stay as the README describes.
+- **Tests**: I replaced the old millidegree test in each package with two tests: a valid 21.5 °C reading must give 21.5, and an invalid reading must give NaN (checked with `isnan`).
+
+## How I verified it
+
+1. **Clean-checkout build:** I copied the tracked files to `/tmp/thermal-clean.lbn59b` and ran CONTRIBUTING's `colcon build` in a shell with only `/opt/ros/jazzy` sourced. My own shell had your workspace overlay loaded, so I started from an empty environment to keep the old build from hiding problems. All 3 packages built.
+2. **Tests:** I ran `colcon test --return-code-on-test-failure --python-testing pytest` into a fresh result directory, and it exited 0. A checker then confirmed that all four new tests actually ran and passed (two Python, two C++), not just that the run reported no failures. Results are in `/tmp/ros2-test-results.f6ZnMp`.
+3. **Running the nodes:** from the clean install, `ros2 interface show` listed the new fields. I started both `monitor` executables and published `{temperature_c: 21.5, valid: true}` and then `{temperature_c: 21.5, valid: false}` on `/sensor/thermal`.
+   - `/monitor/py_temperature_c` published `[21.5, nan]`.
+   - `/monitor/cpp_temperature_c` published `[21.5, nan]`.
+
+   I ran this on `ROS_DOMAIN_ID=222` with discovery limited to localhost, and stopped only the processes I started.
+4. **Your `install/`:** I rebuilt the workspace in the same clean shell. The installed message now shows the new fields, and the installed Python helper returns `21.5 nan`. Your terminal's sourced paths are unchanged, so it picks up the new build without re-sourcing. Restart any node that was already running.
+
+## Things to know
+
+- **This is a breaking interface change.** Anything else that publishes or subscribes to `/sensor/thermal` must be rebuilt against the new message and set `valid`. An old binary won't match the new type.
+- **Two pre-existing issues I left alone:**
+  - The build prints a warning about `tests_require` in `setup.py`. It's harmless because CONTRIBUTING's test command passes `--python-testing pytest`.
+  - `thermal_cpp_monitor` installs the `conversion.hpp` header but not the `thermal_cpp_monitor_conversion` library, and doesn't export it. Outside C++ code can include the header but can't link `normalize`. That doesn't affect this change, but it conflicts with the README saying other tools call the helpers directly.
+- The temporary files are still there if you want to inspect them: `/tmp/thermal-clean.lbn59b`, the results directory above, and `/tmp/thermal_probe.py`.

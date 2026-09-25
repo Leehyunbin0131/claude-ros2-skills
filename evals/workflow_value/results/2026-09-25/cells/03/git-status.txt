@@ -1,0 +1,7 @@
+ M src/thermal_cpp_monitor/include/thermal_cpp_monitor/conversion.hpp
+ M src/thermal_cpp_monitor/src/conversion.cpp
+ M src/thermal_cpp_monitor/test/test_conversion.cpp
+ M src/thermal_interfaces/CHANGELOG.rst
+ M src/thermal_interfaces/msg/ThermalReading.msg
+ M src/thermal_py_monitor/test/test_conversion.py
+ M src/thermal_py_monitor/thermal_py_monitor/conversion.py

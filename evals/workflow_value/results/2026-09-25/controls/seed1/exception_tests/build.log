@@ -1,0 +1,19 @@
+Starting >>> thermal_interfaces
+Finished <<< thermal_interfaces [5.57s]
+Starting >>> thermal_cpp_monitor
+Starting >>> thermal_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: thermal_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+---
+Finished <<< thermal_py_monitor [0.72s]
+Finished <<< thermal_cpp_monitor [6.56s]
+
+Summary: 3 packages finished [12.2s]
+  1 package had stderr output: thermal_py_monitor

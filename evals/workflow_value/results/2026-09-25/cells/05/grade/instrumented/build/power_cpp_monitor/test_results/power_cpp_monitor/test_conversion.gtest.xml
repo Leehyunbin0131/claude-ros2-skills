@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="2" failures="1" disabled="0" errors="0" time="0." timestamp="2026-09-25T17:22:05.685" name="AllTests">
+  <testsuite name="Conversion" tests="2" failures="1" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-25T17:22:05.685">
+    <testcase name="ReturnsWattsWhenValid" file="[STUDY_PRIVATE]/value-cells/05/grade/instrumented/src/power_cpp_monitor/test/test_conversion.cpp" line="7" status="run" result="completed" time="0." timestamp="2026-09-25T17:22:05.685" classname="power_cpp_monitor.Conversion">
+      <failure message="[STUDY_PRIVATE]/value-cells/05/grade/instrumented/src/power_cpp_monitor/test/test_conversion.cpp:12&#x0A;Expected equality of these values:&#x0A;  power_cpp_monitor::normalize(msg)&#x0A;    Which is: 0.012500000000000001&#x0A;  12.5&#x0A;" type=""><![CDATA[[STUDY_PRIVATE]/value-cells/05/grade/instrumented/src/power_cpp_monitor/test/test_conversion.cpp:12
+Expected equality of these values:
+  power_cpp_monitor::normalize(msg)
+    Which is: 0.012500000000000001
+  12.5
+]]></failure>
+    </testcase>
+    <testcase name="ReturnsNanWhenInvalid" file="[STUDY_PRIVATE]/value-cells/05/grade/instrumented/src/power_cpp_monitor/test/test_conversion.cpp" line="15" status="run" result="completed" time="0." timestamp="2026-09-25T17:22:05.685" classname="power_cpp_monitor.Conversion" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,15 @@
+Starting >>> power_interfaces
+Finished <<< power_interfaces [5.37s]
+Starting >>> power_cpp_monitor
+Starting >>> power_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: power_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+---
+Finished <<< power_py_monitor [0.72s]
+Finished <<< power_cpp_monitor [6.67s]
+
+Summary: 3 packages finished [12.1s]
+  1 package had stderr output: power_py_monitor

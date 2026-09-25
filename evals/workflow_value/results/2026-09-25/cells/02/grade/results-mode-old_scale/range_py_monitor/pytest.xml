@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.023" timestamp="2026-09-25T17:04:23.494548" hostname="[HOST]"><testcase classname="range_py_monitor.test.test_conversion" name="test_valid_reading_returns_metres" time="0.000"><failure message="assert 0.025 == 2.5&#10; +  where 0.025 = normalize(range_interfaces.msg.RangeReading(distance_m=2.5, valid=True))">test/test_conversion.py:12: in test_valid_reading_returns_metres
+    assert normalize(msg) == 2.5
+E   assert 0.025 == 2.5
+E    +  where 0.025 = normalize(range_interfaces.msg.RangeReading(distance_m=2.5, valid=True))</failure></testcase><testcase classname="range_py_monitor.test.test_conversion" name="test_invalid_reading_returns_nan" time="0.000" /></testsuite></testsuites>

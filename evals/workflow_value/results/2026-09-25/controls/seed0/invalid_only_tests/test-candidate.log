@@ -1,0 +1,10 @@
+Starting >>> range_interfaces
+Finished <<< range_interfaces [0.03s]
+Starting >>> range_cpp_monitor
+Starting >>> range_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+Finished <<< range_cpp_monitor [0.26s]
+Finished <<< range_py_monitor [0.38s]
+
+Summary: 3 packages finished [0.50s]

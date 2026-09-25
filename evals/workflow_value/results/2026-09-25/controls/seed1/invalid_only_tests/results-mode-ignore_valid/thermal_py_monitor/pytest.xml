@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.021" timestamp="2026-09-25T16:48:24.350551" hostname="[HOST]"><testcase classname="thermal_py_monitor.test.test_conversion" name="test_invalid_reading_is_nan" time="0.000"><failure message="assert False&#10; +  where False = &lt;built-in function isnan&gt;(2.5)&#10; +    where &lt;built-in function isnan&gt; = math.isnan&#10; +    and   2.5 = normalize(thermal_interfaces.msg.ThermalReading(temperature_c=2.5, valid=False))&#10; +      where thermal_interfaces.msg.ThermalReading(temperature_c=2.5, valid=False) = _reading(2.5, False)">test/test_conversion.py:16: in test_invalid_reading_is_nan
+    assert math.isnan(normalize(_reading(2.5, False)))
+E   assert False
+E    +  where False = &lt;built-in function isnan&gt;(2.5)
+E    +    where &lt;built-in function isnan&gt; = math.isnan
+E    +    and   2.5 = normalize(thermal_interfaces.msg.ThermalReading(temperature_c=2.5, valid=False))
+E    +      where thermal_interfaces.msg.ThermalReading(temperature_c=2.5, valid=False) = _reading(2.5, False)</failure></testcase></testsuite></testsuites>

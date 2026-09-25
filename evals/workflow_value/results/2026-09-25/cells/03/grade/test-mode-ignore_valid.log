@@ -1,0 +1,17 @@
+Starting >>> thermal_interfaces
+Finished <<< thermal_interfaces [0.03s]
+Starting >>> thermal_cpp_monitor
+Starting >>> thermal_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: thermal_cpp_monitor
+Errors while running CTest
+Output from these tests are in: [STUDY_PRIVATE]/value-cells/03/grade/instrumented/build/thermal_cpp_monitor/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+---
+Finished <<< thermal_cpp_monitor [0.25s]	[ with test failures ]
+Finished <<< thermal_py_monitor [0.38s]	[ with test failures ]
+
+Summary: 3 packages finished [0.50s]
+  1 package had stderr output: thermal_cpp_monitor
+  2 packages had test failures: thermal_cpp_monitor thermal_py_monitor

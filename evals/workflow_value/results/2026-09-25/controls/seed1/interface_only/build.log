@@ -1,0 +1,31 @@
+Starting >>> thermal_interfaces
+Finished <<< thermal_interfaces [5.53s]
+Starting >>> thermal_cpp_monitor
+Starting >>> thermal_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: thermal_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+---
+Finished <<< thermal_py_monitor [0.72s]
+--- stderr: thermal_cpp_monitor
+[STUDY_PRIVATE]/value-controls-v1/seed1/interface_only/grade/candidate/src/thermal_cpp_monitor/src/conversion.cpp: In function ‘double thermal_cpp_monitor::normalize(const thermal_interfaces::msg::ThermalReading&)’:
+[STUDY_PRIVATE]/value-controls-v1/seed1/interface_only/grade/candidate/src/thermal_cpp_monitor/src/conversion.cpp:8:14: error: ‘const thermal_interfaces::msg::ThermalReading’ {aka ‘const struct thermal_interfaces::msg::ThermalReading_<std::allocator<void> >’} has no member named ‘temperature_millic’; did you mean ‘temperature_c’?
+    8 |   return msg.temperature_millic / 1000.0;
+      |              ^~~~~~~~~~~~~~~~~~
+      |              temperature_c
+gmake[2]: *** [CMakeFiles/thermal_cpp_monitor_conversion.dir/build.make:76: CMakeFiles/thermal_cpp_monitor_conversion.dir/src/conversion.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:159: CMakeFiles/thermal_cpp_monitor_conversion.dir/all] Error 2
+gmake[1]: *** Waiting for unfinished jobs....
+gmake: *** [Makefile:146: all] Error 2
+---
+Failed   <<< thermal_cpp_monitor [3.73s, exited with code 2]
+
+Summary: 2 packages finished [9.34s]
+  1 package failed: thermal_cpp_monitor
+  2 packages had stderr output: thermal_cpp_monitor thermal_py_monitor

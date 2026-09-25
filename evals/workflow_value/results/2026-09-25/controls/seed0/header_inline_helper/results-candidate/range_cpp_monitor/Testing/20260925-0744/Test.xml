@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20260925-0744-Experimental"
+	Name="[HOST]"
+	Generator="ctest-3.28.3"
+	CompilerName="/usr/bin/c++"
+	CompilerVersion="13.3.0"
+	OSName="Linux"
+	Hostname="[HOST]"
+	OSRelease="7.0.0-34-generic"
+	OSVersion="#34~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 15:38:29 UTC 2"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="197"
+	ProcessorCacheSize="24576"
+	NumberOfLogicalCPU="16"
+	NumberOfPhysicalCPU="16"
+	TotalVirtualMemory="8191"
+	TotalPhysicalMemory="31539"
+	LogicalProcessorsPerPhysical="1"
+	ProcessorClockFrequency="4800"
+	>
+	<Testing>
+		<StartDateTime>Sep 25 16:44 KST</StartDateTime>
+		<StartTestTime>1790322291</StartTestTime>
+		<TestList>
+			<Test>./test_conversion</Test>
+		</TestList>
+		<Test Status="passed">
+			<Name>test_conversion</Name>
+			<Path>.</Path>
+			<FullName>./test_conversion</FullName>
+			<FullCommandLine>/tmp/ros2-skill-validation-venv/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml" "--package-name" "range_cpp_monitor" "--output-file" "[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/ament_cmake_gtest/test_conversion.txt" "--command" "[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_conversion" "--gtest_output=xml:[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml"</FullCommandLine>
+			<Results>
+				<NamedMeasurement type="numeric/double" name="Execution Time">
+					<Value>0.0773127</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Processors">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Completion Status">
+					<Value>Completed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Command Line">
+					<Value>/tmp/ros2-skill-validation-venv/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml" "--package-name" "range_cpp_monitor" "--output-file" "[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/ament_cmake_gtest/test_conversion.txt" "--command" "[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_conversion" "--gtest_output=xml:[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml"</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Environment">
+					<Value>#CTEST_RESOURCE_GROUP_COUNT=</Value>
+				</NamedMeasurement>
+				<Measurement>
+					<Value>-- run_test.py: invoking following command in '[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor':
+ - [STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_conversion --gtest_output=xml:[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml
+Running main() from /opt/ros/jazzy/src/gtest_vendor/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from Conversion
+[ RUN      ] Conversion.ValidReadingPassesThrough
+[       OK ] Conversion.ValidReadingPassesThrough (0 ms)
+[ RUN      ] Conversion.InvalidReadingIsNaN
+[       OK ] Conversion.InvalidReadingIsNaN (0 ms)
+[----------] 2 tests from Conversion (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 2 tests.
+-- run_test.py: return code 0
+-- run_test.py: inject classname prefix into gtest result file '[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml'
+-- run_test.py: verify result file '[STUDY_PRIVATE]/value-controls-v1/seed0/header_inline_helper/grade/candidate/build/range_cpp_monitor/test_results/range_cpp_monitor/test_conversion.gtest.xml'
+</Value>
+				</Measurement>
+			</Results>
+			<Labels>
+				<Label>gtest</Label>
+			</Labels>
+		</Test>
+		<EndDateTime>Sep 25 16:44 KST</EndDateTime>
+		<EndTestTime>1790322291</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

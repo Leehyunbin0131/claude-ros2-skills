@@ -1,0 +1,134 @@
+diff --git a/src/power_cpp_monitor/include/power_cpp_monitor/conversion.hpp b/src/power_cpp_monitor/include/power_cpp_monitor/conversion.hpp
+index a0994d2..abbf65c 100644
+--- a/src/power_cpp_monitor/include/power_cpp_monitor/conversion.hpp
++++ b/src/power_cpp_monitor/include/power_cpp_monitor/conversion.hpp
+@@ -6,7 +6,7 @@
+ namespace power_cpp_monitor
+ {
+ 
+-/// Public conversion helper: the power in watts.
++/// Public conversion helper: the power in watts, or NaN if the reading is not valid.
+ double normalize(const power_interfaces::msg::PowerReading & msg);
+ 
+ }  // namespace power_cpp_monitor
+diff --git a/src/power_cpp_monitor/src/conversion.cpp b/src/power_cpp_monitor/src/conversion.cpp
+index 8479ac9..85754e4 100644
+--- a/src/power_cpp_monitor/src/conversion.cpp
++++ b/src/power_cpp_monitor/src/conversion.cpp
+@@ -1,11 +1,16 @@
+ #include "power_cpp_monitor/conversion.hpp"
+ 
++#include <limits>
++
+ namespace power_cpp_monitor
+ {
+ 
+ double normalize(const power_interfaces::msg::PowerReading & msg)
+ {
+-  return msg.power_mw / 1000.0;
++  if (!msg.valid) {
++    return std::numeric_limits<double>::quiet_NaN();
++  }
++  return msg.power_w;
+ }
+ 
+ }  // namespace power_cpp_monitor
+diff --git a/src/power_cpp_monitor/test/test_conversion.cpp b/src/power_cpp_monitor/test/test_conversion.cpp
+index c5f9faf..7069903 100644
+--- a/src/power_cpp_monitor/test/test_conversion.cpp
++++ b/src/power_cpp_monitor/test/test_conversion.cpp
+@@ -1,10 +1,21 @@
+ #include <gtest/gtest.h>
+ 
++#include <cmath>
++
+ #include "power_cpp_monitor/conversion.hpp"
+ 
+-TEST(Conversion, ConvertsPower)
++TEST(Conversion, ReturnsWattsWhenValid)
+ {
+   power_interfaces::msg::PowerReading msg;
+-  msg.power_mw = 12500.0;
++  msg.power_w = 12.5;
++  msg.valid = true;
+   EXPECT_DOUBLE_EQ(power_cpp_monitor::normalize(msg), 12.5);
+ }
++
++TEST(Conversion, ReturnsNanWhenInvalid)
++{
++  power_interfaces::msg::PowerReading msg;
++  msg.power_w = 12.5;
++  msg.valid = false;
++  EXPECT_TRUE(std::isnan(power_cpp_monitor::normalize(msg)));
++}
+diff --git a/src/power_interfaces/CHANGELOG.rst b/src/power_interfaces/CHANGELOG.rst
+index 9016f68..f329692 100644
+--- a/src/power_interfaces/CHANGELOG.rst
++++ b/src/power_interfaces/CHANGELOG.rst
+@@ -2,6 +2,11 @@
+ Changelog for package power_interfaces
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
++Forthcoming
++-----------
++* PowerReading: replace ``power_mw`` (milliwatts) with ``power_w`` (watts)
++  and add ``valid``. This is a breaking change for all consumers.
++
+ 0.3.1 (2026-08-14)
+ ------------------
+ * Document the PowerReading units.
+diff --git a/src/power_interfaces/msg/PowerReading.msg b/src/power_interfaces/msg/PowerReading.msg
+index b18b43c..9532f54 100644
+--- a/src/power_interfaces/msg/PowerReading.msg
++++ b/src/power_interfaces/msg/PowerReading.msg
+@@ -1,2 +1,4 @@
+-# Power reported by the sensor, in milliwatts.
+-float64 power_mw
++# Power reported by the sensor, in watts.
++float64 power_w
++# True if power_w holds a valid reading; consumers must ignore power_w otherwise.
++bool valid
+diff --git a/src/power_py_monitor/power_py_monitor/conversion.py b/src/power_py_monitor/power_py_monitor/conversion.py
+index 9a75f2a..8b3cc86 100644
+--- a/src/power_py_monitor/power_py_monitor/conversion.py
++++ b/src/power_py_monitor/power_py_monitor/conversion.py
+@@ -1,8 +1,9 @@
+ """Public conversion helper shared by the node and downstream tools."""
+-
+-SCALE = 1000.0
++import math
+ 
+ 
+ def normalize(msg):
+-    """Return the power in watts."""
+-    return msg.power_mw / SCALE
++    """Return the power in watts, or NaN if the reading is not valid."""
++    if not msg.valid:
++        return math.nan
++    return msg.power_w
+diff --git a/src/power_py_monitor/test/test_conversion.py b/src/power_py_monitor/test/test_conversion.py
+index fcad7f7..69b7d5d 100644
+--- a/src/power_py_monitor/test/test_conversion.py
++++ b/src/power_py_monitor/test/test_conversion.py
+@@ -1,9 +1,19 @@
++import math
++
+ from power_interfaces.msg import PowerReading
+ 
+ from power_py_monitor.conversion import normalize
+ 
+ 
+-def test_converts_milliwatts():
++def test_returns_watts_when_valid():
+     msg = PowerReading()
+-    msg.power_mw = 12500.0
++    msg.power_w = 12.5
++    msg.valid = True
+     assert normalize(msg) == 12.5
++
++
++def test_returns_nan_when_invalid():
++    msg = PowerReading()
++    msg.power_w = 12.5
++    msg.valid = False
++    assert math.isnan(normalize(msg))

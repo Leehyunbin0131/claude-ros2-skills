@@ -49,6 +49,8 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 
 CI 覆盖安装保护、判定逻辑、真实临时 Python/CMake 软件包构建与测试、合成 Jazzy 通信和 TF，以及评估工具。Opus 5.5 High 在插件和手动安装下完成了三个任务；基线也全部完成。每种方式、每个任务仅观察一次，详见[验证记录](evals/development/RESULTS.md)。这些检查证明工具行为，不证明代理能力提升。实体机器人和 MCU 仍需单独验证。
 
+后续[接口迁移对照研究](evals/workflow_value/RESULTS.md)用 Opus 5.5 High 比较了三个含 Python/C++ 消费者的变体。基线与技能组的六个结果均通过独立验证；报告准确性、规则歧义和进程残留另行记录。尚未证实额外的可靠性收益或因果性的提速，技能保持 0.1.2。
+
 历史成绩存在缺失记录和无法复现的重新评分；不将其宣传为当前性能。 [CAPABILITIES.md](evals/CAPABILITIES.md).
 
 ## 更新

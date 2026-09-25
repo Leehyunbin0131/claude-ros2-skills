@@ -1,0 +1,11 @@
+{
+  "excluded_from_primary_study": true,
+  "reason": "User requested High again; owned Low runner interrupted",
+  "model": "claude-opus-5-5",
+  "effort": "low",
+  "model_started_at": 1790323581.9439127,
+  "ended_at": 1790323595.9486978,
+  "leftover_owned_pids": [],
+  "model_result_present": false,
+  "graded": false
+}

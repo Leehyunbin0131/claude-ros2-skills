@@ -1,0 +1,17 @@
+Starting >>> range_interfaces
+Finished <<< range_interfaces [0.38s]
+Starting >>> range_cpp_monitor
+Starting >>> range_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: range_cpp_monitor
+Errors while running CTest
+Output from these tests are in: [STUDY_PRIVATE]/value-cells/02/grade/instrumented/build/range_cpp_monitor/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+---
+Finished <<< range_cpp_monitor [0.27s]	[ with test failures ]
+Finished <<< range_py_monitor [0.40s]	[ with test failures ]
+
+Summary: 3 packages finished [0.86s]
+  1 package had stderr output: range_cpp_monitor
+  2 packages had test failures: range_cpp_monitor range_py_monitor

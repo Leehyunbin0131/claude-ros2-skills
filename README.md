@@ -172,10 +172,18 @@ Codex support is tracked separately in the [Codex compatibility report](evals/CO
 Earlier Claude observations are not Codex performance evidence. The Codex installer
 embeds the protocol on skill activation; it does not install a session-wide hook.
 
+A subsequent frozen [interface-migration study](evals/workflow_value/RESULTS.md)
+ran three matched variants with Python and C++ consumers using Opus 5.5 High.
+All six baseline/pack artifacts passed independent clean-build, runtime and
+regression checks. Verification reports, ambiguous project-rule compliance and
+process-cleanup limitations are assessed separately. Pack sessions were faster
+in these runs, but the small sample and runtime/cache confounds do not establish
+a causal speedup or added reliability. The 0.1.2 skills remain unchanged.
+
 Physical robots, MCU firmware, calibration and full Nav2/MoveIt/Gazebo
-applications remain unverified. Downstream interface consumers, stale-overlay
-remediation and `--packages-up-to` guidance also need independent behavioral
-validation beyond these cases.
+applications remain unverified. The small interface fixture does not establish
+general stale-overlay remediation, old/new DDS type interoperability, external
+C++ library consumption or the benefit of `--packages-up-to` guidance.
 
 ## Evals
 

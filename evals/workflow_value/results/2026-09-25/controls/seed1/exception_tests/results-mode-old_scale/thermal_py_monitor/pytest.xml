@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.022" timestamp="2026-09-25T16:49:28.323756" hostname="[HOST]"><testcase classname="thermal_py_monitor.test.test_conversion" name="test_valid_reading_passes_through" time="0.000"><failure message="KeyError: 0.0025">test/test_conversion.py:16: in test_valid_reading_passes_through
+    assert {2.5: True}[normalize(_reading(2.5, True))]
+E   KeyError: 0.0025</failure></testcase><testcase classname="thermal_py_monitor.test.test_conversion" name="test_invalid_reading_is_nan" time="0.000" /></testsuite></testsuites>

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.036" timestamp="2026-09-25T16:40:27.846027" hostname="[HOST]"><testcase classname="range_py_monitor.test.test_conversion" name="test_converts_centimetres" time="0.000"><failure message="AttributeError: 'RangeReading' object has no attribute 'distance_cm'">test/test_conversion.py:8: in test_converts_centimetres
+    msg.distance_cm = 250.0
+E   AttributeError: 'RangeReading' object has no attribute 'distance_cm'</failure></testcase></testsuite></testsuites>

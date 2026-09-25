@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.015" timestamp="2026-09-25T16:53:15.187216" hostname="[HOST]"><testcase classname="power_py_monitor.test.test_conversion" name="test_valid_reading_passes_through" time="0.000" /></testsuite></testsuites>

@@ -1,0 +1,136 @@
+diff --git a/src/thermal_cpp_monitor/include/thermal_cpp_monitor/conversion.hpp b/src/thermal_cpp_monitor/include/thermal_cpp_monitor/conversion.hpp
+index 510af9f..ea97cd5 100644
+--- a/src/thermal_cpp_monitor/include/thermal_cpp_monitor/conversion.hpp
++++ b/src/thermal_cpp_monitor/include/thermal_cpp_monitor/conversion.hpp
+@@ -6,7 +6,7 @@
+ namespace thermal_cpp_monitor
+ {
+ 
+-/// Public conversion helper: the temperature in degrees Celsius.
++/// Public conversion helper: the temperature in degrees Celsius, or NaN if the reading is invalid.
+ double normalize(const thermal_interfaces::msg::ThermalReading & msg);
+ 
+ }  // namespace thermal_cpp_monitor
+diff --git a/src/thermal_cpp_monitor/src/conversion.cpp b/src/thermal_cpp_monitor/src/conversion.cpp
+index 88cfb69..ac74d63 100644
+--- a/src/thermal_cpp_monitor/src/conversion.cpp
++++ b/src/thermal_cpp_monitor/src/conversion.cpp
+@@ -1,11 +1,16 @@
+ #include "thermal_cpp_monitor/conversion.hpp"
+ 
++#include <limits>
++
+ namespace thermal_cpp_monitor
+ {
+ 
+ double normalize(const thermal_interfaces::msg::ThermalReading & msg)
+ {
+-  return msg.temperature_millic / 1000.0;
++  if (!msg.valid) {
++    return std::numeric_limits<double>::quiet_NaN();
++  }
++  return msg.temperature_c;
+ }
+ 
+ }  // namespace thermal_cpp_monitor
+diff --git a/src/thermal_cpp_monitor/test/test_conversion.cpp b/src/thermal_cpp_monitor/test/test_conversion.cpp
+index a32780e..a9724f6 100644
+--- a/src/thermal_cpp_monitor/test/test_conversion.cpp
++++ b/src/thermal_cpp_monitor/test/test_conversion.cpp
+@@ -1,10 +1,21 @@
+ #include <gtest/gtest.h>
+ 
++#include <cmath>
++
+ #include "thermal_cpp_monitor/conversion.hpp"
+ 
+-TEST(Conversion, ConvertsTemperature)
++TEST(Conversion, ValidReadingReturnsDegreesCelsius)
+ {
+   thermal_interfaces::msg::ThermalReading msg;
+-  msg.temperature_millic = 21500.0;
++  msg.temperature_c = 21.5;
++  msg.valid = true;
+   EXPECT_DOUBLE_EQ(thermal_cpp_monitor::normalize(msg), 21.5);
+ }
++
++TEST(Conversion, InvalidReadingReturnsNaN)
++{
++  thermal_interfaces::msg::ThermalReading msg;
++  msg.temperature_c = 21.5;
++  msg.valid = false;
++  EXPECT_TRUE(std::isnan(thermal_cpp_monitor::normalize(msg)));
++}
+diff --git a/src/thermal_interfaces/CHANGELOG.rst b/src/thermal_interfaces/CHANGELOG.rst
+index 4f39c41..ad9afca 100644
+--- a/src/thermal_interfaces/CHANGELOG.rst
++++ b/src/thermal_interfaces/CHANGELOG.rst
+@@ -2,6 +2,12 @@
+ Changelog for package thermal_interfaces
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
++Forthcoming
++-----------
++* ThermalReading: replace ``temperature_millic`` (milli-degrees Celsius) with
++  ``temperature_c`` (degrees Celsius) and add ``valid``. This is a breaking
++  change: consumers must read ``temperature_c`` and check ``valid``.
++
+ 0.3.1 (2026-08-14)
+ ------------------
+ * Document the ThermalReading units.
+diff --git a/src/thermal_interfaces/msg/ThermalReading.msg b/src/thermal_interfaces/msg/ThermalReading.msg
+index 5cc459e..f10e8a7 100644
+--- a/src/thermal_interfaces/msg/ThermalReading.msg
++++ b/src/thermal_interfaces/msg/ThermalReading.msg
+@@ -1,2 +1,5 @@
+-# Temperature reported by the sensor, in milli-degrees Celsius.
+-float64 temperature_millic
++# Temperature reported by the sensor, in degrees Celsius.
++# Only meaningful when valid is true.
++float64 temperature_c
++# True when the sensor produced a usable reading.
++bool valid
+diff --git a/src/thermal_py_monitor/test/test_conversion.py b/src/thermal_py_monitor/test/test_conversion.py
+index 2425477..ca21263 100644
+--- a/src/thermal_py_monitor/test/test_conversion.py
++++ b/src/thermal_py_monitor/test/test_conversion.py
+@@ -1,9 +1,19 @@
++import math
++
+ from thermal_interfaces.msg import ThermalReading
+ 
+ from thermal_py_monitor.conversion import normalize
+ 
+ 
+-def test_converts_milli_degrees():
++def test_valid_reading_returns_degrees_celsius():
+     msg = ThermalReading()
+-    msg.temperature_millic = 21500.0
++    msg.temperature_c = 21.5
++    msg.valid = True
+     assert normalize(msg) == 21.5
++
++
++def test_invalid_reading_returns_nan():
++    msg = ThermalReading()
++    msg.temperature_c = 21.5
++    msg.valid = False
++    assert math.isnan(normalize(msg))
+diff --git a/src/thermal_py_monitor/thermal_py_monitor/conversion.py b/src/thermal_py_monitor/thermal_py_monitor/conversion.py
+index 57fad91..bf110bf 100644
+--- a/src/thermal_py_monitor/thermal_py_monitor/conversion.py
++++ b/src/thermal_py_monitor/thermal_py_monitor/conversion.py
+@@ -1,8 +1,9 @@
+ """Public conversion helper shared by the node and downstream tools."""
+-
+-SCALE = 1000.0
++import math
+ 
+ 
+ def normalize(msg):
+-    """Return the temperature in degrees Celsius."""
+-    return msg.temperature_millic / SCALE
++    """Return the temperature in degrees Celsius, or NaN if the reading is invalid."""
++    if not msg.valid:
++        return math.nan
++    return msg.temperature_c

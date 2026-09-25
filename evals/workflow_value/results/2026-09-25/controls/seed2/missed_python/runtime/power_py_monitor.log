@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "[STUDY_PRIVATE]/value-controls-v1/seed2/missed_python/grade/candidate/install/power_py_monitor/lib/power_py_monitor/monitor", line 33, in <module>
+    sys.exit(load_entry_point('power-py-monitor==0.3.1', 'console_scripts', 'monitor')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "[STUDY_PRIVATE]/value-controls-v1/seed2/missed_python/grade/candidate/install/power_py_monitor/lib/python3.12/site-packages/power_py_monitor/node.py", line 28, in main
+    rclpy.spin(node)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 247, in spin
+    executor.spin_once()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 918, in _spin_once_impl
+    raise handler.exception()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/task.py", line 286, in _execute_coroutine_step
+    result = coro.send(None)
+             ^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 592, in handler
+    await call_coroutine()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 480, in _execute
+    await await_or_execute(sub.callback, *msg_tuple)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 115, in await_or_execute
+    return callback(*args)
+           ^^^^^^^^^^^^^^^
+  File "[STUDY_PRIVATE]/value-controls-v1/seed2/missed_python/grade/candidate/install/power_py_monitor/lib/python3.12/site-packages/power_py_monitor/node.py", line 21, in _on_reading
+    self._publisher.publish(Float64(data=float(normalize(msg))))
+                                               ^^^^^^^^^^^^^^
+  File "[STUDY_PRIVATE]/value-controls-v1/seed2/missed_python/grade/candidate/install/power_py_monitor/lib/python3.12/site-packages/power_py_monitor/conversion.py", line 8, in normalize
+    return msg.power_mw / SCALE
+           ^^^^^^^^^^^^
+AttributeError: 'PowerReading' object has no attribute 'power_mw'. Did you mean: 'power_w'?
+[ros2run]: Process exited with failure 1

@@ -49,6 +49,8 @@ Exit-Codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE oder ungültige Anfrage. Fehlende Dat
 
 CI prüft Installationsschutz, Entscheidungslogik, echte temporäre Python/CMake-Pakete, synthetische Jazzy-Kommunikation und TF sowie den Evaluator. Opus 5.5 High hat drei Aufgaben sowohl mit Plugin als auch mit manueller Installation abgeschlossen; die Baseline ohne das Paket ebenfalls. Das ist eine Beobachtung pro Methode und Aufgabe, siehe [Abnahmebericht](evals/development/RESULTS.md). Die Tests belegen Werkzeugverhalten, keinen gemessenen Fähigkeitsgewinn des Agenten. Reale Roboter und MCUs benötigen eigene Validierung.
 
+Eine spätere [Vergleichsstudie zur Schnittstellenmigration](evals/workflow_value/RESULTS.md) prüft drei Varianten mit Python/C++-Verbrauchern unter Opus 5.5 High. Alle sechs Ergebnisse mit und ohne Pack bestehen die unabhängige Prüfung. Berichtsgenauigkeit, mehrdeutige Regeln und verbleibende Prozesse werden getrennt dokumentiert. Ein Zuverlässigkeitsgewinn oder kausaler Geschwindigkeitsvorteil ist nicht belegt; die Skills bleiben bei 0.1.2.
+
 Einigen historischen Zahlen fehlen Transkripte oder reproduzierbare Neubewertungen; sie werden nicht als aktuelle Leistung beworben. [CAPABILITIES.md](evals/CAPABILITIES.md).
 
 ## Aktualisierung

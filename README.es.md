@@ -49,6 +49,8 @@ Códigos: 0 PASS, 1 FAIL, 2 INCONCLUSIVE o solicitud inválida. Datos ausentes, 
 
 CI comprueba conservación de instalaciones, lógica, paquetes temporales Python/CMake reales, comunicación y TF sintéticos en Jazzy y el evaluador. Opus 5.5 High completó tres tareas con plugin y con instalación manual; la referencia sin el paquete también completó las tres. Es una observación por método y tarea: consulta el [registro de aceptación](evals/development/RESULTS.md). Las pruebas acreditan herramientas, no una mejora medida del agente. Robots físicos y MCU requieren validación aparte.
 
+Un [estudio posterior de migración de interfaces](evals/workflow_value/RESULTS.md) comparó tres variantes con consumidores Python/C++ usando Opus 5.5 High. Los seis resultados, con y sin el pack, superaron la verificación independiente. La fidelidad de los informes, la ambigüedad de las reglas y los procesos residuales se documentan aparte. No se ha demostrado una mejora de fiabilidad ni una aceleración causal; se mantiene la versión 0.1.2.
+
 Algunas cifras históricas carecen de registros o reevaluaciones reproducibles; no se presentan como rendimiento actual. [CAPABILITIES.md](evals/CAPABILITIES.md).
 
 ## Actualización
