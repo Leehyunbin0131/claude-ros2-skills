@@ -24,7 +24,7 @@
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-새 세션을 시작하면 `SessionStart` 훅이 [30줄 프로토콜](CLAUDE.md)을 전달합니다.
+새 세션을 시작하면 `SessionStart` 훅이 [검증 지침](CLAUDE.md)을 전달합니다.
 플러그인 루트의 `CLAUDE.md`는 그 자체로 자동 로드되지 않습니다.
 기본 사용자 범위 설치는 모든 프로젝트에 적용됩니다. ROS 작업 공간에만 적용하려면 프로젝트 설치를 사용하세요.
 
@@ -41,6 +41,18 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 기존 `CLAUDE.md`와 다른 스킬은 보존합니다. 사용자가 수정한 파일은 덮어쓰지 않으며,
 예전에 설치한 폐기 스킬은 검토할 수 있도록 알려줍니다. 설치 후 Claude Code를 다시 시작하세요.
 ROS, colcon, 로봇 드라이버는 설치하지 않으므로 작업 공간에 필요한 의존성은 별도로 준비해야 합니다.
+이미 Jazzy가 설치된 Ubuntu에서는 검사 도구의 의존성을 다음과 같이 준비할 수 있습니다.
+
+```bash
+sudo apt install python3-colcon-common-extensions python3-pytest \
+  ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs
+source /opt/ros/jazzy/setup.bash
+```
+
+Ubuntu/Jazzy에서 제공하는 테스트 도구나 별도로 검증한 환경을 사용하세요.
+검증 당시 Jazzy의 `launch_testing`은 pytest 9에서 시작 오류가 났으며,
+ROS 환경을 포함한 검사는 Ubuntu의 pytest 7.4.4로 확인했습니다.
+테스트 실행기 오류와 구현의 검증 실패를 구분해야 합니다.
 
 ## 스킬과 사용 예시
 
@@ -67,7 +79,7 @@ Claude는 설명을 보고 필요한 스킬을 선택합니다. 명시적으로 
 
 | 스크립트 | 확인하는 증거 |
 | :--- | :--- |
-| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | 지정한 각 패키지에서 테스트가 실제 실행되고 통과했는지 확인. 스킬 예시처럼 새로운 결과 폴더를 사용 |
+| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | 새 colcon 결과에서 실행·통과한 테스트 확인. 기능 변경은 `--require-test PACKAGE::test_name`으로 필요한 테스트를 지정. 스타일 검사만으로 기능 검증을 대신하지 않음 |
 | `check_qos_compat.py --topic /scan` | 발견된 발행자·구독자 조합의 실제 Jazzy QoS 호환성 |
 | `check_tf_tree.py --sensors laser_frame,imu_link` | TF 연결과 실물에 대조할 장착 각도. 특이한 각도 표시는 참고 사항 |
 | `check_imu_gravity.py --topic /imu/data` | 정지·수평 상태에서 가속도를 `--base base_link`로 변환한 뒤 중력 확인. TF가 없으면 판정 불가, 중력만으로 yaw 확인 불가 |

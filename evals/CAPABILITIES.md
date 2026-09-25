@@ -1,5 +1,7 @@
 # What the baseline agent reaches unaided, and where it stops
 
+The shared protocol was revised again for release acceptance after these historical runs. In particular, the historical 2/10 → 10/10 observation applies to the old text, not the current protocol.
+
 A historical capability report, followed by a reconciliation against the
 committed evidence. **The published tables below are not all reproducible from
 this checkout.** Some transcripts were deleted and some claimed re-grades were

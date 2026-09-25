@@ -69,7 +69,7 @@ validate them separately from delivery mechanics.
 ## Before opening a PR
 
 ```bash
-python3 -m compileall -q skills scripts tests evals/harness
+python3 -m compileall -q skills scripts tests evals/harness evals/development
 for file in evals/harness/*.sh; do bash -n "$file"; done
 python3 skills/ros2-troubleshooting/scripts/test_checks.py
 python3 tests/test_install.py
@@ -81,10 +81,14 @@ python3 evals/harness/test_harness.py
 # Uses temporary packages; no model or robot is called.
 python3 tests/test_colcon_workflow.py
 
-# Requires the Jazzy message packages and tf2_ros.
+# Requires the Jazzy message packages, tf2_ros and ament_cmake_pytest.
 # Synthetic localhost data only; no hardware or motion commands.
 source /opt/ros/jazzy/setup.bash
 python3 tests/test_ros_checks.py
+python3 tests/test_colcon_workflow.py
+python3 tests/test_ament_test_results.py
+python3 evals/development/test_oracles.py
+ROS2_ACCEPTANCE_SEED=1 python3 evals/development/test_oracles.py
 ```
 
 CI runs these checks plus documentation links. Immutable `evals/runs/`

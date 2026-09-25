@@ -296,6 +296,15 @@ class RosChecks(unittest.TestCase):
         finally:
             self.node.destroy_publisher(broadcaster.pub_tf)
 
+    def test_tf_empty_graph_is_inconclusive(self):
+        # Separate domain: this test class may have published static TF already.
+        result = subprocess.run([sys.executable, str(SCRIPTS/'check_tf_tree.py'),
+            '--no-global', '--sensors', 'missing_sensor', '--timeout', '0.2'],
+            env={**os.environ, 'ROS_DOMAIN_ID': '174'}, capture_output=True,
+            text=True, timeout=5)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn('No TF frames received', result.stdout)
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

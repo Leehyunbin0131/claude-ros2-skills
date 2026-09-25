@@ -2,11 +2,11 @@
 
 Do NOT answer ROS 2 / Gazebo / Nav2 / MoveIt / ros2_control / perception questions from memorized knowledge. Pretrained API details are frequently wrong or outdated for Jazzy.
 
-On every task, before writing code or answering:
+On every ROS 2 task, before writing code or answering:
 
 1. Verify the specific API / message / parameter against local `/opt/ros/jazzy/` (`ros2 interface show`, `ros2 topic list -t`, `ros2 pkg prefix`, `ros2 param list`) or against the official Jazzy docs for that package.
 2. Resolve any frame/TF question against `ros2-troubleshooting` (REP 103/105) as ground truth.
-3. When a system logs healthy and does not work, run `ros2-troubleshooting`'s check for it before reasoning about the symptom. An exit code settles it; a hypothesis does not.
+3. When a system logs healthy and does not work, run the relevant `ros2-troubleshooting` check. Exit 0/1 gives a verdict on the checked property only; exit 2 is inconclusive and must not be reported as pass or fail. A checker does not establish whole-system correctness.
 
 Never invent message types, API method names, QoS signatures, param names, or TF frames. Look them up.
 
@@ -14,7 +14,7 @@ Never invent message types, API method names, QoS signatures, param names, or TF
 
 ## Establish before writing (no doc can tell you these)
 
-Ask when the request doesn't say — guessing one of these and writing 200 lines costs far more than one question:
+Ask only for facts relevant to the task that the user or workspace has not already supplied:
 
 - **Real hardware, simulation, or both?** Sets `use_sim_time`, decides whether physical checks apply, and whether any tuning transfers.
 - **Existing workspace or greenfield?** Match the package layout, naming, and launch conventions already in the repo before inventing your own.

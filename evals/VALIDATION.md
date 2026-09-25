@@ -46,8 +46,11 @@ The checked-in tests create and clean their own temporary artifacts:
   also passes without Nav2 installed.
 
 All three skill manifests and the Claude Code plugin manifest validate.
-`CLAUDE.md`, historical `evals/runs/` and all 34 frozen prompt lines remain
-unchanged from the baseline.
+At the initial development-workflow revision, `CLAUDE.md`, historical
+`evals/runs/` and all 34 frozen prompt lines were unchanged from the baseline.
+The subsequent release review deliberately revises the shared protocol to scope
+it to ROS tasks and distinguish inconclusive results; historical records and
+frozen prompts remain unchanged. Historical protocol scores describe the old text.
 
 An offline runner smoke also brought up the real synthetic IMU/TF scenario,
 passed readiness, invoked a stub CLI inside mount isolation and cleaned up its

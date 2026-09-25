@@ -5,11 +5,10 @@ description: "micro-ROS: agent, rclc client API, micro_ros_setup, custom transpo
 
 # micro-ROS Instructions (Ubuntu 24.04 LTS & ROS 2 Jazzy)
 
-> **Unverified.** Every other domain skill in this pack was measured against a
-> baseline agent and deleted when the agent reached the same result without it.
-> This one has no ladder — running it needs an MCU and an agent connection that
-> are not available here — so it survives untested, not because it earned a
-> place. Treat its contents as a starting point to check, not as ground truth.
+> **Experimental; not validated on MCU hardware.** An MCU and a micro-ROS agent
+> connection were unavailable for this release. Treat these source pointers and
+> examples as a starting point to verify against your board, transport and Jazzy
+> versions, not as proof that a firmware configuration works.
 
 ## 1. Architecture
 

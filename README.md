@@ -29,7 +29,7 @@ Choose one installation method.
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Start a new session. A `SessionStart` hook loads the [30-line protocol](CLAUDE.md);
+Start a new session. A `SessionStart` hook loads the [protocol](CLAUDE.md);
 plugin-root `CLAUDE.md` is not automatically loaded on its own. The default user
 scope applies to all projects. Prefer a project install when you want it limited
 to a ROS workspace.
@@ -47,7 +47,19 @@ The installer copies the three skills and `.claude/rules/ros2-verification.md`.
 It preserves existing `CLAUDE.md` files and unrelated skills, refuses to overwrite
 local edits, and reports retired skill directories for manual review. Restart
 Claude Code afterwards. ROS, colcon and robot drivers are not installed by this
-pack; install the dependencies needed by your workspace.
+pack; install the dependencies needed by your workspace. For these checks on an
+existing Jazzy installation:
+
+```bash
+sudo apt install python3-colcon-common-extensions python3-pytest \
+  ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs
+source /opt/ros/jazzy/setup.bash
+```
+
+Prefer Ubuntu/Jazzy's test-tool versions or a separately verified environment.
+The tested Jazzy `launch_testing` plugin fails to start with pytest 9; our
+ROS-sourced checks use Ubuntu's pytest 7.4.4. A runner crash is not evidence that
+the implementation's assertions failed.
 
 ## Skills
 
@@ -79,7 +91,7 @@ files, not ROS packages to invoke with `ros2 run`.
 
 | Script | Evidence it checks |
 | :--- | :--- |
-| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | Every named package has at least one executed, passing test in the supplied colcon reports; use a fresh results directory as shown in the skill |
+| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | Check executed, passing cases in fresh colcon reports; use `--require-test PACKAGE::test_name` for the changed behaviour, since linters alone can otherwise pass |
 | `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | Native Jazzy QoS compatibility for discovered publisher/subscriber pairs |
 | `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF connectivity and mounting RPY for physical comparison; an unusual angle is an advisory |
 | `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Gravity at rest on level ground, transformed into `--base base_link`; missing TF is inconclusive, and gravity cannot establish yaw |
