@@ -37,8 +37,9 @@ trimming justified by this study; no established added correctness/reliability
 benefit; no causal speedup claim**. Before another timing study, predeclare and
 validate process containment against children that clear the environment.
 
-Claude's reconciliation preferred the “equal primary outcomes / no observed
-benefit” category. Codex retains the explicit qualification that fidelity is not
+Claude's initial reconciliation preferred the “equal primary outcomes / no observed
+benefit” category. In the [final reciprocal review](CLAUDE-FINAL-REVIEW.md), Claude
+accepted Codex's correction and withdrew that headline preference. Codex retains the explicit qualification that fidelity is not
 exactly equal: one pack cell has an unsupported cleanup claim. The report leads
 with equal successful **artifacts**, then applies the frozen one-pair/mixed rule
 to remaining differences. This preserves the actual defect rather than erasing
@@ -47,10 +48,15 @@ it as “essentially equal”; both readings lead to the same product action.
 Claude also proposed subtracting the 120/180-second backgrounding thresholds to
 explain hypothetical no-stall speed. Codex does not use that counterfactual:
 those intervals include useful probe execution, so their entire duration is not
-measured idle time. The report describes observed cleanup stalls and bounded
+measured idle time. Claude explicitly accepted this correction and withdrew the
+counterfactual in the final review. The report describes observed cleanup stalls and bounded
 probe practices without an adjusted timing score. Similarly, it describes the
 fixture's absent interface-test infrastructure without asserting a general ROS
-norm about which packages need tests.
+norm about which packages need tests. Claude accepted that correction too.
+The report preserves the initial notes as review history, not endorsed claims.
+The two rule interpretations remain disclosed; there is no remaining substantive
+disagreement about the report or product decision. Final review found no blocker
+to the PR, conditional on its CI passing; merge/tag still require owner action.
 
 ## Evidence details
 

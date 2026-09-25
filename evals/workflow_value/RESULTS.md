@@ -155,6 +155,8 @@ benefit of `--packages-up-to` (the agents built all three packages).
 - [Machine-readable six-cell summary](results/2026-09-25/summary.json)
 - [Delivery, process and publication audit](results/2026-09-25/AUDIT.md)
 - [Independent ratings and reconciliation](results/2026-09-25/ratings/RECONCILIATION.md)
+  and [actual Claude final review](results/2026-09-25/ratings/CLAUDE-FINAL-REVIEW.md)
+- [Local regression check commands and results](results/2026-09-25/local-validation.json)
 - Cell actions, final reports, submitted source and independent grader evidence:
   [01](results/2026-09-25/cells/01), [02](results/2026-09-25/cells/02),
   [03](results/2026-09-25/cells/03), [04](results/2026-09-25/cells/04),

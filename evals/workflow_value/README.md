@@ -56,8 +56,8 @@ new cell/output directory for each. Cells 2, 4, and 6 also require
 `--pair-manifest` pointing to the preceding cell's `manifest.json`; the runner
 refuses a model call if task/source hashes or declared settings differ.
 A per-user lock prevents concurrent model
-cells. The runner prebuilds the original workspace, verifies isolation, loads the
-pack outside the workspace only for treatment, and retains the final project,
+cells. The runner prebuilds the original workspace, verifies the mount-mask/private-`/tmp` preflight (not process
+isolation), loads the pack outside the workspace only for treatment, and retains the final project,
 paired tool actions, delivery evidence and independent grader output. The
 original overlay is inherited by model tool shells; the grader starts from a
 clean underlay and source copy. An artifact pass alone does not establish valid
