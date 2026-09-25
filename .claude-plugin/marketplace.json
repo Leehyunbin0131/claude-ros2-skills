@@ -8,7 +8,7 @@
     {
       "name": "claude-ros2-skills",
       "source": "./",
-      "description": "ROS 2 Jazzy verification protocol plus runnable robot checks: QoS compatibility, TF tree, IMU mount, odometry direction. Measured against a baseline agent — content it already produces unaided was deleted.",
+      "description": "ROS 2 Jazzy package development, test-result verification, QoS/TF/IMU/odometry diagnostics, and micro-ROS guidance with explicit validation limits.",
       "license": "Apache-2.0",
       "category": "robotics",
       "keywords": ["ros2", "jazzy", "gazebo", "nav2", "moveit", "robotics"],

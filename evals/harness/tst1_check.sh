@@ -47,6 +47,9 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 # --- clean rebuild -----------------------------------------------------------
 rm -rf "$WS/build" "$WS/install" "$WS/log"

@@ -53,13 +53,16 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 # Anchored to `python3 <path>` so the pattern cannot match a wrapper shell whose
 # command line merely contains the path -- the same mistake that had
 # `pkill -f "gz sim"` killing its own parent in the gazebo rounds.
 kill_all() {
-  pkill -9 -f '^python3 .*slow_trigger_server\.py' 2>/dev/null || true
-  pkill -9 -f '^python3 .*/node\.py' 2>/dev/null || true
+  kill_owned '^python3 .*slow_trigger_server\.py'
+  kill_owned '^python3 .*/node\.py'
 }
 kill_all
 sleep 1

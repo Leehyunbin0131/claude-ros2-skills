@@ -1,23 +1,30 @@
 # What the baseline agent reaches unaided, and where it stops
 
-The list this project exists to produce. One row per tested mechanism, filled in
-only from a real-outcome check that actually ran — never from an impression of a
-transcript.
+A historical capability report, followed by a reconciliation against the
+committed evidence. **The published tables below are not all reproducible from
+this checkout.** Some transcripts were deleted and some claimed re-grades were
+never committed. They do not establish that every mechanism passed, that every
+failure was behavioural, or that the current release improves agent performance.
+Use the [reconciliation](#reconciliation-published-numbers-vs-the-committed-record)
+before citing any score.
 
-**How to read it.** Every number is *checks passing / checks run*, `baseline`
+**How to read it.** The historical rung scores are *checks passing / checks run*, `baseline`
 only: no skills, no `CLAUDE.md`, model knowledge + web search + a live ROS 2
 Jazzy install. Ten cells per rung. **A rung fails at ≤ 7/10 cells.** Method and
 anti-manufacturing rules: [`LADDER.md`](./LADDER.md).
 
+Several rung numbers below include re-grades that are **not in the committed
+record**; [Reconciliation](#reconciliation-published-numbers-vs-the-committed-record)
+sets each one beside what `harness/analyze_v2.py` reproduces from `runs/`.
+
 ---
 
-## The short answer
+## Historical interpretation
 
-Across **eight ladders and 24 rungs — every scenario this project set out to
-test — the model reached every mechanism it was asked for** except one recurring
-trap, and **not a single failure was closed by supplying information**.
-
-Four failure modes were found. All four are behavioural:
+The original report interpreted eight ladders and 24 rungs as favouring
+execution and verification over additional domain prose. That is a historical
+interpretation of these tasks and models, not a general result about ROS 2
+agents. Four reported observations motivated the current verification tools:
 
 | What the model does not do unaided | Baseline | What closes it | After |
 | :--- | ---: | :--- | ---: |
@@ -26,18 +33,18 @@ Four failure modes were found. All four are behavioural:
 | Run the QoS code it writes before shipping it | **5/10** | `CLAUDE.md`'s "Done means it ran" | **9/10** (q=0.141, underpowered) |
 | Run the Nav2 config it writes before shipping it | **0/10** | a task that requires reaching `active` | **30/30** |
 
-The last row is the cleanest evidence here, and it is set out in full below:
-same model, same wrong belief, **zero difference in information**, 0/10 versus
-30/30.
-
-**No `SKILL.md` prose has ever moved a check.** The two things that did are a
-paragraph telling the agent to verify, and an executable file.
+The first three comparisons cannot be re-run from committed transcripts. The
+last row compares different prompts and tasks, and its committed `dev2` verdicts
+are 27/27 across nine gradable cells, with one missing verdict. It suggests a
+useful execution workflow but is not a controlled estimate of a skill's effect.
+These observations motivated keeping the protocol and executable checks; they
+do not prove that domain prose can never help.
 
 ---
 
-## Reached unaided
+## Historically reported rung results
 
-Every mechanism below was produced by a baseline cell with no skill installed.
+Scores in this section are preserved as originally published. See the reconciliation for available evidence and missing re-grades.
 
 ### Packaging and build — `ros2-package`, ladder exhausted, **skill deleted**
 
@@ -103,7 +110,7 @@ Every mechanism below was produced by a baseline cell with no skill installed.
 | L2 | + `CameraInfo` intrinsics, 3D→pixel projection, `vision_msgs` output | **38/40** |
 | L3 | + 16UC1 depth → `PointCloud2` in metres, invalid pixels dropped | **32/40** |
 
-The four missing cells are all the same QoS trap, below.
+The original analysis attributed four missing cells to the QoS trap below; the committed verdicts contain additional failures and a probe race.
 
 ### `ros2-dev`
 
@@ -168,15 +175,15 @@ boolean on an otherwise working file reproduces the failure exactly
 (`unconfigured [1]`, identical error). A circular footprint declared through
 `robot_radius` provides no polygon, and the cost critic requires one.
 
-`dev2` adds one thing: the stack must reach `active`. **Every dev2 cell hit the
-identical error** — it appears 1 to 6 times per transcript, with
-`consider_footprint` discussed 8 to 12 times — diagnosed it, set the flag to
-`false`, and passed.
+`dev2` instead requires bringing the stack to `active`. The original analysis
+reported that the cells encountered and corrected this error. The committed
+record has nine passing verdicts and one missing verdict; it cannot substantiate
+a ten-cell perfect score.
 
-This was briefly recorded as the project's first domain-knowledge gap. **That
-was wrong**, and `dev2` is the control that settles it: given a reason to
-execute, the model finds and fixes this in one sitting. The information content
-of the two prompts is the same; only the demand to run differs.
+This motivates checking lifecycle transitions during development. Because the
+prompts request different deliverables, the comparison does not isolate the
+causal effect of an instruction or rule, and does not settle whether other
+domain knowledge would help.
 
 ---
 
@@ -222,8 +229,8 @@ cleared them. Recorded because each fails without an error.
 
 ## What this measures about the graders, not the model
 
-Ten grader defects surfaced during these rounds. **Every one was mine.** Cells
-scored as total failures came back perfect when re-graded, and four of the
+Ten grader defects surfaced during these rounds. **Every one was mine.** The original report says cells
+scored as total failures passed after re-grading, and four of the
 defects punished *good* engineering: isolating a DDS domain, guarding a bringup
 against double-launch, cleaning up a temp directory, parameterising a value.
 
@@ -236,9 +243,50 @@ The check was removed and the rung is 20/20.
 They are listed in [`LADDER.md`](./LADDER.md). The reason they matter here: had
 they been counted rather than opened, this pack would have gained paragraphs
 about `launch_testing`, DDS domains, QoS probes, bag persistence, bringup
-idempotence and Nav2 server topology — content for gaps the model does not have.
+idempotence and Nav2 server topology — content whose benefit would still need a valid measurement.
 Opening every failing cell before counting it is the only reason that did not
 happen.
+
+---
+
+## Reconciliation: published numbers vs the committed record
+
+The rung numbers above were read after failing cells had been opened and, where
+the grader was at fault, re-graded — mostly from workspaces preserved in `/tmp`
+at the time. Those re-graded verdicts were never committed, and the workspaces
+are gone. So `python3 harness/analyze_v2.py runs/<round>` on the committed
+verdict files does not reproduce every number above. Both are recorded here;
+neither is edited to match the other. `harness/test_harness.py` pins the
+committed column.
+
+| Rung | Published above | Committed verdicts (`analyze_v2.py`) | What the repository records about the difference |
+| :--- | ---: | :--- | :--- |
+| `ctl2` | 20/20 | **12/16** — r5, r6 fail both checks; r7, r8 left no verdict (ungradable) | grader defects #2 and #4 in [`LADDER.md`](./LADDER.md#the-l2-rounds-real-finding-six-grader-defects-one-root-cause); the post-fix re-grade is not committed. r7's own transcript reports parallel cells colliding on one DDS domain. |
+| `tst2` | 40/40 | 39/40 — `tst2_launch_testing` 9/10 (r9) | re-grade argued in [`LADDER.md`](./LADDER.md#a-grader-defect-found-by-reading-a-failing-cell-instead-of-counting-it) (5 of 10 workspaces re-verified) |
+| `tst3` | 40/40 | **33/40 — `tst3_bag_written` 3/10** (r1–r7: `n_bags 0`) | only the general note above ("cleaning up a temp directory" punished good engineering); **no per-cell record**. On the committed record alone this rung fails the ≤ 7/10 threshold. |
+| `mvt2` | 30/30 | **23/30 — `mvt2_move_group_up` 7/10** (r4, r7, r9); plan/points 8/10 (r7, r9) | grader defects #5 and #6 in `LADDER.md`; #6's fix is recorded there as "queued, not yet applied", and the re-grade is not committed. At the threshold on the committed record. |
+| `per2` | 38/40 | 34/40 — r8 fails all four; r10 fails `detection_published`/`_correct` | grader defect #3 (probe discovery race). The first attempt is kept, set aside, as `per2-SUPERSEDED-grader-race/`; the r10 re-grade is not committed. |
+| `per3` | 32/40 | **28/40 — 7/10 on every check** (r3, r5: the QoS trap; r4) | r4 logged 20 correct `CLOUD 15360` lines and exited 0, yet the probe saw no cloud (`n_clouds_seen 0`) — the per2 probe race again. Published counts r4 as a pass; that re-grade is not committed. At the threshold on the committed record. |
+| `dev2` | 30/30 | 27/27 — r4 left no verdict (ungradable) | not recorded |
+| `mvt1` | 30/30 | 30/30 | matches once `mvt1-DISCARDED-mid-round-edit/` is excluded; the analyzer used to pool it and print 12/12 |
+| all other committed rungs | — | match | `ctl1`, `ctl3`, `tst1`, `mvt3`, `per1`, `cor1`–`cor3`, `dev1`, `dev3` |
+
+By domain, the committed record gives `ros2_control` 82/86, Testing 102/110,
+MoveIt 93/100 and Perception 98/120, against 90/90, 110/110, 100/100 and 106/120
+above.
+
+**Not in the repository at all:** the `ros2-package` (`t5`–`t7`), `gazebo-sim`
+(`g1`–`g3`), executor (`tr1`–`tr3`) and `qos1` rounds, and the rounds behind
+the first three rows of *Historical interpretation* (2/10 → 10/10, 0/10 → 10/10,
+5/10 → 9/10). Their transcripts were deleted; the numbers are the surviving
+record, not something this repository can reproduce.
+
+This section re-decides nothing. It does not restore a deleted skill or change a
+threshold, and it makes no new measurement. It records that for `tst3`, `mvt2`
+and `per3` the committed record alone sits at or below the rung-failure
+threshold, and that the published passes rest on re-grades whose evidence is no
+longer here. Whether those rungs should be re-run is a separate decision that
+would cost a paid round.
 
 ---
 
@@ -247,23 +295,25 @@ happen.
 Six skills were deleted in full on 2026-08-01 — `ros2-core`, `ros2-dev`,
 `ros2-control`, `ros2-moveit`, `ros2-perception`, `ros2-testing` — joining
 `ros2-package` and `gazebo-sim`, which had gone the same way earlier. Each had
-an exhausted ladder and no prose that ever moved a check.
+a ladder the original report considered exhausted. Several of those conclusions
+now require new evidence, as the reconciliation above explains.
 
-What survives is exactly what measured:
+The current contents mix historically reported effects with retained, unverified guidance:
 
 | Kept | Why |
 | :--- | :--- |
-| `CLAUDE.md`, 28 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
+| `ros2-development` (new after these historical rounds) | package development workflow and a colcon test-evidence check, validated on real temporary Python/CMake packages; no controlled agent performance comparison yet |
+| `CLAUDE.md`, 30 lines | the verify paragraph (2/10 → 10/10) and "done means it ran" |
 | `ros2-troubleshooting` scripts | 0/10 → 10/10 on producing a checked verdict |
 | `references/frames.md` | physical mount vs REP 103 — no ladder can test it without hardware, and no doc contains the robot's real geometry |
 | `references/calibration.md` | same category, and nearly lost: `diff_drive_controller` wheel calibration was deleted with `ros2-control`, but `ctl1`–`ctl3` never tested it. Restored to the physical-verification skill that owns the script it cites. |
 | `references/runtime.md`, QoS only | the one trap that recurred in four rounds; the other four sections were cut against their ladders |
 | `ros2-microros` | no ladder is possible here; kept and **labelled unverified** in its own body |
 
-The deletions are not a claim that the domains are unimportant. They are a claim
-that a file which tells the agent what it already does is a cost with no
-benefit — and that on this evidence, the way to improve a ROS 2 agent is to make
-it run what it wrote, not to tell it more.
+The deletions retain the project's narrow scope. They do not prove that these
+domains need no guidance. New content should address an observed development
+failure and demonstrate a benefit with a valid comparison; execution and
+verification remain the current product's focus.
 
 **One thing was nearly lost to that reasoning, and it is worth recording as a
 warning about it.** `ros2-control` carried a `diff_drive_controller` calibration

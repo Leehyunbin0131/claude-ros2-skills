@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Reduce a `claude -p --output-format stream-json` log to a gradable summary.
 
-Emits the final assistant message plus the sequence of tool calls, so the
-"verified before writing" and "verification tools used" columns in RESULTS.md
-are read off the transcript instead of recalled.
+Emits the final assistant message plus the sequence of tool calls, so what a
+cell verified, and with which tools, is read off the transcript instead of
+recalled. Diagnosis only: nothing here is a grading input.
 
     python3 summarize_run.py run.jsonl > run_final.md
 """
@@ -23,6 +23,8 @@ def main():
             try:
                 event = json.loads(line)
             except json.JSONDecodeError:
+                continue
+            if not isinstance(event, dict):
                 continue
 
             if event.get("type") == "assistant":

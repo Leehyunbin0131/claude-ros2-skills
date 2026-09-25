@@ -11,23 +11,23 @@ before reasoning about the symptom.
 ## Bundled checks
 
 `scripts/` sits next to this file — resolve the path from this skill's own
-directory, not the user's CWD. Under a plugin install that is
-`${CLAUDE_PLUGIN_ROOT}/skills/ros2-troubleshooting/scripts/`.
+directory, not the user's CWD: `${CLAUDE_SKILL_DIR}/scripts/` in Claude Code,
+under both plugin and manual installations.
 
 They are plain scripts: invoke with `python3` and a real path. There is no
 package to `ros2 run`, and inventing one is a known failure mode. Exit code
-**0 = PASS, 1 = FAIL, 2 = no data**. Tell the user the command you ran.
+**0 = PASS, 1 = FAIL, 2 = inconclusive/invalid request**. Tell the user the command you ran.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-python3 <this-skill>/scripts/check_qos_compat.py --topic /scan
+python3 "${CLAUDE_SKILL_DIR}/scripts/check_qos_compat.py" --topic /scan
 ```
 
 | Script | Answers |
 | :--- | :--- |
 | `check_qos_compat.py --topic /scan` | Why a healthy publisher delivers nothing to this subscriber |
-| `check_tf_tree.py --sensors laser_frame,imu_link` | Does `map->odom->base_link` resolve, and does each sensor's mount RPY match the hardware |
-| `check_imu_gravity.py [--topic /imu/data]` | Is the IMU mounted the way the URDF claims — gravity ~+9.81 on +Z at rest |
+| `check_tf_tree.py --sensors laser_frame,imu_link` | Does `map->odom->base_link` resolve? Prints sensor mount RPY for comparison with the hardware |
+| `check_imu_gravity.py [--topic /imu/data]` | At rest on level ground, is gravity ~+9.81 on +Z after TF into `--base base_link`? Yaw is not observable. Missing TF is inconclusive; `--assume-aligned` skips TF |
 | `check_odom_direction.py [--topic /odom]` | Does odometry agree with the direction the robot physically moved |
 
 `check_tf_tree.py` prints `VERIFY PHYSICALLY` for any ~180° roll or yaw **even

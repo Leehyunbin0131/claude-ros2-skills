@@ -9,16 +9,45 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Compile scripts
-        run: python3 -m py_compile skills/ros2-troubleshooting/scripts/*.py
+        run: |
+          python3 -m compileall -q skills scripts tests evals/harness
+          for file in evals/harness/*.sh; do bash -n "$file"; done
       - name: Unit tests (pure logic, no ROS required)
         run: python3 skills/ros2-troubleshooting/scripts/test_checks.py
+      - name: Installation and protocol transport
+        run: python3 tests/test_install.py
+      - name: Development evidence gate
+        run: python3 tests/test_development.py
+      - name: Install isolated package-workflow test tools
+        run: python3 -m pip install colcon-common-extensions==0.3.0
+      - name: Real Python and CMake package workflow
+        run: python3 tests/test_colcon_workflow.py
+      - name: Evaluation harness regressions
+        run: |
+          python3 evals/harness/grade_v2.py --selftest
+          python3 evals/harness/test_harness.py
+
+  ros:
+    runs-on: ubuntu-24.04
+    container: ros:jazzy-ros-base
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install message and TF dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ros-jazzy-tf2-ros ros-jazzy-sensor-msgs ros-jazzy-nav-msgs
+      - name: Synthetic ROS integration checks (no hardware)
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          python3 tests/test_ros_checks.py
 
   links:
     runs-on: ubuntu-latest

@@ -56,6 +56,9 @@ set -u
 # cannot make `ros2 run` report "No executable found" -- but it should not have
 # been the exception.
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 # --- 1. clean rebuild --------------------------------------------------------
 # From scratch: a build that only succeeds incrementally is not a build.

@@ -13,7 +13,7 @@ description: "micro-ROS: agent, rclc client API, micro_ros_setup, custom transpo
 
 ## 1. Architecture
 
-micro-ROS connects constrained MCUs (STM32, ESP32, FreeRTOS, Zephyr) to the ROS 2 DDS graph via `micro_ros_agent` + the `rclc` client library over Micro XRCE-DDS. Static memory pools (`rmw_microxrcedds`) give zero steady-state heap allocation when `RMW_UXRCE_ALLOW_DYNAMIC_ALLOCATIONS=OFF`.
+micro-ROS connects constrained MCUs to the ROS 2 DDS graph via `micro_ros_agent` and `rclc` over Micro XRCE-DDS. `RMW_UXRCE_ALLOW_DYNAMIC_ALLOCATIONS=OFF` prevents dynamic growth of the RMW's static pools; it does not guarantee zero heap allocation throughout the firmware. See the [Jazzy RMW configuration](https://github.com/micro-ROS/rmw_microxrcedds/blob/jazzy/README.md) for the flag's scope.
 
 ## 2. Documentation Entry Points
 

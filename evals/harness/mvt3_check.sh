@@ -51,12 +51,15 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_all() {
-  pkill -9 -f 'move_group' 2>/dev/null || true
-  pkill -9 -f 'robot_state_publisher' 2>/dev/null || true
-  pkill -9 -f 'joint_state_publisher' 2>/dev/null || true
-  pkill -9 -f 'static_transform_publisher' 2>/dev/null || true
+  kill_owned 'move_group'
+  kill_owned 'robot_state_publisher'
+  kill_owned 'joint_state_publisher'
+  kill_owned 'static_transform_publisher'
   if [ -n "${BDIR:-}" ]; then
     local skip=" $$ " p=$PPID
     while [ -n "$p" ] && [ "$p" -gt 1 ] 2>/dev/null; do
@@ -84,15 +87,7 @@ BRING_LOG="$(mktemp)"
 ( cd "$BDIR" && timeout 180 bash ./bringup.sh ) >"$BRING_LOG" 2>&1
 BRING_RC=$?
 
-adopt_domain_from() {
-  local pid d
-  pid="$(pgrep -f "$1" | head -1)"
-  [ -n "$pid" ] || return 0
-  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
-       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
-  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
-  return 0
-}
+# adopt_domain_from is in procscope.sh: it reads only this run's processes.
 adopt_domain_from 'move_group'
 
 MG_UP=false

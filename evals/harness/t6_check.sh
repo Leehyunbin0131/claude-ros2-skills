@@ -49,6 +49,9 @@ set -u
 # A unique domain per check run: the composed-launch check reads `ros2 node
 # list`, and anything else on the default domain would show up in it.
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 rm -rf "$WS/build" "$WS/install" "$WS/log"
 BUILD_LOG="$(mktemp)"

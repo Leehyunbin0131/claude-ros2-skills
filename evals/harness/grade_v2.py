@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Grade a v2 task cell from its stream-json transcript.
 
-Nothing here is graded by reading. Every rule is mechanical and anchored per
-TASKS.md: a real outcome, a fact in the install, or an ordered fact about the
-transcript. Rules that need a live system are marked and skipped (returning
-None = ungradable, never False) when that system is not up.
+Nothing here is graded by reading. Every rule is mechanical: a real outcome, a
+fact in the install, or an ordered fact about the transcript. Rules that need a
+live system, or an install fact this host does not have, return None
+(ungradable), never False.
 
 Usage:
     python3 grade_v2.py <task-id> <result.jsonl>       # -> JSON on stdout
     python3 grade_v2.py --selftest                     # exercise every rule
+
+Tasks in SIDECAR_TASKS are graded from the `<stem>_check.json` their checker
+wrote next to the transcript at cell time; the CLI and analyze_v2.py both
+dispatch through grade_cell(), so they cannot disagree about which.
 
 Ungradable vs failed is the distinction this project has had to relearn most
 often: a cell that never produced an answer is not a wrong answer, and scoring
@@ -49,6 +53,14 @@ class Cell:
         self.results: dict[str, tuple[str, bool]] = {}
         self.assistant_text: list[str] = []
         self.final = ""
+        # The closing `result` event. A transcript without one was cut off --
+        # killed mid-tool-call, or the harness died -- and has no answer to
+        # grade, whatever partial text it carries.
+        self.result_seen = False
+        self.is_error = False
+        self.result_subtype = ""
+        # The opening `init` event: model, and which skills/plugins loaded.
+        self.init: dict = {}
         self._load()
 
     def _load(self) -> None:
@@ -65,6 +77,8 @@ class Cell:
             try:
                 d = json.loads(line)
             except json.JSONDecodeError:
+                continue
+            if not isinstance(d, dict):
                 continue
             if d.get("type") == "assistant":
                 for b in d.get("message", {}).get("content", []):
@@ -89,11 +103,35 @@ class Cell:
                                 str(body), bool(b.get("is_error")))
             elif d.get("type") == "result":
                 self.final = d.get("result", "") or ""
+                self.result_seen = True
+                self.is_error = bool(d.get("is_error"))
+                self.result_subtype = str(d.get("subtype") or "")
+            elif d.get("type") == "system" and d.get("subtype") == "init":
+                self.init = d
 
     # -- helpers -----------------------------------------------------------
     @property
     def answer(self) -> str:
         return self.final or "\n".join(self.assistant_text)
+
+    @property
+    def model(self) -> str:
+        return str(self.init.get("model") or "")
+
+    def pack_components_loaded(self) -> list[str]:
+        """Skills or plugins from THIS pack that the session started with.
+
+        Read off the init event, so it is evidence rather than inference. A
+        `baseline` cell that lists one was contaminated by the host (a user-level
+        install, an enabled plugin) and measures nothing. CLAUDE.md is not
+        listed in the init event, so this cannot see it -- isolate_cell.sh hides
+        those instead.
+        """
+        names = [str(s) for s in self.init.get("skills", []) or []]
+        for p in self.init.get("plugins", []) or []:
+            names.append(str(p.get("name", p)) if isinstance(p, dict) else str(p))
+        return [n for n in names
+                if n.split(":")[-1].startswith("ros2-") or "claude-ros2-skills" in n]
 
     # Strings that mean the harness failed, not that the model answered. A
     # round was scored 10/10 on a negative check because every cell returned
@@ -101,10 +139,20 @@ class Cell:
     # wrong parameter appeared in it. An error message is not an answer.
     HARNESS_FAILURE = re.compile(
         r"(not logged in|please run /login|invalid api key|authentication"
-        r"|rate limit|no stdin data received|usage limit|credit balance)", re.I)
+        r"|rate limit|session limit|no stdin data received|usage limit|credit balance)", re.I)
 
     def gradable(self) -> bool:
-        """False when the cell produced no answer, or produced a harness error."""
+        """False when the cell produced no answer, or produced a harness error.
+
+        Three ways a cell never reached a real answer, all ungradable:
+        no closing `result` event (cut off), `is_error` / a non-success
+        subtype (the CLI says so itself), or a short answer that is nothing
+        but a harness failure message.
+        """
+        if not self.result_seen or self.is_error:
+            return False
+        if self.result_subtype and self.result_subtype != "success":
+            return False
         a = self.answer.strip()
         if not a:
             return False
@@ -141,6 +189,16 @@ class Cell:
 # install-anchored facts, read once
 # --------------------------------------------------------------------------
 _PLUGINS: set[str] | None = None
+
+
+def nav2_installed() -> bool:
+    """Whether the install can answer "is this a real Nav2 plugin string?".
+
+    Without Nav2 the plugin index is empty, and every string -- correct ones
+    included -- would grade False. That is an absent install fact, so rules
+    that need it return None instead.
+    """
+    return (JAZZY / "share/navigation2/package.xml").is_file()
 
 
 def registered_plugins() -> set[str]:
@@ -203,8 +261,9 @@ def prescribes(text: str, token: str) -> bool:
 REPO_PATH = str(Path(__file__).resolve().parents[2])
 
 
-# Strings that appear only inside repository *content*, never in text a cell can
-# produce on its own. The repo PATH alone is not evidence of a leak: `ps aux` and
+# Strings useful for flagging possible repository content for review. They are
+# not proof: a treatment receives CLAUDE.md intentionally, and generic shell
+# commands can occur independently. The repo PATH alone is not evidence: `ps aux` and
 # /proc/<pid>/cmdline show the harness's own invocation, which carries the path,
 # so a cell that merely runs `ps` matches without ever reading a file. A round
 # was once reported as "5 of 10 cells reached the repository" on exactly that
@@ -225,8 +284,7 @@ CONTENT_MARKERS = (
 def leaked(c: Cell) -> list[str]:
     """Tool calls that named this repository's path.
 
-    An attempt, not a breach -- see CONTENT_MARKERS. `leak_confirmed` is the one
-    that means the cell actually saw the answer key.
+    An attempt, not a breach -- see CONTENT_MARKERS.
     """
     hits = []
     for name, inp in c.tools:
@@ -237,7 +295,11 @@ def leaked(c: Cell) -> list[str]:
 
 
 def leak_confirmed(c: Cell) -> list[str]:
-    """Tool *results* that carried repository content back into the cell."""
+    """Tool results with known content markers; review provenance before use.
+
+    The historical function name is retained for callers, not a claim that
+    these substring matches prove access to an answer key.
+    """
     hits = []
     for _tid, (text, _err) in c.results.items():
         if not text:
@@ -362,7 +424,7 @@ def t3(c: Cell) -> dict:
             r"differential|ackermann|omni|holonomic|drive type", all_text, re.I)),
         "t3_read_shipped_defaults": ("nav2_params.yaml" in blob
                                      and (write_i is None or (read_i is not None and read_i < write_i))),
-        "t3_plugins_real": (None if not strings
+        "t3_plugins_real": (None if not strings or not nav2_installed()
                             else strings <= registered_plugins()),
     }
 
@@ -394,11 +456,17 @@ def t4(c: Cell, workdir: str | None = None) -> dict:
 
 
 def _external_checks(c: Cell, check, keys: list[str], found_key: str,
-                     first_build_key: str) -> dict:
+                     first_build_key: str | None = None) -> dict:
     """Shared shape for ladder rungs: real outcomes from a JSON verdict file,
-    plus one transcript fact about the first `colcon build`."""
+    plus (t5-t7 only) one transcript fact about the first `colcon build`.
+
+    No verdict file, an unparseable one, or one without `found_key` means the
+    checker never finished: ungradable, not failed. `found_key: false` is a
+    real failure -- the cell left nothing to run.
+    """
     out: dict[str, bool | None] = {k: None for k in keys}
-    out[first_build_key] = None
+    if first_build_key:
+        out[first_build_key] = None
     if not c.gradable():
         return out
 
@@ -407,12 +475,17 @@ def _external_checks(c: Cell, check, keys: list[str], found_key: str,
         if p.exists():
             try:
                 d = json.loads(p.read_text())
-            except json.JSONDecodeError:
-                d = {}
-            found = d.get(found_key)
-            for k in keys:
-                out[k] = bool(d.get(k)) if found else False
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                d = None
+            if isinstance(d, dict) and isinstance(d.get(found_key), bool):
+                found = d.get(found_key)
+                for k in keys:
+                    # Missing/invalid evidence is unknown. In particular,
+                    # bool("false") must never turn a malformed verdict into PASS.
+                    out[k] = (d.get(k) if isinstance(d.get(k), bool) else None) if found else False
 
+    if not first_build_key:
+        return out
     for i, (n, inp) in enumerate(c.tools):
         if n != "Bash" or "colcon build" not in str(inp.get("command", "")):
             continue
@@ -513,13 +586,12 @@ def g1(c: Cell, check: str | Path | None = None) -> dict:
         g1_robot_moves    -- DiffDrive naming joints no <joint> declares: loads,
                              publishes odometry, moves 0 cm
 
-    There is no `first build` analogue here, so the transcript key is unused and
-    always None.
+    There is no `first build` analogue here, so no transcript key is emitted.
     """
     return _external_checks(
         c, check,
         ["g1_sdf_valid", "g1_sim_runs", "g1_topics_present", "g1_robot_moves"],
-        "g1_world_found", "g1_unused_transcript_key")
+        "g1_world_found")
 
 
 # --------------------------------------------------------------------------
@@ -544,7 +616,7 @@ def g2(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["g2_scan_in_ros", "g2_scan_360", "g2_clock_in_ros", "g2_ros_cmd_moves"],
-        "g2_bringup_found", "g2_unused_transcript_key")
+        "g2_bringup_found")
 
 
 # --------------------------------------------------------------------------
@@ -588,7 +660,7 @@ def g3(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["g3_imu_in_ros", "g3_frame_id_is_link", "g3_sim_time"],
-        "g3_bringup_found", "g3_unused_transcript_key")
+        "g3_bringup_found")
 
 
 # --------------------------------------------------------------------------
@@ -617,7 +689,7 @@ def tr1(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["tr1_logs_5", "tr1_no_hang", "tr1_exits_clean"],
-        "tr1_node_found", "tr1_unused_transcript_key")
+        "tr1_node_found")
 
 
 # --------------------------------------------------------------------------
@@ -646,7 +718,7 @@ def tr2(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["tr2_logs_5", "tr2_no_hang", "tr2_exits_clean", "tr2_heartbeat_steady"],
-        "tr2_node_found", "tr2_unused_transcript_key")
+        "tr2_node_found")
 
 
 # --------------------------------------------------------------------------
@@ -673,7 +745,7 @@ def tr3(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["tr3_logs_5", "tr3_exits_clean", "tr3_total_line", "tr3_batch_under_3s"],
-        "tr3_node_found", "tr3_unused_transcript_key")
+        "tr3_node_found")
 
 
 # --------------------------------------------------------------------------
@@ -702,7 +774,7 @@ def qos1(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["qos1_receives", "qos1_no_hang", "qos1_exits_clean"],
-        "qos1_node_found", "qos1_unused_transcript_key")
+        "qos1_node_found")
 
 
 def ctl1(c: Cell, check: str | Path | None = None) -> dict:
@@ -727,7 +799,7 @@ def ctl1(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["ctl1_cm_running", "ctl1_jsb_active", "ctl1_joint_states"],
-        "ctl1_bringup_found", "ctl1_unused_transcript_key")
+        "ctl1_bringup_found")
 
 
 def tst1(c: Cell, check: str | Path | None = None) -> dict:
@@ -747,7 +819,7 @@ def tst1(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["tst1_builds", "tst1_test_ran", "tst1_no_failures"],
-        "tst1_workspace_found", "tst1_unused_transcript_key")
+        "tst1_workspace_found")
 
 
 def per1(c: Cell, check: str | Path | None = None) -> dict:
@@ -767,7 +839,7 @@ def per1(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["per1_frames", "per1_publishes", "per1_no_hang", "per1_exits_clean"],
-        "per1_node_found", "per1_unused_transcript_key")
+        "per1_node_found")
 
 
 def per2(c: Cell, check: str | Path | None = None) -> dict:
@@ -793,7 +865,7 @@ def per2(c: Cell, check: str | Path | None = None) -> dict:
         c, check,
         ["per2_pixel_correct", "per2_detection_published",
          "per2_detection_correct", "per2_exits_clean"],
-        "per2_node_found", "per2_unused_transcript_key")
+        "per2_node_found")
 
 
 def mvt1(c: Cell, check: str | Path | None = None) -> dict:
@@ -811,7 +883,7 @@ def mvt1(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["mvt1_move_group_up", "mvt1_plan_service", "mvt1_group_known"],
-        "mvt1_bringup_found", "mvt1_unused_transcript_key")
+        "mvt1_bringup_found")
 
 
 def ctl2(c: Cell, check: str | Path | None = None) -> dict:
@@ -837,7 +909,7 @@ def ctl2(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["ctl2_both_active", "ctl2_command_lands"],
-        "ctl2_bringup_found", "ctl2_unused_transcript_key")
+        "ctl2_bringup_found")
 
 
 def tst2(c: Cell, check: str | Path | None = None) -> dict:
@@ -863,7 +935,7 @@ def tst2(c: Cell, check: str | Path | None = None) -> dict:
         c, check,
         ["tst2_builds", "tst2_test_ran", "tst2_no_failures",
          "tst2_launch_testing"],
-        "tst2_workspace_found", "tst2_unused_transcript_key")
+        "tst2_workspace_found")
 
 
 def mvt2(c: Cell, check: str | Path | None = None) -> dict:
@@ -889,7 +961,7 @@ def mvt2(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["mvt2_move_group_up", "mvt2_plan_runs", "mvt2_points"],
-        "mvt2_bringup_found", "mvt2_unused_transcript_key")
+        "mvt2_bringup_found")
 
 
 def ctl3(c: Cell, check: str | Path | None = None) -> dict:
@@ -910,7 +982,7 @@ def ctl3(c: Cell, check: str | Path | None = None) -> dict:
         c, check,
         ["ctl3_builds", "ctl3_custom_plugin", "ctl3_component_active",
          "ctl3_joint_states"],
-        "ctl3_bringup_found", "ctl3_unused_transcript_key")
+        "ctl3_bringup_found")
 
 
 def tst3(c: Cell, check: str | Path | None = None) -> dict:
@@ -929,7 +1001,7 @@ def tst3(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["tst3_builds", "tst3_test_ran", "tst3_no_failures", "tst3_bag_written"],
-        "tst3_workspace_found", "tst3_unused_transcript_key")
+        "tst3_workspace_found")
 
 
 def per3(c: Cell, check: str | Path | None = None) -> dict:
@@ -947,7 +1019,7 @@ def per3(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["per3_clouds", "per3_fields_ok", "per3_metres", "per3_drops_invalid"],
-        "per3_node_found", "per3_unused_transcript_key")
+        "per3_node_found")
 
 
 def mvt3(c: Cell, check: str | Path | None = None) -> dict:
@@ -965,7 +1037,7 @@ def mvt3(c: Cell, check: str | Path | None = None) -> dict:
     return _external_checks(
         c, check,
         ["mvt3_move_group_up", "mvt3_plan_runs", "mvt3_points", "mvt3_objects"],
-        "mvt3_bringup_found", "mvt3_unused_transcript_key")
+        "mvt3_bringup_found")
 
 
 
@@ -975,8 +1047,8 @@ def _simple(task, keys, found):
     Every one of these graders was validated against a deliberately broken
     reference before its round ran; the pairs are recorded in LADDER.md.
     """
-    def fn(c, check=None, _k=keys, _f=found, _t=task):
-        return _external_checks(c, check, _k, _f, f"{_t}_unused_transcript_key")
+    def fn(c, check=None, _k=keys, _f=found):
+        return _external_checks(c, check, _k, _f)
     fn.__name__ = task
     return fn
 
@@ -1007,14 +1079,49 @@ TASKS = {"t1": t1, "t2": t2, "t3": t3, "t4": t4, "t5": t5, "t6": t6, "t7": t7,
          "cor1": cor1, "cor2": cor2, "cor3": cor3,
          "dev1": dev1, "dev2": dev2, "dev3": dev3}
 
+# Graded from the verdict a <task>_check.sh wrote next to the transcript while
+# the cell's workspace still existed. Everything except t1-t4.
+SIDECAR_TASKS = frozenset(TASKS) - {"t1", "t2", "t3", "t4"}
+
+
+def sidecar_path(transcript: str | Path) -> Path:
+    """`<dir>/<task>-<cell>_result.jsonl[.gz]` -> `<dir>/<task>-<cell>_check.json`."""
+    p = Path(transcript)
+    return p.parent / (p.name.split("_result.jsonl")[0] + "_check.json")
+
+
+def grade_cell(task: str, transcript: str | Path, *, check: str | Path | None = None,
+               live: bool = False, workdir: str | None = None,
+               cell: Cell | None = None) -> dict:
+    """The one dispatch both the CLI and analyze_v2.py use."""
+    c = cell or Cell(transcript)
+    fn = TASKS[task]
+    if task == "t1":
+        return fn(c, live=live)
+    if task == "t4":
+        return fn(c, workdir=workdir)
+    if task in SIDECAR_TASKS:
+        return fn(c, check=check or sidecar_path(transcript))
+    return fn(c)
+
 
 # --------------------------------------------------------------------------
 def selftest() -> int:
     """Exercise every rule against hand-written transcripts.
 
     A grader that has only ever seen good answers is not validated -- each rule
-    is checked in both directions.
+    is checked in both directions. Hermetic: nothing it asserts depends on
+    which ROS packages this host has installed.
     """
+    import shutil
+    import tempfile
+    tmp = tempfile.mkdtemp(prefix="grade_v2_selftest-")
+    counter = [0]
+
+    def _tmpfile(suffix):
+        counter[0] += 1
+        return str(Path(tmp) / f"f{counter[0]}{suffix}")
+
     def mk(events):
         lines = []
         for kind, payload in events:
@@ -1025,12 +1132,22 @@ def selftest() -> int:
                 name, inp = payload
                 lines.append(json.dumps({"type": "assistant", "message": {
                     "content": [{"type": "tool_use", "name": name, "input": inp}]}}))
-        import tempfile
-        fh = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False)
-        fh.write("\n".join(lines))
-        fh.close()
-        return Cell(fh.name)
+        # A finished session always ends in a result event; its `result` is
+        # left empty so the answer is the assistant text above.
+        lines.append(json.dumps({"type": "result", "subtype": "success",
+                                 "is_error": False, "result": ""}))
+        path = _tmpfile(".jsonl")
+        Path(path).write_text("\n".join(lines))
+        return Cell(path)
 
+    try:
+        return _selftest_body(mk, _tmpfile)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _selftest_body(mk, _tmpfile) -> int:
+    global JAZZY, _PLUGINS
     fails = []
 
     def expect(label, got, want):
@@ -1073,9 +1190,29 @@ def selftest() -> int:
     expect("t3 asked/footprint", t3(asked)["t3_asked_footprint"], True)
     expect("t3 asked/drive", t3(asked)["t3_asked_drive_type"], True)
     expect("t3 asked/defaults", t3(asked)["t3_read_shipped_defaults"], True)
-    expect("t3 asked/plugins", t3(asked)["t3_plugins_real"], True)
     expect("t3 wrote/order", t3(wrote)["t3_asked_before_writing"], False)
-    expect("t3 wrote/plugins", t3(wrote)["t3_plugins_real"], False)
+    # t3_plugins_real is an install fact. Graded against a fake install with
+    # one registered class, then against one without Nav2, where the correct
+    # string must come back ungradable -- not False, which is what an empty
+    # plugin index used to produce.
+    real_jazzy, real_plugins = JAZZY, _PLUGINS
+    try:
+        fake = Path(_tmpfile("-jazzy"))
+        (fake / "share/navigation2").mkdir(parents=True)
+        (fake / "share/navigation2/package.xml").write_text("<package/>")
+        (fake / "share/nav2_mppi_controller").mkdir(parents=True)
+        (fake / "share/nav2_mppi_controller/mppic.xml").write_text(
+            '<library path="mppi_controller">\n'
+            '  <class type="nav2_mppi_controller::MPPIController" '
+            'base_class_type="nav2_core::Controller"/>\n</library>\n')
+        JAZZY, _PLUGINS = fake, None
+        expect("t3 asked/plugins (nav2 installed)", t3(asked)["t3_plugins_real"], True)
+        expect("t3 wrote/plugins (nav2 installed)", t3(wrote)["t3_plugins_real"], False)
+        JAZZY, _PLUGINS = Path(_tmpfile("-empty-jazzy")), None
+        expect("t3 asked/plugins (no nav2)", t3(asked)["t3_plugins_real"], None)
+        expect("t3 wrote/plugins (no nav2)", t3(wrote)["t3_plugins_real"], None)
+    finally:
+        JAZZY, _PLUGINS = real_jazzy, real_plugins
 
     # T4
     ok = mk([("tool", ("Write", {"file_path": "/tmp/n.py",
@@ -1091,8 +1228,6 @@ def selftest() -> int:
     expect("t4 naive/guard", t4(naive)["t4_guards_range"], False)
 
     # T5 -- needs tool_use ids and tool_results, which mk() does not emit.
-    import tempfile
-
     def mk_build(cmd_results):
         """Transcript of Bash calls paired with their results."""
         lines = []
@@ -1106,16 +1241,14 @@ def selftest() -> int:
                  "content": body, "is_error": is_err}]}}))
         lines.append(json.dumps({"type": "result",
                                  "result": "Workspace built. " + "x" * 500}))
-        fh = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False)
-        fh.write("\n".join(lines))
-        fh.close()
-        return Cell(fh.name)
+        path = _tmpfile(".jsonl")
+        Path(path).write_text("\n".join(lines))
+        return Cell(path)
 
     def chk(d):
-        fh = tempfile.NamedTemporaryFile("w", suffix=".json", delete=False)
-        json.dump(d, fh)
-        fh.close()
-        return fh.name
+        path = _tmpfile(".json")
+        Path(path).write_text(json.dumps(d))
+        return path
 
     all_ok = chk({"t5_workspace_found": True, "t5_builds": True,
                   "t5_interface_resolves": True, "t5_run_works": True,
@@ -1152,7 +1285,7 @@ def selftest() -> int:
         for f in fails:
             print("  -", f)
         return 1
-    print(f"selftest passed — {len(registered_plugins())} plugins indexed")
+    print("selftest passed")
     return 0
 
 
@@ -1163,9 +1296,9 @@ def main() -> int:
     ap.add_argument("--live", action="store_true",
                     help="enable graders that query a running system")
     ap.add_argument("--workdir", help="cell working directory, for files on disk")
-    ap.add_argument("--check", help="t5/t6/t7: the JSON verdict written by t5_check.sh "
-                                    "at cell time (defaults to the sibling "
-                                    "<stem>_check.json)")
+    ap.add_argument("--check", help="tasks graded from a checker verdict: the JSON "
+                                    "its <task>_check.sh wrote at cell time "
+                                    "(defaults to the sibling <stem>_check.json)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
 
@@ -1175,20 +1308,12 @@ def main() -> int:
         ap.error("task and transcript are required unless --selftest")
 
     cell = Cell(a.transcript)
-    fn = TASKS[a.task]
-    if a.task == "t1":
-        grade = fn(cell, live=a.live)
-    elif a.task == "t4":
-        grade = fn(cell, workdir=a.workdir)
-    elif a.task in ("t5", "t6", "t7", "g1", "g2", "g3", "tr1", "tr2", "tr3", "qos1"):
-        chk = a.check
-        if not chk:
-            p = Path(a.transcript)
-            chk = p.parent / (p.name.split("_result.jsonl")[0] + "_check.json")
-        grade = fn(cell, check=chk)
-    else:
-        grade = fn(cell)
+    grade = grade_cell(a.task, a.transcript, check=a.check, live=a.live,
+                       workdir=a.workdir, cell=cell)
     print(json.dumps({"transcript": a.transcript, "task": a.task,
+                      "model": cell.model,
+                      "gradable": cell.gradable(),
+                      "pack_components_loaded": cell.pack_components_loaded(),
                       "tools": sorted(cell.tool_names()),
                       "leaked": leaked(cell), "grade": grade}, indent=2))
     return 0

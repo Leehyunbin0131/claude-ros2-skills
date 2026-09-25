@@ -55,13 +55,16 @@ set +u
 source /opt/ros/jazzy/setup.bash
 set -u
 export ROS_DOMAIN_ID=$(( 30 + RANDOM % 60 ))
+# Only this run's processes, and ROS discovery kept on this host.
+# shellcheck source=procscope.sh
+source "$(dirname "${BASH_SOURCE[0]}")/procscope.sh"
 
 kill_all() {
-  pkill -9 -f 'controller_server' 2>/dev/null || true
-  pkill -9 -f 'planner_server' 2>/dev/null || true
-  pkill -9 -f 'behavior_server' 2>/dev/null || true
-  pkill -9 -f 'bt_navigator' 2>/dev/null || true
-  pkill -9 -f 'lifecycle_manager' 2>/dev/null || true
+  kill_owned 'controller_server'
+  kill_owned 'planner_server'
+  kill_owned 'behavior_server'
+  kill_owned 'bt_navigator'
+  kill_owned 'lifecycle_manager'
   if [ -n "${BDIR:-}" ]; then
     local skip=" $$ " p=$PPID
     while [ -n "$p" ] && [ "$p" -gt 1 ] 2>/dev/null; do
@@ -90,15 +93,7 @@ BRING_LOG="$(mktemp)"
 ( cd "$BDIR" && timeout 240 bash ./bringup.sh ) >"$BRING_LOG" 2>&1
 BRING_RC=$?
 
-adopt_domain_from() {
-  local pid d
-  pid="$(pgrep -f "$1" | head -1)"
-  [ -n "$pid" ] || return 0
-  d="$(tr '\0' '\n' < "/proc/$pid/environ" 2>/dev/null \
-       | awk -F= '$1=="ROS_DOMAIN_ID" {print $2; exit}')"
-  [ -n "$d" ] && export ROS_DOMAIN_ID="$d"
-  return 0
-}
+# adopt_domain_from is in procscope.sh: it reads only this run's processes.
 adopt_domain_from 'controller_server'
 
 # Recorded for diagnosis only, never scored: a cell may reach the costmap
@@ -180,7 +175,7 @@ OBSTACLE=false
 
 kill_all
 kill -9 $SCENARIO 2>/dev/null || true
-pkill -9 -f 'dev3_scenario' 2>/dev/null || true
+kill_owned 'dev3_scenario'
 
 p_costmap=false;  $COSTMAP_PUB && p_costmap=true
 p_obstacle=false; $OBSTACLE && p_obstacle=true
