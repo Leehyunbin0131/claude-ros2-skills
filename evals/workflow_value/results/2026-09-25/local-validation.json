@@ -1,0 +1,142 @@
+[
+  {
+    "command": [
+      "python3",
+      "-m",
+      "compileall",
+      "-q",
+      "skills",
+      "scripts",
+      "tests",
+      "evals/harness",
+      "evals/development",
+      "evals/workflow_value"
+    ],
+    "returncode": 0,
+    "seconds": 0.11
+  },
+  {
+    "command": [
+      "bash",
+      "-c",
+      "for file in evals/harness/*.sh; do bash -n \"$file\" || exit; done"
+    ],
+    "returncode": 0,
+    "seconds": 0.11
+  },
+  {
+    "command": [
+      "python3",
+      "skills/ros2-troubleshooting/scripts/test_checks.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.36
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_install.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.52
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_development.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.11
+  },
+  {
+    "command": [
+      "python3",
+      "evals/development/test_runner.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.22
+  },
+  {
+    "command": [
+      "python3",
+      "evals/workflow_value/test_runner.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.11
+  },
+  {
+    "command": [
+      "python3",
+      "evals/workflow_value/test_oracle.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.16
+  },
+  {
+    "command": [
+      "python3",
+      "evals/harness/grade_v2.py",
+      "--selftest"
+    ],
+    "returncode": 0,
+    "seconds": 0.06
+  },
+  {
+    "command": [
+      "python3",
+      "evals/harness/test_harness.py"
+    ],
+    "returncode": 0,
+    "seconds": 5.18
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_colcon_workflow.py"
+    ],
+    "returncode": 0,
+    "seconds": 5.73
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_ros_checks.py"
+    ],
+    "returncode": 0,
+    "seconds": 58.12
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_ament_test_results.py"
+    ],
+    "returncode": 0,
+    "seconds": 5.98
+  },
+  {
+    "command": [
+      "python3",
+      "evals/development/test_oracles.py"
+    ],
+    "returncode": 0,
+    "seconds": 116.65
+  },
+  {
+    "command": [
+      "env",
+      "ROS2_ACCEPTANCE_SEED=1",
+      "python3",
+      "evals/development/test_oracles.py"
+    ],
+    "returncode": 0,
+    "seconds": 117.32
+  },
+  {
+    "command": [
+      "python3",
+      "tests/test_codex_discovery.py"
+    ],
+    "returncode": 0,
+    "seconds": 0.47
+  }
+]

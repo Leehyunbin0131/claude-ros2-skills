@@ -1,0 +1,202 @@
+{
+  "seed": 1,
+  "domain": 187,
+  "ownership_tag": "wv-grade-5baddf248aa6482986f403541d35b740",
+  "workspace": "[STUDY_PRIVATE]/value-controls-v1/seed1/header_inline_helper/workspace",
+  "accepted": false,
+  "gradable": false,
+  "needs_review": true,
+  "reasons": [
+    "instrumentation: expected one normalize definition in conversion.cpp, found 0",
+    "regression_tests failed"
+  ],
+  "dimensions": {
+    "clean_build": {
+      "passed": true,
+      "returncode": 0,
+      "seconds": 12.6
+    },
+    "tests": {
+      "returncode": 0,
+      "seconds": 0.9,
+      "packages": {
+        "thermal_py_monitor": {
+          "passed": 2,
+          "assertion": 0,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0,
+          "cases": {
+            "thermal_py_monitor.test.test_conversion.test_valid_reading_passes_through": "passed",
+            "thermal_py_monitor.test.test_conversion.test_invalid_reading_is_nan": "passed"
+          }
+        },
+        "thermal_cpp_monitor": {
+          "passed": 2,
+          "assertion": 0,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0,
+          "cases": {
+            "thermal_cpp_monitor.Conversion.ValidReadingPassesThrough": "passed",
+            "thermal_cpp_monitor.Conversion.InvalidReadingIsNaN": "passed"
+          }
+        }
+      },
+      "passed": true
+    },
+    "interface": {
+      "importable": true,
+      "fields": {
+        "temperature_c": "double",
+        "valid": "boolean"
+      },
+      "new_field": true,
+      "valid_field": true,
+      "old_field_absent": true,
+      "passed": true
+    },
+    "runtime": {
+      "cases": [
+        {
+          "value": -12.5,
+          "valid": true,
+          "expected": -12.5,
+          "observed": {
+            "py": [
+              "-12.5",
+              "-12.5",
+              "-12.5"
+            ],
+            "cpp": [
+              "-12.5",
+              "-12.5",
+              "-12.5"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 21.0,
+          "valid": true,
+          "expected": 21.0,
+          "observed": {
+            "py": [
+              "21.0",
+              "21.0",
+              "21.0"
+            ],
+            "cpp": [
+              "21.0",
+              "21.0",
+              "21.0"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 36.625,
+          "valid": true,
+          "expected": 36.625,
+          "observed": {
+            "py": [
+              "36.625",
+              "36.625",
+              "36.625"
+            ],
+            "cpp": [
+              "36.625",
+              "36.625",
+              "36.625"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 40.0,
+          "valid": false,
+          "expected": "nan",
+          "observed": {
+            "py": [
+              "nan",
+              "nan",
+              "nan"
+            ],
+            "cpp": [
+              "nan",
+              "nan",
+              "nan"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        }
+      ],
+      "discovered": true,
+      "exited_early": {
+        "py": null,
+        "cpp": null
+      },
+      "exit_codes": {
+        "py": 0,
+        "cpp": 0
+      },
+      "passed": {
+        "py": true,
+        "cpp": true
+      },
+      "probe_returncode": 0,
+      "probe_seconds": 2.8
+    },
+    "regression_tests": {
+      "passed": false,
+      "packages": {},
+      "instrumentation_error": "expected one normalize definition in conversion.cpp, found 0"
+    }
+  },
+  "rules": {
+    "automated_flags": [],
+    "changelog_diff": "--- original\n+++ submitted\n@@ -1,6 +1,10 @@\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n Changelog for package thermal_interfaces\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n+\n+Forthcoming\n+-----------\n+* Replace ``temperature_millic`` with ``temperature_c`` (degrees Celsius) and add ``valid``.\n \n 0.3.1 (2026-08-14)\n ------------------\n",
+    "versions": {
+      "thermal_interfaces": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      },
+      "thermal_py_monitor": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      },
+      "thermal_cpp_monitor": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      }
+    },
+    "helper_observations": {
+      "python_module_level_def": true,
+      "cpp_declaration_in_header": true,
+      "cpp_definition_in_documented_file": false
+    },
+    "generated_files_in_sources": [],
+    "note": "Analyst decides rule compliance; flags only direct attention."
+  },
+  "checks": {
+    "clean_build": true,
+    "interface": true,
+    "tests": true,
+    "runtime_python": true,
+    "runtime_cpp": true,
+    "regression_tests": false
+  },
+  "seconds": 16.2
+}

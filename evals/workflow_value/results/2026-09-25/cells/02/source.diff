@@ -1,0 +1,179 @@
+diff --git a/src/range_cpp_monitor/include/range_cpp_monitor/conversion.hpp b/src/range_cpp_monitor/include/range_cpp_monitor/conversion.hpp
+index 013aeeb..6085800 100644
+--- a/src/range_cpp_monitor/include/range_cpp_monitor/conversion.hpp
++++ b/src/range_cpp_monitor/include/range_cpp_monitor/conversion.hpp
+@@ -6,7 +6,7 @@
+ namespace range_cpp_monitor
+ {
+ 
+-/// Public conversion helper: the distance in metres.
++/// Public conversion helper: the distance in metres, or NaN if the reading is not valid.
+ double normalize(const range_interfaces::msg::RangeReading & msg);
+ 
+ }  // namespace range_cpp_monitor
+diff --git a/src/range_cpp_monitor/src/conversion.cpp b/src/range_cpp_monitor/src/conversion.cpp
+index 39c9e9a..71c4ff6 100644
+--- a/src/range_cpp_monitor/src/conversion.cpp
++++ b/src/range_cpp_monitor/src/conversion.cpp
+@@ -1,11 +1,16 @@
+ #include "range_cpp_monitor/conversion.hpp"
+ 
++#include <limits>
++
+ namespace range_cpp_monitor
+ {
+ 
+ double normalize(const range_interfaces::msg::RangeReading & msg)
+ {
+-  return msg.distance_cm / 100.0;
++  if (!msg.valid) {
++    return std::numeric_limits<double>::quiet_NaN();
++  }
++  return msg.distance_m;
+ }
+ 
+ }  // namespace range_cpp_monitor
+diff --git a/src/range_cpp_monitor/test/test_conversion.cpp b/src/range_cpp_monitor/test/test_conversion.cpp
+index 824a51b..41b127e 100644
+--- a/src/range_cpp_monitor/test/test_conversion.cpp
++++ b/src/range_cpp_monitor/test/test_conversion.cpp
+@@ -1,10 +1,21 @@
+ #include <gtest/gtest.h>
+ 
++#include <cmath>
++
+ #include "range_cpp_monitor/conversion.hpp"
+ 
+-TEST(Conversion, ConvertsDistance)
++TEST(Conversion, ValidReadingReturnsMetres)
+ {
+   range_interfaces::msg::RangeReading msg;
+-  msg.distance_cm = 250.0;
++  msg.distance_m = 2.5;
++  msg.valid = true;
+   EXPECT_DOUBLE_EQ(range_cpp_monitor::normalize(msg), 2.5);
+ }
++
++TEST(Conversion, InvalidReadingReturnsNan)
++{
++  range_interfaces::msg::RangeReading msg;
++  msg.distance_m = 2.5;
++  msg.valid = false;
++  EXPECT_TRUE(std::isnan(range_cpp_monitor::normalize(msg)));
++}
+diff --git a/src/range_interfaces/CHANGELOG.rst b/src/range_interfaces/CHANGELOG.rst
+index f1fa0e7..c24331c 100644
+--- a/src/range_interfaces/CHANGELOG.rst
++++ b/src/range_interfaces/CHANGELOG.rst
+@@ -2,6 +2,11 @@
+ Changelog for package range_interfaces
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 
++Forthcoming
++-----------
++* RangeReading: replace ``distance_cm`` with ``distance_m`` (metres) and add
++  ``bool valid``. This is a breaking change for consumers of ``distance_cm``.
++
+ 0.3.1 (2026-08-14)
+ ------------------
+ * Document the RangeReading units.
+diff --git a/src/range_interfaces/CMakeLists.txt b/src/range_interfaces/CMakeLists.txt
+index 227d1c0..95bf1a9 100644
+--- a/src/range_interfaces/CMakeLists.txt
++++ b/src/range_interfaces/CMakeLists.txt
+@@ -9,4 +9,10 @@ rosidl_generate_interfaces(${PROJECT_NAME}
+ )
+ 
+ ament_export_dependencies(rosidl_default_runtime)
++
++if(BUILD_TESTING)
++  find_package(ament_cmake_pytest REQUIRED)
++  ament_add_pytest_test(test_range_reading test/test_range_reading.py)
++endif()
++
+ ament_package()
+diff --git a/src/range_interfaces/msg/RangeReading.msg b/src/range_interfaces/msg/RangeReading.msg
+index ac228ab..becdc9c 100644
+--- a/src/range_interfaces/msg/RangeReading.msg
++++ b/src/range_interfaces/msg/RangeReading.msg
+@@ -1,2 +1,4 @@
+-# Distance reported by the sensor, in centimetres.
+-float64 distance_cm
++# Distance reported by the sensor, in metres.
++float64 distance_m
++# True if distance_m holds a usable measurement.
++bool valid
+diff --git a/src/range_interfaces/package.xml b/src/range_interfaces/package.xml
+index 8a3f4b1..30c057e 100644
+--- a/src/range_interfaces/package.xml
++++ b/src/range_interfaces/package.xml
+@@ -8,6 +8,7 @@
+   <buildtool_depend>ament_cmake</buildtool_depend>
+   <buildtool_depend>rosidl_default_generators</buildtool_depend>
+   <exec_depend>rosidl_default_runtime</exec_depend>
++  <test_depend>ament_cmake_pytest</test_depend>
+   <member_of_group>rosidl_interface_packages</member_of_group>
+   <export>
+     <build_type>ament_cmake</build_type>
+diff --git a/src/range_interfaces/test/test_range_reading.py b/src/range_interfaces/test/test_range_reading.py
+new file mode 100644
+index 0000000..90d4cdf
+--- /dev/null
++++ b/src/range_interfaces/test/test_range_reading.py
+@@ -0,0 +1,12 @@
++from range_interfaces.msg import RangeReading
++
++
++def test_fields():
++    assert RangeReading.get_fields_and_field_types() == {
++        'distance_m': 'double',
++        'valid': 'boolean',
++    }
++
++
++def test_defaults_to_invalid():
++    assert RangeReading().valid is False
+diff --git a/src/range_py_monitor/range_py_monitor/conversion.py b/src/range_py_monitor/range_py_monitor/conversion.py
+index 8868e48..7e98e96 100644
+--- a/src/range_py_monitor/range_py_monitor/conversion.py
++++ b/src/range_py_monitor/range_py_monitor/conversion.py
+@@ -1,8 +1,9 @@
+ """Public conversion helper shared by the node and downstream tools."""
+-
+-SCALE = 100.0
++import math
+ 
+ 
+ def normalize(msg):
+-    """Return the distance in metres."""
+-    return msg.distance_cm / SCALE
++    """Return the distance in metres, or NaN if the reading is not valid."""
++    if not msg.valid:
++        return math.nan
++    return msg.distance_m
+diff --git a/src/range_py_monitor/test/test_conversion.py b/src/range_py_monitor/test/test_conversion.py
+index 6fbd629..1b4c513 100644
+--- a/src/range_py_monitor/test/test_conversion.py
++++ b/src/range_py_monitor/test/test_conversion.py
+@@ -1,9 +1,19 @@
++import math
++
+ from range_interfaces.msg import RangeReading
+ 
+ from range_py_monitor.conversion import normalize
+ 
+ 
+-def test_converts_centimetres():
++def test_valid_reading_returns_metres():
+     msg = RangeReading()
+-    msg.distance_cm = 250.0
++    msg.distance_m = 2.5
++    msg.valid = True
+     assert normalize(msg) == 2.5
++
++
++def test_invalid_reading_returns_nan():
++    msg = RangeReading()
++    msg.distance_m = 2.5
++    msg.valid = False
++    assert math.isnan(normalize(msg))

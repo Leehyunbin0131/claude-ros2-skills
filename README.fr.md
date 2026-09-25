@@ -49,6 +49,8 @@ Codes : 0 PASS, 1 FAIL, 2 INCONCLUSIVE ou demande invalide. Données absentes, N
 
 CI vérifie la préservation des installations, la logique, de vrais paquets temporaires Python/CMake, les communications et TF synthétiques Jazzy et l’évaluateur. Opus 5.5 High a terminé trois tâches avec le plugin et avec l’installation manuelle ; la référence sans le pack a aussi terminé les trois. Il s’agit d’une observation par méthode et tâche : voir le [rapport de validation](evals/development/RESULTS.md). Ces essais valident les outils, pas un gain mesuré du modèle. Robots physiques et MCU demandent une validation distincte.
 
+Une [étude ultérieure de migration d’interfaces](evals/workflow_value/RESULTS.md) compare trois variantes avec consommateurs Python/C++ sous Opus 5.5 High. Les six résultats, avec et sans pack, passent la vérification indépendante. La fidélité des rapports, les règles ambiguës et les processus résiduels sont documentés séparément. Aucun gain de fiabilité ni accélération causale n’est établi ; les skills restent en version 0.1.2.
+
 Certains scores historiques manquent de transcriptions ou de nouvelles notations reproductibles ; ils ne sont pas présentés comme les performances actuelles. [CAPABILITIES.md](evals/CAPABILITIES.md).
 
 ## Mise à jour

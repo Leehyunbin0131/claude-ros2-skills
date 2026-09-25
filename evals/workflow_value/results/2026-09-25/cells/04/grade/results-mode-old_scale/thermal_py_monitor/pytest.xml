@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="0.023" timestamp="2026-09-25T17:15:45.593906" hostname="[HOST]"><testcase classname="thermal_py_monitor.test.test_conversion" name="test_valid_reading_returns_degrees_celsius" time="0.000"><failure message="assert 0.0215 == 21.5&#10; +  where 0.0215 = normalize(thermal_interfaces.msg.ThermalReading(temperature_c=21.5, valid=True))">test/test_conversion.py:12: in test_valid_reading_returns_degrees_celsius
+    assert normalize(msg) == 21.5
+E   assert 0.0215 == 21.5
+E    +  where 0.0215 = normalize(thermal_interfaces.msg.ThermalReading(temperature_c=21.5, valid=True))</failure></testcase><testcase classname="thermal_py_monitor.test.test_conversion" name="test_invalid_reading_returns_nan" time="0.000" /><testcase classname="thermal_py_monitor.test.test_conversion" name="test_default_reading_is_invalid" time="0.000" /></testsuite></testsuites>

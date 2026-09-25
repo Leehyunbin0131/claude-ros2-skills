@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.022" timestamp="2026-09-25T17:25:12.209633" hostname="[HOST]"><testcase classname="power_py_monitor.test.test_conversion" name="test_valid_reading_returns_watts" time="0.000"><failure message="assert 0.0125 == 12.5&#10; +  where 0.0125 = normalize(power_interfaces.msg.PowerReading(power_w=12.5, valid=True))">test/test_conversion.py:12: in test_valid_reading_returns_watts
+    assert normalize(msg) == 12.5
+E   assert 0.0125 == 12.5
+E    +  where 0.0125 = normalize(power_interfaces.msg.PowerReading(power_w=12.5, valid=True))</failure></testcase><testcase classname="power_py_monitor.test.test_conversion" name="test_invalid_reading_returns_nan" time="0.000" /></testsuite></testsuites>

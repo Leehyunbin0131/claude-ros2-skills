@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.022" timestamp="2026-09-25T17:04:22.172737" hostname="[HOST]"><testcase classname="range_py_monitor.test.test_conversion" name="test_valid_reading_returns_metres" time="0.000" /><testcase classname="range_py_monitor.test.test_conversion" name="test_invalid_reading_returns_nan" time="0.000"><failure message="assert False&#10; +  where False = &lt;built-in function isnan&gt;(2.5)&#10; +    where &lt;built-in function isnan&gt; = math.isnan&#10; +    and   2.5 = normalize(range_interfaces.msg.RangeReading(distance_m=2.5, valid=False))">test/test_conversion.py:19: in test_invalid_reading_returns_nan
+    assert math.isnan(normalize(msg))
+E   assert False
+E    +  where False = &lt;built-in function isnan&gt;(2.5)
+E    +    where &lt;built-in function isnan&gt; = math.isnan
+E    +    and   2.5 = normalize(range_interfaces.msg.RangeReading(distance_m=2.5, valid=False))</failure></testcase></testsuite></testsuites>

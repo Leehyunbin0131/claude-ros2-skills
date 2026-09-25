@@ -1,0 +1,202 @@
+{
+  "seed": 2,
+  "domain": 187,
+  "ownership_tag": "wv-grade-024c283248634936b7d5addff2c73308",
+  "workspace": "[STUDY_PRIVATE]/value-controls-v1/seed2/header_inline_helper/workspace",
+  "accepted": false,
+  "gradable": false,
+  "needs_review": true,
+  "reasons": [
+    "instrumentation: expected one normalize definition in conversion.cpp, found 0",
+    "regression_tests failed"
+  ],
+  "dimensions": {
+    "clean_build": {
+      "passed": true,
+      "returncode": 0,
+      "seconds": 13.0
+    },
+    "tests": {
+      "returncode": 0,
+      "seconds": 0.9,
+      "packages": {
+        "power_py_monitor": {
+          "passed": 2,
+          "assertion": 0,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0,
+          "cases": {
+            "power_py_monitor.test.test_conversion.test_valid_reading_passes_through": "passed",
+            "power_py_monitor.test.test_conversion.test_invalid_reading_is_nan": "passed"
+          }
+        },
+        "power_cpp_monitor": {
+          "passed": 2,
+          "assertion": 0,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0,
+          "cases": {
+            "power_cpp_monitor.Conversion.ValidReadingPassesThrough": "passed",
+            "power_cpp_monitor.Conversion.InvalidReadingIsNaN": "passed"
+          }
+        }
+      },
+      "passed": true
+    },
+    "interface": {
+      "importable": true,
+      "fields": {
+        "power_w": "double",
+        "valid": "boolean"
+      },
+      "new_field": true,
+      "valid_field": true,
+      "old_field_absent": true,
+      "passed": true
+    },
+    "runtime": {
+      "cases": [
+        {
+          "value": 1.5,
+          "valid": true,
+          "expected": 1.5,
+          "observed": {
+            "py": [
+              "1.5",
+              "1.5",
+              "1.5"
+            ],
+            "cpp": [
+              "1.5",
+              "1.5",
+              "1.5"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 42.0,
+          "valid": true,
+          "expected": 42.0,
+          "observed": {
+            "py": [
+              "42.0",
+              "42.0",
+              "42.0"
+            ],
+            "cpp": [
+              "42.0",
+              "42.0",
+              "42.0"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 250.25,
+          "valid": true,
+          "expected": 250.25,
+          "observed": {
+            "py": [
+              "250.25",
+              "250.25",
+              "250.25"
+            ],
+            "cpp": [
+              "250.25",
+              "250.25",
+              "250.25"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 8.0,
+          "valid": false,
+          "expected": "nan",
+          "observed": {
+            "py": [
+              "nan",
+              "nan",
+              "nan"
+            ],
+            "cpp": [
+              "nan",
+              "nan",
+              "nan"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        }
+      ],
+      "discovered": true,
+      "exited_early": {
+        "py": null,
+        "cpp": null
+      },
+      "exit_codes": {
+        "py": 0,
+        "cpp": 0
+      },
+      "passed": {
+        "py": true,
+        "cpp": true
+      },
+      "probe_returncode": 0,
+      "probe_seconds": 2.8
+    },
+    "regression_tests": {
+      "passed": false,
+      "packages": {},
+      "instrumentation_error": "expected one normalize definition in conversion.cpp, found 0"
+    }
+  },
+  "rules": {
+    "automated_flags": [],
+    "changelog_diff": "--- original\n+++ submitted\n@@ -1,6 +1,10 @@\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n Changelog for package power_interfaces\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n+\n+Forthcoming\n+-----------\n+* Replace ``power_mw`` with ``power_w`` (watts) and add ``valid``.\n \n 0.3.1 (2026-08-14)\n ------------------\n",
+    "versions": {
+      "power_interfaces": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      },
+      "power_py_monitor": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      },
+      "power_cpp_monitor": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      }
+    },
+    "helper_observations": {
+      "python_module_level_def": true,
+      "cpp_declaration_in_header": true,
+      "cpp_definition_in_documented_file": false
+    },
+    "generated_files_in_sources": [],
+    "note": "Analyst decides rule compliance; flags only direct attention."
+  },
+  "checks": {
+    "clean_build": true,
+    "interface": true,
+    "tests": true,
+    "runtime_python": true,
+    "runtime_cpp": true,
+    "regression_tests": false
+  },
+  "seconds": 16.6
+}

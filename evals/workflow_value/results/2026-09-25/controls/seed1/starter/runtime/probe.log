@@ -1,0 +1,1 @@
+{"interface": {"importable": true, "fields": {"temperature_millic": "double"}, "new_field": false, "valid_field": false, "old_field_absent": false}, "runtime": {"skipped": "interface lacks the requested fields", "passed": {"py": false, "cpp": false}}}

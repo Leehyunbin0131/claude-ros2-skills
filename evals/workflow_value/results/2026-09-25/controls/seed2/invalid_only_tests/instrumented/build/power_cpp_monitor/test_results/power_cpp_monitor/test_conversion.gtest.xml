@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="1" failures="0" disabled="0" errors="0" time="0." timestamp="2026-09-25T16:53:50.468" name="AllTests">
+  <testsuite name="Conversion" tests="1" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-09-25T16:53:50.468">
+    <testcase name="InvalidReadingIsNaN" file="[STUDY_PRIVATE]/value-controls-v1/seed2/invalid_only_tests/grade/instrumented/src/power_cpp_monitor/test/test_conversion.cpp" line="18" status="run" result="completed" time="0." timestamp="2026-09-25T16:53:50.468" classname="power_cpp_monitor.Conversion" />
+  </testsuite>
+</testsuites>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Site BuildName="(empty)"
+	BuildStamp="20260925-0803-Experimental"
+	Name="[HOST]"
+	Generator="ctest-3.28.3"
+	CompilerName="/usr/bin/c++"
+	CompilerVersion="13.3.0"
+	OSName="Linux"
+	Hostname="[HOST]"
+	OSRelease="7.0.0-34-generic"
+	OSVersion="#34~24.04.1-Ubuntu SMP PREEMPT_DYNAMIC Fri Sep  4 15:38:29 UTC 2"
+	OSPlatform="x86_64"
+	Is64Bits="1"
+	VendorString="GenuineIntel"
+	VendorID="Intel Corporation"
+	FamilyID="6"
+	ModelID="197"
+	ProcessorCacheSize="24576"
+	NumberOfLogicalCPU="16"
+	NumberOfPhysicalCPU="16"
+	TotalVirtualMemory="8191"
+	TotalPhysicalMemory="31539"
+	LogicalProcessorsPerPhysical="1"
+	ProcessorClockFrequency="1429.39"
+	>
+	<Testing>
+		<StartDateTime>Sep 25 17:03 KST</StartDateTime>
+		<StartTestTime>1790323439</StartTestTime>
+		<TestList>
+			<Test>./test_range_reading</Test>
+		</TestList>
+		<Test Status="passed">
+			<Name>test_range_reading</Name>
+			<Path>.</Path>
+			<FullName>./test_range_reading</FullName>
+			<FullCommandLine>/tmp/ros2-skill-validation-venv/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml" "--package-name" "range_interfaces" "--output-file" "[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/ament_cmake_pytest/test_range_reading.txt" "--command" "/tmp/ros2-skill-validation-venv/bin/python3" "-u" "-m" "pytest" "[STUDY_PRIVATE]/value-cells/02/grade/candidate/src/range_interfaces/test/test_range_reading.py" "-o" "cache_dir=[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/ament_cmake_pytest/test_range_reading/.cache" "--junit-xml=[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml" "--junit-prefix=range_interfaces"</FullCommandLine>
+			<Results>
+				<NamedMeasurement type="numeric/double" name="Execution Time">
+					<Value>0.303899</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Processors">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Completion Status">
+					<Value>Completed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Command Line">
+					<Value>/tmp/ros2-skill-validation-venv/bin/python3 "-u" "/opt/ros/jazzy/share/ament_cmake_test/cmake/run_test.py" "[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml" "--package-name" "range_interfaces" "--output-file" "[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/ament_cmake_pytest/test_range_reading.txt" "--command" "/tmp/ros2-skill-validation-venv/bin/python3" "-u" "-m" "pytest" "[STUDY_PRIVATE]/value-cells/02/grade/candidate/src/range_interfaces/test/test_range_reading.py" "-o" "cache_dir=[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/ament_cmake_pytest/test_range_reading/.cache" "--junit-xml=[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml" "--junit-prefix=range_interfaces"</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Environment">
+					<Value>#CTEST_RESOURCE_GROUP_COUNT=</Value>
+				</NamedMeasurement>
+				<Measurement>
+					<Value>-- run_test.py: invoking following command in '[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces':
+ - /tmp/ros2-skill-validation-venv/bin/python3 -u -m pytest [STUDY_PRIVATE]/value-cells/02/grade/candidate/src/range_interfaces/test/test_range_reading.py -o cache_dir=[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/ament_cmake_pytest/test_range_reading/.cache --junit-xml=[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml --junit-prefix=range_interfaces
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.6.0
+cachedir: build/range_interfaces/ament_cmake_pytest/test_range_reading/.cache
+rootdir: [STUDY_PRIVATE]/value-cells/02/grade/candidate
+plugins: ament-xmllint-0.17.5, ament-pep257-0.17.5, ament-copyright-0.17.5, ament-lint-0.17.5, launch-testing-3.4.11, ament-flake8-0.17.5, launch-testing-ros-0.26.12, rerunfailures-12.0, cov-7.1.0, colcon-core-0.21.3, repeat-0.9.4
+collected 2 items
+
+../../src/range_interfaces/test/test_range_reading.py ..                 [100%]
+
+- generated xml file: [STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml -
+============================== 2 passed in 0.01s ===============================
+-- run_test.py: return code 0
+-- run_test.py: verify result file '[STUDY_PRIVATE]/value-cells/02/grade/candidate/build/range_interfaces/test_results/range_interfaces/test_range_reading.xunit.xml'
+</Value>
+				</Measurement>
+			</Results>
+			<Labels>
+				<Label>pytest</Label>
+			</Labels>
+		</Test>
+		<EndDateTime>Sep 25 17:03 KST</EndDateTime>
+		<EndTestTime>1790323439</EndTestTime>
+		<ElapsedMinutes>0</ElapsedMinutes>
+	</Testing>
+</Site>

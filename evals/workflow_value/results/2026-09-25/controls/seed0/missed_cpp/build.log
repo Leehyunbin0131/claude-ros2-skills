@@ -1,0 +1,31 @@
+Starting >>> range_interfaces
+Finished <<< range_interfaces [8.23s]
+Starting >>> range_cpp_monitor
+Starting >>> range_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: range_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+---
+Finished <<< range_py_monitor [1.30s]
+--- stderr: range_cpp_monitor
+[STUDY_PRIVATE]/value-controls-v1/seed0/missed_cpp/grade/candidate/src/range_cpp_monitor/src/conversion.cpp: In function ‘double range_cpp_monitor::normalize(const range_interfaces::msg::RangeReading&)’:
+[STUDY_PRIVATE]/value-controls-v1/seed0/missed_cpp/grade/candidate/src/range_cpp_monitor/src/conversion.cpp:8:14: error: ‘const range_interfaces::msg::RangeReading’ {aka ‘const struct range_interfaces::msg::RangeReading_<std::allocator<void> >’} has no member named ‘distance_cm’; did you mean ‘distance_m’?
+    8 |   return msg.distance_cm / 100.0;
+      |              ^~~~~~~~~~~
+      |              distance_m
+gmake[2]: *** [CMakeFiles/range_cpp_monitor_conversion.dir/build.make:76: CMakeFiles/range_cpp_monitor_conversion.dir/src/conversion.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:159: CMakeFiles/range_cpp_monitor_conversion.dir/all] Error 2
+gmake[1]: *** Waiting for unfinished jobs....
+gmake: *** [Makefile:146: all] Error 2
+---
+Failed   <<< range_cpp_monitor [6.26s, exited with code 2]
+
+Summary: 2 packages finished [14.6s]
+  1 package failed: range_cpp_monitor
+  2 packages had stderr output: range_cpp_monitor range_py_monitor

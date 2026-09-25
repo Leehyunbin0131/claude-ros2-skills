@@ -1,0 +1,40 @@
+[
+  {
+    "type": "assistant_text",
+    "text": "Now the edits."
+  },
+  {
+    "type": "assistant_text",
+    "text": "CONTRIBUTING asks for regression tests in every affected package, and `range_interfaces` has none. I'll add a small test that checks the generated message layout."
+  },
+  {
+    "type": "assistant_text",
+    "text": "`colcon` lives in a venv on your PATH, not in `/usr/bin`. I'll keep that venv on PATH and still source only the Jazzy underlay."
+  },
+  {
+    "type": "system",
+    "subtype": "task_notification",
+    "status": "completed",
+    "summary": "Build clean copy with venv colcon and Jazzy only",
+    "output_file": ""
+  },
+  {
+    "type": "assistant_text",
+    "text": "Jazzy's setup script isn't `set -u`-safe, so I'll drop that flag."
+  },
+  {
+    "type": "system",
+    "subtype": "task_notification",
+    "status": "completed",
+    "summary": "Rerun the runtime probe without set -u",
+    "output_file": ""
+  },
+  {
+    "type": "assistant_text",
+    "text": "Both nodes behave correctly. Next I'll confirm that none of the processes I started are still running, then review the diff."
+  },
+  {
+    "type": "assistant_text",
+    "text": "`RangeReading` now carries `float64 distance_m` and `bool valid`, and both monitors output the distance in metres when `valid` is true and NaN when it's false. The CI steps from CONTRIBUTING pass on a clean copy, and running both nodes gave the expected output for valid and invalid readings. Nothing is committed yet.\n\n## What I changed (sources only)\n\n**`range_interfaces`**\n- `msg/RangeReading.msg`: replaced `distance_cm` with `distance_m` (metres) and added `bool valid`.\n- `CHANGELOG.rst`: added a \"Forthcoming\" entry at the top that flags this as a breaking change. I didn't change any version numbers.\n- New regression test `test/test_range_reading.py`, wired up in `CMakeLists.txt` and `package.xml`. CONTRIBUTING asks for tests in every affected package and this one had none. The test checks that the message has exactly `distance_m: double` and `valid: boolean`, and that `valid` defaults to false.\n\n**`range_py_monitor`**\n- `conversion.py`: `normalize(msg)` returns `msg.distance_m` when `msg.valid`, otherwise `math.nan`. The old `SCALE` constant is gone.\n- `test/test_conversion.py`: one test for a valid reading (2.5 \u2192 2.5) and one for an invalid reading (\u2192 NaN).\n- `node.py` needed no change because it already publishes whatever `normalize()` returns.\n\n**`range_cpp_monitor`**\n- `src/conversion.cpp`: returns `msg.distance_m` when valid, otherwise `quiet_NaN()`. I also updated the doc comment in `conversion.hpp`.\n- `test/test_conversion.cpp`: `ValidReadingReturnsMetres` and `InvalidReadingReturnsNan`.\n- `monitor_node.cpp` needed no change.\n\nThe helper signatures, executables and topic names are the same, as the README requires.\n\n## How I verified it\n\nYour normal terminal still has the old overlay sourced, so I didn't build there. I copied the tracked and new sources into `/tmp/range-clean.PVIhns` and ran in a shell with only `/opt/ros/jazzy` sourced, as CI does:\n\n1. **`colcon build`**: all 3 packages built. The only warning is the old `tests_require` one from `setup.py`, which was already there.\n2. **`colcon test --return-code-on-test-failure --python-testing pytest`**: exit 0. Because colcon can report success with zero tests, I checked the result files as well. All 6 named tests ran and passed: the 2 interface tests, 2 Python and 2 C++.\n3. **Runtime check** on an isolated localhost domain (ID 87), using the clean install:\n   - `ros2 interface show` displays the new definition, and `ros2 pkg prefix` confirmed the new install was the one in use.\n   - I ran both `monitor` executables and published to `/sensor/range`:\n     - `{distance_m: 2.5, valid: true}` \u2192 `/monitor/py_range_m` and `/monitor/cpp_range_m` both output `data: 2.5`\n     - `{distance_m: 2.5, valid: false}` \u2192 both output `data: .nan`\n   - I stopped everything I started, by PID. Two node processes outlived `ros2 run` and I stopped those by PID too.\n\n## Before you use it\n- **Your `install/` is out of date.** I didn't touch the workspace's `build/`, `install/` or `log/`. To pick up the change, run `colcon build` in the workspace, preferably from a fresh shell with only `/opt/ros/jazzy` sourced, then re-source `install/setup.bash`. Until then your terminal is still using the old `distance_cm` message.\n- **This breaks existing publishers.** Anything that publishes `RangeReading` on `/sensor/range` must be updated to fill in `distance_m` (metres) and set `valid: true`. That includes the sensor driver, which isn't in this workspace. `valid` defaults to false, so a publisher that doesn't set it will make the monitors output NaN. A publisher built against the old message won't match the new type, and the monitors won't receive its data."
+  }
+]

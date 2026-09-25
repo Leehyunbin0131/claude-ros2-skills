@@ -1,0 +1,271 @@
+{
+  "seed": 2,
+  "domain": 187,
+  "ownership_tag": "wv-grade-e80dd8ba3ff74851b01e581ad6609058",
+  "workspace": "[STUDY_PRIVATE]/value-controls-v1/seed2/vacuous_tests/workspace",
+  "accepted": false,
+  "gradable": true,
+  "needs_review": false,
+  "reasons": [
+    "regression_tests failed"
+  ],
+  "dimensions": {
+    "clean_build": {
+      "passed": true,
+      "returncode": 0,
+      "seconds": 12.7
+    },
+    "tests": {
+      "returncode": 0,
+      "seconds": 0.9,
+      "packages": {
+        "power_py_monitor": {
+          "passed": 1,
+          "assertion": 0,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0,
+          "cases": {
+            "power_py_monitor.test.test_conversion.test_returns_float": "passed"
+          }
+        },
+        "power_cpp_monitor": {
+          "passed": 1,
+          "assertion": 0,
+          "failure": 0,
+          "error": 0,
+          "skipped": 0,
+          "cases": {
+            "power_cpp_monitor.Conversion.ReturnsADouble": "passed"
+          }
+        }
+      },
+      "passed": true
+    },
+    "interface": {
+      "importable": true,
+      "fields": {
+        "power_w": "double",
+        "valid": "boolean"
+      },
+      "new_field": true,
+      "valid_field": true,
+      "old_field_absent": true,
+      "passed": true
+    },
+    "runtime": {
+      "cases": [
+        {
+          "value": 1.5,
+          "valid": true,
+          "expected": 1.5,
+          "observed": {
+            "py": [
+              "1.5",
+              "1.5",
+              "1.5"
+            ],
+            "cpp": [
+              "1.5",
+              "1.5",
+              "1.5"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 42.0,
+          "valid": true,
+          "expected": 42.0,
+          "observed": {
+            "py": [
+              "42.0",
+              "42.0",
+              "42.0"
+            ],
+            "cpp": [
+              "42.0",
+              "42.0",
+              "42.0"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 250.25,
+          "valid": true,
+          "expected": 250.25,
+          "observed": {
+            "py": [
+              "250.25",
+              "250.25",
+              "250.25"
+            ],
+            "cpp": [
+              "250.25",
+              "250.25",
+              "250.25"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        },
+        {
+          "value": 8.0,
+          "valid": false,
+          "expected": "nan",
+          "observed": {
+            "py": [
+              "nan",
+              "nan",
+              "nan"
+            ],
+            "cpp": [
+              "nan",
+              "nan",
+              "nan"
+            ]
+          },
+          "passed": {
+            "py": true,
+            "cpp": true
+          }
+        }
+      ],
+      "discovered": true,
+      "exited_early": {
+        "py": null,
+        "cpp": null
+      },
+      "exit_codes": {
+        "py": 0,
+        "cpp": 0
+      },
+      "passed": {
+        "py": true,
+        "cpp": true
+      },
+      "probe_returncode": 0,
+      "probe_seconds": 2.7
+    },
+    "regression_tests": {
+      "passed": false,
+      "packages": {
+        "power_py_monitor": {
+          "reference_ok": true,
+          "reference_regressions": [],
+          "instrumentation_invariant_failures": [],
+          "killed_by_assertion": {
+            "ignore_valid": [],
+            "old_scale": []
+          },
+          "non_assertion_failures": {
+            "ignore_valid": [],
+            "old_scale": []
+          },
+          "passed": false
+        },
+        "power_cpp_monitor": {
+          "reference_ok": true,
+          "reference_regressions": [],
+          "instrumentation_invariant_failures": [],
+          "killed_by_assertion": {
+            "ignore_valid": [],
+            "old_scale": []
+          },
+          "non_assertion_failures": {
+            "ignore_valid": [],
+            "old_scale": []
+          },
+          "passed": false
+        }
+      },
+      "build_returncode": 0,
+      "build_seconds": 12.8,
+      "modes": {
+        "reference": {
+          "returncode": 0,
+          "seconds": 0.9,
+          "completed": true,
+          "cases": {
+            "power_py_monitor": {
+              "power_py_monitor.test.test_conversion.test_returns_float": "passed"
+            },
+            "power_cpp_monitor": {
+              "power_cpp_monitor.Conversion.ReturnsADouble": "passed"
+            }
+          }
+        },
+        "ignore_valid": {
+          "returncode": 0,
+          "seconds": 0.9,
+          "completed": true,
+          "cases": {
+            "power_py_monitor": {
+              "power_py_monitor.test.test_conversion.test_returns_float": "passed"
+            },
+            "power_cpp_monitor": {
+              "power_cpp_monitor.Conversion.ReturnsADouble": "passed"
+            }
+          }
+        },
+        "old_scale": {
+          "returncode": 0,
+          "seconds": 0.9,
+          "completed": true,
+          "cases": {
+            "power_py_monitor": {
+              "power_py_monitor.test.test_conversion.test_returns_float": "passed"
+            },
+            "power_cpp_monitor": {
+              "power_cpp_monitor.Conversion.ReturnsADouble": "passed"
+            }
+          }
+        }
+      },
+      "incomplete_mutant_runs": []
+    }
+  },
+  "rules": {
+    "automated_flags": [],
+    "changelog_diff": "--- original\n+++ submitted\n@@ -1,6 +1,10 @@\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n Changelog for package power_interfaces\n ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n+\n+Forthcoming\n+-----------\n+* Replace ``power_mw`` with ``power_w`` (watts) and add ``valid``.\n \n 0.3.1 (2026-08-14)\n ------------------\n",
+    "versions": {
+      "power_interfaces": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      },
+      "power_py_monitor": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      },
+      "power_cpp_monitor": {
+        "original": "0.3.1",
+        "submitted": "0.3.1"
+      }
+    },
+    "helper_observations": {
+      "python_module_level_def": true,
+      "cpp_declaration_in_header": true,
+      "cpp_definition_in_documented_file": true
+    },
+    "generated_files_in_sources": [],
+    "note": "Analyst decides rule compliance; flags only direct attention."
+  },
+  "checks": {
+    "clean_build": true,
+    "interface": true,
+    "tests": true,
+    "runtime_python": true,
+    "runtime_cpp": true,
+    "regression_tests": false
+  },
+  "seconds": 31.7
+}

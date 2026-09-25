@@ -1,0 +1,578 @@
+[
+  {
+    "seed": 0,
+    "control": "cpp_node_bypass",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 32.8
+  },
+  {
+    "seed": 0,
+    "control": "crash_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": true,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 32.0
+  },
+  {
+    "seed": 0,
+    "control": "exception_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.9
+  },
+  {
+    "seed": 0,
+    "control": "header_inline_helper",
+    "accepted": false,
+    "gradable": false,
+    "needs_review": true,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 16.4
+  },
+  {
+    "seed": 0,
+    "control": "interface_only",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": false,
+      "interface": false,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 15.9
+  },
+  {
+    "seed": 0,
+    "control": "invalid_only_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 32.0
+  },
+  {
+    "seed": 0,
+    "control": "missed_cpp",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": false,
+      "interface": false,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 15.3
+  },
+  {
+    "seed": 0,
+    "control": "missed_python",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": true,
+      "regression_tests": null
+    },
+    "seconds": 64.0
+  },
+  {
+    "seed": 0,
+    "control": "reference",
+    "accepted": true,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": true
+    },
+    "seconds": 50.9
+  },
+  {
+    "seed": 0,
+    "control": "starter",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": false,
+      "tests": true,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 22.7
+  },
+  {
+    "seed": 0,
+    "control": "vacuous_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 32.0
+  },
+  {
+    "seed": 0,
+    "control": "valid_only_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 32.1
+  },
+  {
+    "seed": 1,
+    "control": "cpp_node_bypass",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 26.4
+  },
+  {
+    "seed": 1,
+    "control": "crash_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": true,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.5
+  },
+  {
+    "seed": 1,
+    "control": "exception_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.3
+  },
+  {
+    "seed": 1,
+    "control": "header_inline_helper",
+    "accepted": false,
+    "gradable": false,
+    "needs_review": true,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 16.2
+  },
+  {
+    "seed": 1,
+    "control": "interface_only",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": false,
+      "interface": false,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 9.8
+  },
+  {
+    "seed": 1,
+    "control": "invalid_only_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.6
+  },
+  {
+    "seed": 1,
+    "control": "missed_cpp",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": false,
+      "interface": false,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 9.6
+  },
+  {
+    "seed": 1,
+    "control": "missed_python",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": true,
+      "regression_tests": null
+    },
+    "seconds": 55.2
+  },
+  {
+    "seed": 1,
+    "control": "reference",
+    "accepted": true,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": true
+    },
+    "seconds": 32.2
+  },
+  {
+    "seed": 1,
+    "control": "starter",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": false,
+      "tests": true,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 14.1
+  },
+  {
+    "seed": 1,
+    "control": "vacuous_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.8
+  },
+  {
+    "seed": 1,
+    "control": "valid_only_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.9
+  },
+  {
+    "seed": 2,
+    "control": "cpp_node_bypass",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 26.3
+  },
+  {
+    "seed": 2,
+    "control": "crash_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": true,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 32.3
+  },
+  {
+    "seed": 2,
+    "control": "exception_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 32.4
+  },
+  {
+    "seed": 2,
+    "control": "header_inline_helper",
+    "accepted": false,
+    "gradable": false,
+    "needs_review": true,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 16.6
+  },
+  {
+    "seed": 2,
+    "control": "interface_only",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": false,
+      "interface": false,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 9.8
+  },
+  {
+    "seed": 2,
+    "control": "invalid_only_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 33.6
+  },
+  {
+    "seed": 2,
+    "control": "missed_cpp",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": false,
+      "interface": false,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 10.4
+  },
+  {
+    "seed": 2,
+    "control": "missed_python",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": false,
+      "runtime_python": false,
+      "runtime_cpp": true,
+      "regression_tests": null
+    },
+    "seconds": 55.3
+  },
+  {
+    "seed": 2,
+    "control": "reference",
+    "accepted": true,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": true
+    },
+    "seconds": 32.7
+  },
+  {
+    "seed": 2,
+    "control": "starter",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": false,
+      "tests": true,
+      "runtime_python": false,
+      "runtime_cpp": false,
+      "regression_tests": null
+    },
+    "seconds": 14.5
+  },
+  {
+    "seed": 2,
+    "control": "vacuous_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.7
+  },
+  {
+    "seed": 2,
+    "control": "valid_only_tests",
+    "accepted": false,
+    "gradable": true,
+    "needs_review": false,
+    "checks": {
+      "clean_build": true,
+      "interface": true,
+      "tests": true,
+      "runtime_python": true,
+      "runtime_cpp": true,
+      "regression_tests": false
+    },
+    "seconds": 31.9
+  }
+]

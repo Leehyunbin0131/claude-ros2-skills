@@ -1,0 +1,31 @@
+Starting >>> power_interfaces
+Finished <<< power_interfaces [5.58s]
+Starting >>> power_cpp_monitor
+Starting >>> power_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: power_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+---
+Finished <<< power_py_monitor [0.73s]
+--- stderr: power_cpp_monitor
+[STUDY_PRIVATE]/value-controls-v1/seed2/missed_cpp/grade/candidate/src/power_cpp_monitor/src/conversion.cpp: In function ‘double power_cpp_monitor::normalize(const power_interfaces::msg::PowerReading&)’:
+[STUDY_PRIVATE]/value-controls-v1/seed2/missed_cpp/grade/candidate/src/power_cpp_monitor/src/conversion.cpp:8:14: error: ‘const power_interfaces::msg::PowerReading’ {aka ‘const struct power_interfaces::msg::PowerReading_<std::allocator<void> >’} has no member named ‘power_mw’; did you mean ‘power_w’?
+    8 |   return msg.power_mw / 1000.0;
+      |              ^~~~~~~~
+      |              power_w
+gmake[2]: *** [CMakeFiles/power_cpp_monitor_conversion.dir/build.make:76: CMakeFiles/power_cpp_monitor_conversion.dir/src/conversion.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:159: CMakeFiles/power_cpp_monitor_conversion.dir/all] Error 2
+gmake[1]: *** Waiting for unfinished jobs....
+gmake: *** [Makefile:146: all] Error 2
+---
+Failed   <<< power_cpp_monitor [4.38s, exited with code 2]
+
+Summary: 2 packages finished [10.0s]
+  1 package failed: power_cpp_monitor
+  2 packages had stderr output: power_cpp_monitor power_py_monitor

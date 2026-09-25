@@ -1,0 +1,19 @@
+Starting >>> range_interfaces
+Finished <<< range_interfaces [8.33s]
+Starting >>> range_cpp_monitor
+Starting >>> range_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: range_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+warning: build_py: byte-compiling is disabled, skipping.
+
+warning: install_lib: byte-compiling is disabled, skipping.
+
+---
+Finished <<< range_py_monitor [1.29s]
+Finished <<< range_cpp_monitor [11.7s]
+
+Summary: 3 packages finished [20.2s]
+  1 package had stderr output: range_py_monitor

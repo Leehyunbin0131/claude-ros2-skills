@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.021" timestamp="2026-09-25T16:51:26.739217" hostname="[HOST]"><testcase classname="power_py_monitor.test.test_conversion" name="test_converts_milliwatts" time="0.000"><failure message="AttributeError: 'PowerReading' object has no attribute 'power_mw'">test/test_conversion.py:8: in test_converts_milliwatts
+    msg.power_mw = 12500.0
+E   AttributeError: 'PowerReading' object has no attribute 'power_mw'</failure></testcase></testsuite></testsuites>

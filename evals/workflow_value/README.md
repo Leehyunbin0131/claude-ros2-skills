@@ -6,6 +6,9 @@ interface migration, each with Python and C++ consumers. This is a descriptive
 study of that workflow; successful release acceptance does not establish added
 value over the baseline.
 
+Completed study: [results and limits](RESULTS.md), [execution amendment](AMENDMENTS.md).
+The six artifacts passed in both conditions; added reliability was not established.
+
 ## Reproduce the controls first
 
 Use Ubuntu 24.04 with Jazzy, colcon, rosidl_default_generators,

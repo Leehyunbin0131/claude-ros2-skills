@@ -1,0 +1,25 @@
+{
+  "control_process": {
+    "pid": 202656,
+    "started_at": 1790321915.65
+  },
+  "snapshot_taken_after_launch": true,
+  "files": {
+    "evals/workflow_value/fixture.py": {
+      "sha256": "fc889c96172b59b43642bd3eec6e04ff12ff4e2269c0f385634d10e36686ffd7",
+      "mtime": 1790321645.7302058
+    },
+    "evals/workflow_value/grade.py": {
+      "sha256": "3d12979f6c8e44f3b64c6325d7a13e23d9dcc9bfc97539209d0f15502377ac03",
+      "mtime": 1790321651.9743555
+    },
+    "evals/workflow_value/runtime_probe.py": {
+      "sha256": "f9af3684757fa69068c1ae8186f38aa2d7efc35dff864433c26fb1163cc1f157",
+      "mtime": 1790321609.9333298
+    },
+    "evals/workflow_value/test_oracle.py": {
+      "sha256": "6adf26d513c5bbbf1455166af340b2371e6e8b9e1a7f2472d2cdf5edf2dc79a0",
+      "mtime": 1790321689.2632287
+    }
+  }
+}

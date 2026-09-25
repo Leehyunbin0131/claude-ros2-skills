@@ -72,12 +72,14 @@ and validate them separately from delivery mechanics.
 ## Before opening a PR
 
 ```bash
-python3 -m compileall -q skills scripts tests evals/harness evals/development
+python3 -m compileall -q skills scripts tests evals/harness evals/development evals/workflow_value
 for file in evals/harness/*.sh; do bash -n "$file"; done
 python3 skills/ros2-troubleshooting/scripts/test_checks.py
 python3 tests/test_install.py
 python3 tests/test_development.py
 python3 evals/development/test_runner.py
+python3 evals/workflow_value/test_runner.py
+python3 evals/workflow_value/test_oracle.py
 python3 evals/harness/grade_v2.py --selftest
 python3 evals/harness/test_harness.py
 
@@ -94,6 +96,10 @@ python3 tests/test_ament_test_results.py
 python3 evals/development/test_oracles.py
 ROS2_ACCEPTANCE_SEED=1 python3 evals/development/test_oracles.py
 ```
+
+The interface-migration study adds [independent oracle controls](evals/workflow_value/README.md).
+CI runs their first variant without model calls; a new study requires all variants
+before freezing inputs and invoking a model.
 
 CI runs these checks plus documentation links. Immutable `evals/runs/`
 transcripts are excluded from link checks: historical failed URLs are evidence,

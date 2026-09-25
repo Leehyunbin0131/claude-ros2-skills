@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.022" timestamp="2026-09-25T17:22:04.884149" hostname="[HOST]"><testcase classname="power_py_monitor.test.test_conversion" name="test_returns_watts_when_valid" time="0.000" /><testcase classname="power_py_monitor.test.test_conversion" name="test_returns_nan_when_invalid" time="0.000"><failure message="assert False&#10; +  where False = &lt;built-in function isnan&gt;(12.5)&#10; +    where &lt;built-in function isnan&gt; = math.isnan&#10; +    and   12.5 = normalize(power_interfaces.msg.PowerReading(power_w=12.5, valid=False))">test/test_conversion.py:19: in test_returns_nan_when_invalid
+    assert math.isnan(normalize(msg))
+E   assert False
+E    +  where False = &lt;built-in function isnan&gt;(12.5)
+E    +    where &lt;built-in function isnan&gt; = math.isnan
+E    +    and   12.5 = normalize(power_interfaces.msg.PowerReading(power_w=12.5, valid=False))</failure></testcase></testsuite></testsuites>

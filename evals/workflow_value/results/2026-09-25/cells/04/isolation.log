@@ -1,0 +1,1 @@
+isolation ok: masked paths, private /tmp, read-only runtime, original UID

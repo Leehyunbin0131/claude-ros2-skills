@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="power_cpp_monitor" tests="1" failures="0" time="0.104" errors="1" skipped="0">
+  <testcase classname="power_cpp_monitor" name="test_conversion.gtest.missing_result" time="0.104">
+    <error message="The test did not generate a result file:&#10;&#10;Running main() from /opt/ros/jazzy/src/gtest_vendor/src/gtest_main.cc&#10;[==========] Running 2 tests from 1 test suite.&#10;[----------] Global test environment set-up.&#10;[----------] 2 tests from Conversion&#10;[ RUN      ] Conversion.ValidReadingPassesThrough&#10;"/>
+  </testcase>
+</testsuite>

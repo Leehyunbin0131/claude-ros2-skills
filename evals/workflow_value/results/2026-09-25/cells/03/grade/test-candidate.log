@@ -1,0 +1,10 @@
+Starting >>> thermal_interfaces
+Finished <<< thermal_interfaces [0.03s]
+Starting >>> thermal_cpp_monitor
+Starting >>> thermal_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+Finished <<< thermal_cpp_monitor [0.26s]
+Finished <<< thermal_py_monitor [0.39s]
+
+Summary: 3 packages finished [0.50s]

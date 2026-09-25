@@ -1,0 +1,18 @@
+Starting >>> power_interfaces
+Finished <<< power_interfaces [0.03s]
+Starting >>> power_cpp_monitor
+Starting >>> power_py_monitor
+/tmp/ros2-skill-validation-venv/lib/python3.12/site-packages/setuptools/_distutils/dist.py:289: UserWarning: Unknown distribution option: 'tests_require'
+  warnings.warn(msg)
+--- stderr: power_cpp_monitor
+Errors while running CTest
+Output from these tests are in: [STUDY_PRIVATE]/value-controls-v1/seed2/crash_tests/grade/instrumented/build/power_cpp_monitor/Testing/Temporary/LastTest.log
+Use "--rerun-failed --output-on-failure" to re-run the failed cases verbosely.
+---
+Finished <<< power_cpp_monitor [0.37s]	[ with test failures ]
+Failed   <<< power_py_monitor [0.37s, exited with code 3]
+
+Summary: 2 packages finished [0.50s]
+  1 package failed: power_py_monitor
+  1 package had stderr output: power_cpp_monitor
+  1 package had test failures: power_cpp_monitor

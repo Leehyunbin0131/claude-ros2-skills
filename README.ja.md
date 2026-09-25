@@ -49,6 +49,8 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 
 CIはインストール保護、判定ロジック、実際の一時Python/CMakeパッケージのビルドとテスト、合成Jazzy通信・TF、評価ツールを確認します。Opus 5.5 High による3課題はプラグイン・手動インストールの両方で完了しました。ベースラインも全課題を完了しており、方式・課題ごとに1回の観測です。[検証記録](evals/development/RESULTS.md)を参照してください。ツールの動作検証はエージェント能力の向上を証明しません。実機とMCUは別途検証が必要です。
 
+後続の[インターフェース移行比較](evals/workflow_value/RESULTS.md)では、Opus 5.5 High で Python/C++ 消費側を含む3変種を検証しました。スキル有無の6成果物すべてが独立検証を通過しました。報告の正確性、規則の曖昧さ、残存プロセスは別に記録しています。信頼性向上や因果的な高速化は実証されず、スキルは 0.1.2 のままです。
+
 過去の成績には欠落記録や再現できない再採点があります。現在の性能として宣伝しません。 [CAPABILITIES.md](evals/CAPABILITIES.md).
 
 ## 更新

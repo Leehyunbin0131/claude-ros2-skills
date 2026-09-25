@@ -1,0 +1,7 @@
+ M src/power_cpp_monitor/include/power_cpp_monitor/conversion.hpp
+ M src/power_cpp_monitor/src/conversion.cpp
+ M src/power_cpp_monitor/test/test_conversion.cpp
+ M src/power_interfaces/CHANGELOG.rst
+ M src/power_interfaces/msg/PowerReading.msg
+ M src/power_py_monitor/power_py_monitor/conversion.py
+ M src/power_py_monitor/test/test_conversion.py

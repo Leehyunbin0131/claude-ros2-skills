@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.023" timestamp="2026-09-25T16:54:53.742150" hostname="[HOST]"><testcase classname="power_py_monitor.test.test_conversion" name="test_valid_reading_passes_through" time="0.000" /><testcase classname="power_py_monitor.test.test_conversion" name="test_invalid_reading_is_nan" time="0.000"><failure message="KeyError: 2.5">test/test_conversion.py:21: in test_invalid_reading_is_nan
+    assert value != value or {}[value]
+E   KeyError: 2.5</failure></testcase></testsuite></testsuites>
