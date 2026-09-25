@@ -1,22 +1,9 @@
 # Workflow usefulness study: interface migration
 
-This Low protocol is frozen before the first Low evaluation call. It evaluates the
+This protocol is written before the first evaluation call. It evaluates the
 shipped **0.1.2 pack**, including its SessionStart protocol, against no pack.
 It does not measure skill prose alone. No product change is made before data.
 The existing release-acceptance records remain unchanged.
-
-## User-directed effort change
-
-The user requested **Opus 5.5 Low** after two High model sessions had already
-completed (the second external grader was still running). Those two High
-sessions are retained as preliminary records and are excluded from the six-cell
-Low comparison. The initial [High protocol](protocols/HIGH_INITIAL.md) and
-[freeze](freezes/high-initial.json) correspond to source commit `d4db751`.
-All six Low sessions start fresh; no High session is resumed or relabeled.
-The task, rubric, condition order, shipped pack and 36 model-independent control
-cases are unchanged. The controls need not be rerun for an effort-only change;
-their source hashes are checked against this freeze. The preceding High calls
-may warm prompt caches, which is another limit on interpreting cost differences.
 
 ## Question and scope
 
@@ -29,7 +16,7 @@ application domains. Hardware, micro-ROS, and full application bringup are exclu
 
 ## Conditions and inputs
 
-Six fresh Claude Code sessions use `claude-opus-5-5`, effort `low`, without a
+Six fresh Claude Code sessions use `claude-opus-5-5`, effort `high`, without a
 fallback or inherited review conversation. Run sequentially:
 
 | Cell | Variant | Condition |
