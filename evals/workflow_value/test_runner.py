@@ -12,13 +12,13 @@ import run
 
 class EvidenceTests(unittest.TestCase):
     def test_pair_gate_rejects_different_facts_or_settings(self):
-        previous = dict(cell=1, condition='baseline', seed=0, model=run.MODEL, effort='high',
+        previous = dict(cell=1, condition='baseline', seed=0, model=run.MODEL, effort=run.EFFORT,
             input_sha256={'TASK.txt': 'a'}, prompt_sha256='a', freeze_sha256='b',
             cli_version='test', versions={'pytest': 'test'}, settings={'memory': False})
         current = dict(previous, cell=2, condition='pack')
         self.assertTrue(run.pair_matches(current, previous))
         for key, value in [('input_sha256', {'TASK.txt': 'different'}), ('seed', 1),
-                           ('effort', 'low'), ('condition', 'baseline')]:
+                           ('effort', 'high'), ('condition', 'baseline')]:
             with self.subTest(key=key):
                 self.assertFalse(run.pair_matches(dict(current, **{key: value}), previous))
 

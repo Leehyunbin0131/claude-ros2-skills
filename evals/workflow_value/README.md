@@ -1,7 +1,7 @@
 # Interface-migration usefulness study
 
 The [protocol](PROTOCOL.md) compares the unchanged 0.1.2 pack with no pack in six
-fresh Opus 5.5 High sessions. Three variants exercise one existing-workspace
+fresh Opus 5.5 Low sessions. Three variants exercise one existing-workspace
 interface migration, each with Python and C++ consumers. This is a descriptive
 study of that workflow; successful release acceptance does not establish added
 value over the baseline.

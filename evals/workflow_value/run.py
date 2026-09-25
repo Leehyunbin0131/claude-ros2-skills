@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT/'evals/harness'))
 import procscope
 
 MODEL = 'claude-opus-5-5'
+EFFORT = 'low'
 SKILLS = {'ros2-development', 'ros2-troubleshooting', 'ros2-microros'}
 ORDER = [('baseline', 0), ('pack', 0), ('pack', 1), ('baseline', 1), ('baseline', 2), ('pack', 2)]
 
@@ -140,7 +141,7 @@ def summarize(rows, condition, pack, payload, wall, rc):
         r.get('subtype') == 'hook_response' and r.get('hook_event') == 'SessionStart' and
         r.get('exit_code') == 0 and r.get('stdout', '').strip() == (ROOT/'CLAUDE.md').read_text().strip()
         for r in rows)
-    return {'model': init.get('model'), 'effort': 'high', 'skills': init.get('skills'),
+    return {'model': init.get('model'), 'effort': EFFORT, 'skills': init.get('skills'),
         'plugins': init.get('plugins'), 'tools': init.get('tools'), 'inventory_correct': inventory,
         'protocol_transport_verified': hook, 'pack_unchanged': hashes(pack) == payload,
         'is_error': final.get('is_error', True), 'result': final.get('result'),
@@ -198,7 +199,7 @@ def main():
     tag = procscope.new_tag()
     env = dict(os.environ, EVAL_RUN_TAG=tag, ROS_DOMAIN_ID=str(221+seed),
         ROS_AUTOMATIC_DISCOVERY_RANGE='LOCALHOST', ROS_STATIC_PEERS='',
-        CLAUDE_CODE_EFFORT_LEVEL='high', COLCON_HOME=str(ws/'.colcon'),
+        CLAUDE_CODE_EFFORT_LEVEL=EFFORT, COLCON_HOME=str(ws/'.colcon'),
         COLCON_DEFAULTS_FILE=str(ws/'colcon-defaults.yaml'), TMPDIR='/tmp')
     (ws/'colcon-defaults.yaml').write_text('{}\n')
     (ws/'.gitignore').write_text('build/\ninstall/\nlog/\n.colcon/\n__pycache__/\n*.pyc\n*.egg-info/\n')
@@ -222,14 +223,14 @@ def main():
                 'syncClaudeAiPlugins': False, 'ultracode': False}
     prompt = (ws/'TASK.txt').read_text()
     toolset = 'Read,Glob,Grep,Bash,Write,Edit,Skill,WebFetch'
-    cli = ['claude', '-p', prompt, '--model', MODEL, '--effort', 'high',
+    cli = ['claude', '-p', prompt, '--model', MODEL, '--effort', EFFORT,
         '--output-format', 'stream-json', '--verbose', '--include-hook-events',
         '--no-session-persistence', '--setting-sources', 'project,local',
         '--settings', json.dumps(settings), '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}',
         '--permission-mode', 'dontAsk', '--tools', toolset, '--allowedTools', toolset]
     if condition == 'pack':
         cli += ['--plugin-dir', str(pack)]
-    meta = {'cell': args.cell, 'condition': condition, 'seed': seed, 'model': MODEL, 'effort': 'high',
+    meta = {'cell': args.cell, 'condition': condition, 'seed': seed, 'model': MODEL, 'effort': EFFORT,
         'workspace': str(ws), 'payload_sha256': payload, 'input_sha256': inputs,
         'fixture_commit': fixture_commit,
         'prompt_sha256': hashlib.sha256(prompt.encode()).hexdigest(),
