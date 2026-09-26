@@ -61,9 +61,11 @@ Das Nachweiswerkzeug trennt strikt zwischen den vom Aufrufer deklarierten Ausgab
 
 ## Validierungsgrenzen
 
+Exit-Codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE oder ungültige Anfrage. Fehlende Daten, NaN, unbekanntes QoS, fehlende TF, <2 Messungen, übermäßige Messwertvariation (>1,5 m/s², anpassbar über --max-variation) oder keine ausgeführten Tests zählen nicht als Erfolg. PASS betrifft die gemessene +Z-Gravitation im horizontalen Basisrahmen nach deklariertem TF oder expliziter Ausrichtungsannahme (--assume-aligned); keines davon beweist physischen Stillstand, und Gravitation prüft kein Yaw. Der Odometrietest prüft Richtung, nicht Entfernungskalibrierung. Laufzeitdiagnosen senden keine Bewegungsbefehle.
+
 CI prüft Installationserhalt, Code-Gültigkeit, reale Python/CMake- und ament-Tests sowie synthetische Jazzy-Kommunikation.
 
-In früheren Evaluierungen mit Claude Code Opus 5.5 High bestanden sowohl Sessions mit Skills als auch die Baseline dieselben Aufgaben. In einer Schnittstellen-Migrationsstudie ([RESULTS.md](evals/workflow_value/RESULTS.md)) waren Skill-Sessions in den beobachteten Läufen schneller; Stichproben- und Cache-Einflüsse **begründen jedoch keinen kausalen Nachweis für Geschwindigkeits-, Zuverlässigkeits- oder Programmierfähigkeitsverbesserungen**.
+In früheren Evaluierungen mit Claude Code Opus 5.5 High bestanden sowohl Sessions mit Skills als auch die Baseline dieselben Aufgaben. In einer Schnittstellen-Migrationsstudie ([RESULTS.md](evals/workflow_value/RESULTS.md)) waren Skill-Sessions in den beobachteten Läufen schneller; Stichproben- und Cache-Einflüsse **begründen jedoch keinen kausalen Nachweis für Geschwindigkeits-, Zuverlässigkeits- oder Programmierfähigkeitsverbesserungen**. Die historische 0.1.2-Studie bewertet nicht die neuen Übergabewerkzeuge von Version 0.2.0.
 
 Reale Roboter, MCU-Firmware und vollständige Nav2/MoveIt-Anwendungen bleiben ungeprüft.
 

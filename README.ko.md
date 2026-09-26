@@ -101,18 +101,19 @@ ROS 환경을 포함한 검사는 Ubuntu의 pytest 7.4.4로 확인했습니다.
 
 | 스크립트 | 확인하는 증거 |
 | :--- | :--- |
-| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | 새 colcon 결과에서 실행·통과한 테스트 확인. 기능 변경은 `--require-test PACKAGE::test_name`으로 필요한 테스트를 지정 (스타일 검사만으로 기능 검증을 대신하지 않음) |
+| `ros2-development/scripts/check_test_results.py <results> --packages <name>` | 새 colcon 결과에서 실행·통과한 테스트 확인. 기능 변경은 `--require-test PACKAGE::test_name`으로 필요한 테스트를 지정. 스타일 검사만으로 기능 검증을 대신하지 않음 |
 | `ros2-development/scripts/evidence.py begin / finish / inspect` | **선택적(opt-in) 워크플로**: 호출자가 선언한 명령 메타데이터 기록 및 작업 공간의 파일 해시와 선택된 환경변수 값 비교로 인계 지원 |
 | `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | 발견된 발행자·구독자 조합의 실제 Jazzy QoS 호환성 |
-| `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF 연결과 실물에 대조할 장착 각도; 특이한 각도 표시는 참고 사항 |
-| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | 정지·수평 상태에서 가속도를 `--base base_link`로 변환한 뒤 중력 확인; TF가 없으면 판정 불가, 중력만으로 yaw 확인 불가 |
-| `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | 외부에서 확인한 이동 전후의 새로운 오도메트리; 방향 검사이며 거리 보정 검사는 아님 |
+| `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF 연결과 실물에 대조할 장착 각도. 특이한 각도 표시는 참고 사항 |
+| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | 선언된 TF 또는 `--assume-aligned`를 적용하여 수평 기준 프레임의 +Z 중력 가속도 측정치 확인. 최소 2개 샘플 필요, 샘플 간 RMS 편차 >1.5 m/s²(`--max-variation`으로 조정 가능) 또는 TF 누락 시 판정 불가. 어느 방식이든 물리적 정지 상태 자체는 입증하지 못하며 중력만으로 yaw 확인 불가 |
+| `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | 외부에서 확인한 이동 전후의 새로운 오도메트리. 방향 검사이며 거리 보정 검사는 아님 |
 
+아래 4개 스크립트는 `ros2-troubleshooting/scripts/`에 있습니다.
 **진단 스크립트 종료 코드: 0 통과, 1 실패, 2 판정 불가 또는 잘못된 요청.**
 
 **증거 검사(`inspect`) 종료 코드: 0 일치(Consistent), 1 변경됨(Changed), 2 불완전(Incomplete).**
 
-데이터 누락·NaN·사용 불가 IMU 필드·불명확한 QoS·실행한 테스트 없음·불충분한 이동을 성공으로 처리하지 않습니다. 런타임 검사는 Jazzy 환경을 먼저 불러와야 합니다. 이동 명령을 발행하지 않으며, 오도메트리 검사는 스크립트 외부에서 수행한 이동을 관찰합니다. 통과는 해당 속성을 확인했다는 뜻이지 로봇 전체가 올바르다는 뜻은 아닙니다.
+데이터 누락·NaN·사용 불가 IMU 필드·불충분한 샘플(2개 미만)·과도한 샘플 편차·불명확한 QoS·실행한 테스트 없음·불충분한 이동을 성공으로 처리하지 않습니다. 런타임 검사는 Jazzy 환경을 먼저 불러와야 합니다. 이동 명령을 발행하지 않으며, 오도메트리 검사는 스크립트 외부에서 수행한 이동을 관찰합니다. 검사 결과는 관측한 속성에 관한 근거만 제공합니다. IMU 통과(PASS)는 선언된 TF 또는 명시적인 축 정렬 가정을 거쳐 수평 기준 프레임에서 측정된 +Z 중력 방향을 확인할 뿐이며, 물리적 정지 상태나 로봇 전체의 정상 상태를 입증하지는 못합니다.
 
 증거 도구는 호출자가 선언한 출력과 도구가 관측한 파일 해시를 엄격히 분리합니다. 사용자 명령을 직접 실행하거나 재실행하지 않으며, 신선도를 보장하거나 중간 변경의 부재, 로봇 전체의 정상 작동을 증명하지 않습니다. 상세 설계는 [docs/DESIGN.md](docs/DESIGN.md) 및 [references/handoff.md](skills/ros2-development/references/handoff.md)를 참고하세요.
 
@@ -137,6 +138,9 @@ Nav2·MoveIt·ros2_control을 포함한 개발에서도 이 흐름을 활용하�
 
 ## 검증 범위와 한계
 
+Codex 지원 검증은 [별도 보고서](evals/CODEX.md)에 기록합니다. 오프라인 설치·탐색 및 모델명이 기록되지 않은
+2건의 프로젝트 설치 워크플로를 다루며, 기존 Claude 실행 결과는 Codex 성능의 증거가 아닙니다.
+Codex에서는 스킬을 활성화할 때 공통 지침이 적용됩니다.
 CI는 설치·업데이트 시 파일 보존, Python·셸 코드, 판정 로직, 실제 Python/CMake 및 ament 테스트,
 합성 Jazzy 통신·TF, 독립적인 평가 판정기의 정상·오류 사례를 검사합니다.
 명령은 [기여 안내](CONTRIBUTING.md)에 있습니다.
@@ -149,14 +153,16 @@ IMU/TF 진단을 플러그인·수동 설치 방식에서 각각 완료했습니
 종료 지침을 보강한 뒤의 런타임 재검증을 포함한 모든 시도와 한계는
 [배포 검증 기록](evals/development/RESULTS.md)에 공개합니다.
 
-Codex 지원 검증은 [별도 보고서](evals/CODEX.md)에 기록합니다. 기존 Claude 실행 결과는
-Codex 성능의 증거가 아닙니다. Codex에서는 스킬을 사용할 때 공통 지침이 적용됩니다.
-
-후속 [인터페이스 변경 비교 실험](evals/workflow_value/RESULTS.md)은 Opus 5.5 High로
-Python·C++ 소비자가 있는 세 변형을 스킬 유무에 따라 비교했습니다. 여섯 결과물 모두 독립적인
+후속 [인터페이스 변경 비교 실험](evals/workflow_value/RESULTS.md)은 동결된 0.1.2 스냅샷을 대상으로 Opus 5.5 High를
+사용해 Python·C++ 소비자가 있는 세 변형을 스킬 유무에 따라 비교했습니다. 여섯 결과물 모두 독립적인
 빌드·실행·회귀 검증을 통과했습니다. 검증 보고의 정확성, 해석이 갈리는 프로젝트 규칙,
-프로세스 종료 문제는 별도로 기록했습니다. 스킬 사용 시 관측 시간은 짧았지만 표본·캐시·실행 환경의
-한계 때문에 속도나 신뢰성 향상을 입증하지는 못했습니다. 스킬은 0.1.2 그대로 유지합니다.
+프로세스 종료 문제는 별도로 기록했습니다. 해당 실험에서 스킬 팩 세션은 출력 토큰 수와 API 비용 추정치가
+더 높았으며, 관측된 경과 시간 단축은 실행 순서, 프롬프트 캐시, 백그라운드 프로브 대기 시간의 혼재로 인한 것입니다.
+토큰 수, 총 비용, 속도 측면의 입증된 이점은 없으며 이를 주장하지 않습니다. 0.2.0 릴리스는 선별적인 IMU 수정과
+함께 선택적 증거 인계 워크플로를 제공하며, 해당 과거 0.1.2 연구가 새로운 인계 도구를 검증하는 것은 아닙니다.
+
+유지보수는 지원 범위 내의 구체적인 결함, 필수 테스트 회귀, 확인된 실행 환경 호환성 변화,
+명시적인 사용자 범위 확장이 있을 때만 재개하며, 업스트림 모델 업데이트만으로는 불충분합니다.
 
 실물 로봇·MCU·물리 보정과 Nav2·MoveIt·Gazebo 전체 애플리케이션은 검증하지 않았습니다.
 작은 인터페이스 사례로 일반적인 overlay 복구, 구형·신형 DDS 타입 간 통신, 외부 C++ 라이브러리 사용,

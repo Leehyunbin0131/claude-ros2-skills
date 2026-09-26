@@ -61,9 +61,11 @@ python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/y
 
 ## 验证与证据边界
 
+退出码：0 通过，1 失败，2 无法判定或请求无效。数据缺失、NaN、未知 QoS、缺失 TF、样本少于 2 个、样本偏差过大（>1.5 m/s²，可通过 --max-variation 调整）或没有执行测试不能视为成功。PASS 仅评估通过已声明 TF 或显式对齐假设（--assume-aligned）后水平基座坐标系中测得的 +Z 重力；二者均不能证明物理静止，且重力不能验证 yaw。里程计检查只验证方向，不验证距离标定。运行时检查不发布运动命令。
+
 CI 涵盖安装保持、代码有效性、真实 Python/CMake 和 ament 测试用例，以及合成 Jazzy 发布订阅与判定逻辑。
 
-在过往 Claude Code Opus 5.5 High 会话中，技能与基线在相同任务上均通过。在接口迁移实验（[RESULTS.md](evals/workflow_value/RESULTS.md)）中，技能组虽记录到更短耗时，但受限于小样本与缓存等混淆因素，**并未因果证明能带来速度提升、可靠性增强或编码能力改进。**
+在过往 Claude Code Opus 5.5 High 会话中，技能与基线在相同任务上均通过。在接口迁移实验（[RESULTS.md](evals/workflow_value/RESULTS.md)）中，技能组虽记录到更短耗时，但受限于小样本与缓存等混淆因素，**并未因果证明能带来速度提升、可靠性增强或编码能力改进。**该历史 0.1.2 研究未评估 0.2.0 版本新增的交接工具。
 
 物理机器人、MCU 固件以及完整的 Nav2/MoveIt 应用仍属未验证范围。
 

@@ -28,6 +28,10 @@ an agent comparison. That does **not** license a performance claim. Deleted
 domain manuals should not be restored wholesale; explain the development
 failure a proposed addition addresses and verify the proposed remedy.
 
+Maintenance is reopened only for a concrete supported-scope defect, a required
+test regression, an observed environment compatibility change, or an explicit
+user scope expansion; upstream model updates alone are insufficient.
+
 ## Evidence required
 
 Separate these levels:
@@ -51,6 +55,17 @@ verdicts. Read the [reconciliation](evals/CAPABILITIES.md) before citing them.
 Do not rewrite `evals/runs/`, old prompts or statistical thresholds to improve a
 reported score. A new task belongs in a new evaluation with its own artifacts.
 
+Do not claim a token, total-cost, or speed advantage without proven causal
+evidence. In the historical interface study of the frozen 0.1.2 snapshot, all
+three pairs passed across baseline and pack conditions; pack output tokens and
+API estimates were higher, while lower elapsed wall time was subject to prompt
+caching, execution order, and probe wait confounds. Release 0.2.0 ships opt-in
+evidence handoff tools alongside targeted IMU fixes; that historical 0.1.2 study
+does not evaluate the new handoff tool. Codex
+compatibility evidence covers offline installation and discovery, plus two
+project workflows whose model identity was unrecorded; it does not establish an
+efficiency or performance advantage.
+
 ## Implementation conventions
 
 Scripts ship under the skill that uses them. Keep decision logic importable
@@ -61,9 +76,15 @@ without ROS so it can be tested independently. For diagnostic tools, use:
 - `2`: inconclusive, missing prerequisites/evidence, or invalid request.
 
 State the observed problem and the next relevant check. Do not manufacture a
-PASS from NaN, unavailable fields, a missing transform, old messages or an empty
-test run. Runtime probes need bounded waits and cleanup. Test fixtures must be
-separated from operational robots; never use host-wide process-name cleanup.
+PASS from NaN, unavailable fields, a missing required transform, fewer than two
+IMU samples,
+excessive sample variation (>1.5 m/s² RMS across axes, adjustable via
+`--max-variation`), old messages or an empty test run. The IMU check cannot
+prove physical stillness; a PASS verdict confirms only measured +Z gravity in
+the level base frame after declared TF or an explicit aligned-axis assumption,
+not whole-robot correctness.
+Runtime probes need bounded waits and cleanup. Test fixtures must be separated
+from operational robots; never use host-wide process-name cleanup.
 
 For the evidence tracker (`evidence.py`):
 - **Caller execution decoupled from tracking**: The evidence tracker does not

@@ -61,7 +61,9 @@ L'outil de preuve sépare strictement les résultats déclarés par l'appelant d
 
 ## Limites de validation
 
-Dans les évaluations historiques avec Claude Code Opus 5.5 High, les sessions avec skills et les sessions de référence ont réussi les mêmes tâches. Dans l'étude de migration d'interfaces ([RESULTS.md](evals/workflow_value/RESULTS.md)), les sessions avec skills ont été plus rapides, mais les effets d'échantillon et de cache **n'établissent pas de façon causale un gain de vitesse, de fiabilité ou de capacité de codage**.
+Codes : 0 PASS, 1 FAIL, 2 INCONCLUSIVE ou demande invalide. Données absentes, NaN, QoS indéterminée, TF manquante, moins de deux échantillons, variation excessive (>1,5 m/s², ajustable via --max-variation) ou aucun test exécuté ne constituent pas un succès. PASS concerne la gravité +Z mesurée dans le repère de base horizontal après TF déclaré ou hypothèse explicite d’alignement (--assume-aligned) ; aucun ne prouve l’immobilité physique et la gravité ne vérifie pas le yaw. L’odométrie vérifie la direction, pas l’échelle des distances. Les diagnostics ne publient pas de commande de mouvement.
+
+Dans les évaluations historiques avec Claude Code Opus 5.5 High, les sessions avec skills et les sessions de référence ont réussi les mêmes tâches. Dans l'étude de migration d'interfaces ([RESULTS.md](evals/workflow_value/RESULTS.md)), les sessions avec skills ont été plus rapides, mais les effets d'échantillon et de cache **n'établissent pas de façon causale un gain de vitesse, de fiabilité ou de capacité de codage**. Cette étude historique 0.1.2 n'évalue pas les nouveaux outils de transfert de la version 0.2.0.
 
 Les robots réels, les micrologiciels MCU et les applications Nav2/MoveIt complètes restent non vérifiés.
 

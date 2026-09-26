@@ -1,4 +1,4 @@
-# ROS 2 Verification Protocol
+# READ THIS FIRST — ROS 2 verification protocol
 
 This protocol guides verification for ROS 2, Gazebo, Nav2, MoveIt, ros2_control, and perception tasks on **Ubuntu 24.04 LTS / ROS 2 Jazzy Jalisco**.
 
@@ -23,11 +23,14 @@ Before modifying or writing code, clarify facts relevant to the task if they are
 - **Existing publishers and TF authorities**: Avoid creating duplicate publishers on the same topic or transform frame without coordination.
 - **Physical geometry**: Sensor mounting orientations and wheel dimensions must reflect actual hardware, not unverified CAD assumptions.
 
-## Observable Evidence
+## Done means it ran
 
-Writing code is incomplete until verified against the scope of the task. Where execution permissions and environment permit, report what was concretely observed — such as a clean build, active lifecycle state, passing diagnostic script, or received messages.
+Writing the code is not the deliverable. Report what you actually observed — a build succeeding, `ros2 topic echo` showing data, a lifecycle node reaching `active`, a check script passing — or state plainly that you could not verify and what you would need to.
+
+This is the single highest-value line here. Config that reads correctly and is never started is this pack's most reproducible failure: a Nav2 parameter file that names every plugin correctly and puts every value in the right place, which the servers then refuse to configure. Bringing the same file up once finds it in one sitting. Run what you wrote.
 
 - **State unverified boundaries plainly**: When execution is not possible (e.g., missing hardware, unavailable runtime environment, or execution permission limits), state clearly what could not be run and what would be required to verify it. Do not manufacture passing claims from unexecuted code.
 - **Respect execution permissions**: Do not demand or force arbitrary command execution when the operating environment restricts permissions.
-- **Safe process management**: When launching runtime probes, bound them with a timeout and record the specific PID or process group. Terminate only processes started during the probe. Never use broad pattern-based cleanup (`pkill -f` or `killall`), which risks killing user or robot system processes.
-- **No mandatory report format**: Provide concise, factual summaries of what was observed rather than bureaucratic boilerplate.
+- **Safe process management**: When launching runtime probes, bound them with a timeout and record the specific PID or process group. Terminate only processes started during the probe. Never use broad pattern-based cleanup (`pkill -f` or `killall`), which risks killing user or robot system processes. Leave existing publishers and transforms running unless the user requested their modification.
+
+Target: **Ubuntu 24.04 LTS / ROS 2 Jazzy Jalisco**. Legacy (Gazebo Classic, pre-Jazzy APIs) is out of scope unless explicitly asked.

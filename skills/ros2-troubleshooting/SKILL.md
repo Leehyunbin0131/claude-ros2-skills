@@ -30,7 +30,7 @@ python3 "${ROS2_SKILL_DIR}/scripts/check_qos_compat.py" --topic /scan
 | :--- | :--- |
 | `check_qos_compat.py --topic /scan` | Why a healthy publisher delivers nothing to this subscriber |
 | `check_tf_tree.py --sensors laser_frame,imu_link` | Does `map->odom->base_link` resolve? Prints sensor mount RPY for comparison with the hardware |
-| `check_imu_gravity.py [--topic /imu/data]` | At rest on level ground, is gravity ~+9.81 on +Z after TF into `--base base_link`? Yaw is not observable. Missing TF is inconclusive; `--assume-aligned` skips TF |
+| `check_imu_gravity.py [--topic /imu/data]` | On a level robot, is measured gravity ~+9.81 on +Z in `--base base_link` after declared TF or with `--assume-aligned`? Requires ≥2 samples; RMS variation >1.5 m/s² (adjustable via `--max-variation`) returns inconclusive for motion, vibration or noise. Neither declared TF nor `--assume-aligned` proves physical stillness; yaw is not observable. Missing TF is inconclusive without `--assume-aligned` |
 | `check_odom_direction.py [--topic /odom]` | Does odometry agree with the direction the robot physically moved |
 
 `check_tf_tree.py` prints `VERIFY PHYSICALLY` for any ~180° roll or yaw **even
