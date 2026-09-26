@@ -7,6 +7,10 @@ Jazzy**; follow the user's workspace conventions rather than imposing a new one.
 
 ## What belongs in a skill
 
+In accordance with the [Agent Skills standard](https://agentskills.io/home),
+skills package contextual knowledge, focused workflows, and executable tools
+for specific development tasks.
+
 - A concrete trigger in `description`, so development work and live fault
   diagnosis load the appropriate material.
 - A short workflow, diagnostic distinction or executable tool that changes a
@@ -55,8 +59,9 @@ Do not claim a token, total-cost, or speed advantage without proven causal
 evidence. In the historical interface study of the frozen 0.1.2 snapshot, all
 three pairs passed across baseline and pack conditions; pack output tokens and
 API estimates were higher, while lower elapsed wall time was subject to prompt
-caching, execution order, and probe wait confounds. This maintenance patch
-provides a targeted subsequent IMU fix, not a broad skill rewrite. Codex
+caching, execution order, and probe wait confounds. Release 0.2.0 ships opt-in
+evidence handoff tools alongside targeted IMU fixes; that historical 0.1.2 study
+does not evaluate the new handoff tool. Codex
 compatibility evidence covers offline installation and discovery, plus two
 project workflows whose model identity was unrecorded; it does not establish an
 efficiency or performance advantage.
@@ -81,6 +86,21 @@ not whole-robot correctness.
 Runtime probes need bounded waits and cleanup. Test fixtures must be separated
 from operational robots; never use host-wide process-name cleanup.
 
+For the evidence tracker (`evidence.py`):
+- **Caller execution decoupled from tracking**: The evidence tracker does not
+  wrap or execute user commands in a subshell runner. Callers execute commands directly
+  and supply the raw log and exit code. (Other tools like `check_test_results.py`
+  invoke `colcon test-result` directly as needed).
+- **Strict separation of declared vs. observed**: The evidence tracker records
+  caller-declared parameters (`scope`, `command`, `exit_code`, `outcome`, `log`) and
+  separately inspects observed filesystem and environment hashes.
+- **Atomic records**: Output directories contain `manifest.json`, `command.log`,
+  and `COLCON_IGNORE`, finalized via atomic replacement. Files are bounded to 16 MiB.
+- For evidence inspection (`evidence.py inspect`):
+  - `0` = Consistent (monitored paths and environment match snapshot);
+  - `1` = Changed (monitored paths or environment altered between snapshots or after finish);
+  - `2` = Incomplete (missing metadata, unfinalized, missing/altered log, or timed out).
+
 Installation changes must preserve user instructions and unrelated skills.
 The Claude plugin hook and manual rules transport the source `CLAUDE.md`
 unchanged. The Codex installer embeds the same protocol after each skill's
@@ -91,12 +111,17 @@ and validate them separately from delivery mechanics.
 
 ## Before opening a PR
 
+For documentation and translation changes:
+- Verify Markdown formatting and link validity. No full ROS integration run is required.
+
+For code and test changes:
 ```bash
 python3 -m compileall -q skills scripts tests evals/harness evals/development evals/workflow_value
 for file in evals/harness/*.sh; do bash -n "$file"; done
 python3 skills/ros2-troubleshooting/scripts/test_checks.py
 python3 tests/test_install.py
 python3 tests/test_development.py
+python3 tests/test_evidence.py
 python3 evals/development/test_runner.py
 python3 evals/workflow_value/test_runner.py
 python3 evals/workflow_value/test_oracle.py
@@ -104,7 +129,8 @@ python3 evals/harness/grade_v2.py --selftest
 python3 evals/harness/test_harness.py
 
 # Requires colcon-common-extensions, pytest, CMake and a C++ compiler.
-# Uses temporary packages; no model or robot is called.
+# Uses temporary packages; verifies empty-test vs executed-test diagnostics
+# and detects modified binaries under identical source trees.
 python3 tests/test_colcon_workflow.py
 
 # Requires the Jazzy message packages, tf2_ros and ament_cmake_pytest.

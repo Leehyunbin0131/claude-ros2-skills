@@ -725,6 +725,11 @@ class Isolation(unittest.TestCase):
 
 
 class Plan(unittest.TestCase):
+    def test_shipped_protocol_heading_matches_copy_and_leak_markers(self):
+        heading = (REPO / "CLAUDE.md").read_text().splitlines()[0]
+        self.assertEqual(heading, f"# {isolation.MARKER}")
+        self.assertIn(isolation.MARKER, grade_v2.CONTENT_MARKERS)
+
     def test_nested_masks_collapse_and_workdir_content_is_kept(self):
         with tempfile.TemporaryDirectory() as d:
             d = Path(d)

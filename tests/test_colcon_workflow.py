@@ -5,6 +5,7 @@ Requires colcon-common-extensions, pytest, CMake and a C++ compiler. Demonstrate
 the development skill's evidence gate, not an agent performance comparison.
 """
 from pathlib import Path
+import json
 import os
 import shutil
 import subprocess
@@ -14,6 +15,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECK = ROOT / 'skills/ros2-development/scripts/check_test_results.py'
+EVIDENCE = ROOT / 'skills/ros2-development/scripts/evidence.py'
 
 
 @unittest.skipUnless(shutil.which('colcon') and shutil.which('cmake'),
@@ -99,6 +101,39 @@ install(TARGETS fixture DESTINATION lib/${{PROJECT_NAME}})
         check = self.run_command([sys.executable, str(CHECK), str(fresh),
                                   '--packages', 'passing_py'])
         self.assertEqual(check.returncode, 2, check.stdout + check.stderr)
+
+    def test_record_consistency_is_separate_from_real_test_coverage(self):
+        for package, coverage_code in [('passing_cpp', 0), ('empty_cpp', 2)]:
+            with self.subTest(package=package):
+                record = self.workspace / ('evidence-' + package)
+                results = self.workspace / ('evidence-results-' + package)
+                command = ['colcon', 'test', '--packages-select', package,
+                           '--return-code-on-test-failure', '--test-result-base', str(results)]
+                start = self.run_command([sys.executable, str(EVIDENCE), 'begin',
+                    '--workspace', str(self.workspace), '--output', str(record),
+                    '--scope', package + ' test invocation', '--command', ' '.join(command),
+                    '--watch', 'src', '--watch', f'install/{package}/lib/{package}/fixture'])
+                self.assertEqual(start.returncode, 0, start.stdout + start.stderr)
+                run = self.run_command(command)
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+                log = self.workspace / (package + '-declared.log')
+                log.write_text(run.stdout + run.stderr)
+                finish = self.run_command([sys.executable, str(EVIDENCE), 'finish', str(record),
+                    '--exit-code', str(run.returncode), '--log', str(log)])
+                self.assertEqual(finish.returncode, 0, finish.stdout + finish.stderr)
+                self.assertEqual(json.loads(finish.stdout)['record_status'], 'consistent')
+                coverage = self.run_command([sys.executable, str(CHECK), str(results), '--packages', package])
+                self.assertEqual(coverage.returncode, coverage_code, coverage.stdout + coverage.stderr)
+                # Same source code, different installed artifact: the record must change.
+                executable = self.workspace / f'install/{package}/lib/{package}/fixture'
+                original = executable.read_bytes()
+                try:
+                    executable.write_bytes(original + b'changed installed artifact')
+                    inspection = self.run_command([sys.executable, str(EVIDENCE), 'inspect', str(record)])
+                    self.assertEqual(inspection.returncode, 1, inspection.stdout + inspection.stderr)
+                    self.assertTrue(any('install/' in p for p in json.loads(inspection.stdout)['observed']['changes']))
+                finally:
+                    executable.write_bytes(original)
 
 
 if __name__ == '__main__':

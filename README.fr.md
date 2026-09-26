@@ -1,64 +1,72 @@
-# Développer en ROS 2 avec des preuves de fonctionnement
+<div align="center">
 
-[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
+<img src="assets/hero.png" alt="ROS 2 Jazzy skills for Claude Code and Codex" width="100%"/>
 
-Trois skills Claude Code et Codex pour Ubuntu 24.04 / ROS 2 Jazzy : développer des paquets, vérifier les tests et les artefacts installés, diagnostiquer les défauts à l’exécution. Ils respectent les conventions du projet et s’appuient sur la documentation installée.
+**Conditionnement contextuel d’outils de vérification, de flux de travail et de preuves de transfert pour ROS 2.**
 
-## Installation
+[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | **Français** | [Deutsch](README.de.md)
 
-### Installer pour Codex
+</div>
 
-Après avoir cloné le dépôt, exécutez la commande suivante. Les skills vont dans `.agents/skills` du projet ; remplacez `--project` par `--user` pour utiliser `~/.agents/skills`. Chaque skill contient le protocole commun, chargé lors de son utilisation. Les fichiers `AGENTS.md`, `CLAUDE.md` et la configuration existante sont préservés. Ouvrez une nouvelle session dans le projet. En CLI/IDE, utilisez `$ros2-development` pour un appel explicite. Voir la [validation Codex](evals/CODEX.md). Le plugin et les commandes manuelles par défaut ci-dessous concernent Claude Code.
+Trois skills pour **Claude Code et Codex** ciblant **Ubuntu 24.04 / ROS 2 Jazzy** : développer des paquets, vérifier les tests et les artefacts installés, et diagnostiquer les pannes à l’exécution.
+
+Ce dépôt regroupe des connaissances de domaine, des flux de travail ciblés et des outils de diagnostic exécutables selon le standard [Agent Skills](https://agentskills.io/home). Plutôt que de revendiquer une amélioration des capacités intrinsèques de génération de code des modèles de pointe, ce projet explore une hypothèse d'ingénierie : **le conditionnement de vérifications de preuves spécifiques à l'environnement et d'enregistrements structurés de transfert (handoff) peut réduire l'ambiguïté de vérification et le coût de transfert de contexte entre sessions ou collaborateurs.** Bien que la fonctionnalité individuelle des outils soit validée sur des bancs d’essai, **la réduction du coût de transfert et les gains globaux de productivité restent des hypothèses non prouvées.**
+
+## Démarrage rapide
+
+La détection automatique des skills (skill discovery) est prise en charge dans tous les environnements.
+
+**Codex — Installation dans un projet :**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# Installation globale pour l'utilisateur :
 # python3 claude-ros2-skills/scripts/install.py --agent codex --user
 ```
 
-### Claude Code
+Les skills s'installent dans `<projet>/.agents/skills` ou `~/.agents/skills`, en intégrant le [protocole de vérification](CLAUDE.md) commun. Les configurations existantes et les autres skills sont préservés.
 
-Choisissez une méthode. Dans une session Claude Code, installez le plugin :
+**Claude Code — Installation du plugin :**
 
 ```text
 /plugin marketplace add Leehyunbin0131/claude-ros2-skills
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Installation manuelle dans un projet existant :
+## Skills disponibles
 
-```bash
-git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
-python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
-# --user: alternative to --project
-```
+| Skill | Quand l'utiliser | Ce qu'il apporte |
+| :--- | :--- | :--- |
+| [ros2-development](skills/ros2-development/SKILL.md) | Créer ou modifier paquets, nœuds, interfaces, launch, configurations et tests | Compilations tenant compte des dépendances, vérification des artefacts installés, détection des exécutions sans tests, et outil optionnel de suivi des preuves pour les transferts |
+| [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md) | Pannes d'exécution des publications, callbacks, TF, IMU ou odométrie | Quatre diagnostics exécutables et références directes sur les repères (REP 103/105), la QoS et l'étalonnage |
+| [ros2-microros](skills/ros2-microros/SKILL.md) | Transport MCU, agent, rclc, gestion mémoire | Points d'entrée et guides de diagnostic ; **non validé sur matériel MCU** |
 
-Démarrez une nouvelle session. Le plugin charge le protocole via SessionStart ; la portée utilisateur concerne tous les projets. L’installation manuelle préserve CLAUDE.md et les autres skills et place le protocole dans .claude/rules/ros2-verification.md. Les modifications locales ne sont pas écrasées. ROS, colcon et les pilotes sont à installer séparément.
+## Outils exécutables de vérification et de preuve
 
-## Skills
+Les scripts sont inclus dans chaque skill. Dans les exemples, `ROS2_SKILL_DIR` est une variable illustrative définie en interne par l'agent vers le répertoire du skill chargé ; elle ne nécessite aucune intervention de l'utilisateur.
 
-- [ros2-development](skills/ros2-development/SKILL.md): Développement de paquets, nœuds, interfaces, launch/config et tests ; contrôle que chaque paquet a réellement exécuté des tests.
-- [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md): Quatre diagnostics exécutables : QoS, TF, IMU et direction de l’odométrie, avec références de repères et d’étalonnage.
-- [ros2-microros](skills/ros2-microros/SKILL.md): Conseils MCU, agent, rclc et mémoire. Non validés sur MCU.
+| Script | Rôle et preuve vérifiée |
+| :--- | :--- |
+| `ros2-development/scripts/check_test_results.py` | Vérifie les tests exécutés et réussis dans les rapports récents colcon (rejette les tests vides) |
+| `ros2-development/scripts/evidence.py begin / finish / inspect` | **Flux optionnel (opt-in)** : Enregistre les métadonnées déclarées par l'appelant et compare les hachages de fichiers ainsi que les valeurs d'environnement sélectionnées pour faciliter le transfert |
+| `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | Compatibilité QoS Jazzy native entre paires de publication/abonnement |
+| `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | Connectivité TF et angles RPY pour comparaison physique |
+| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Gravité au repos sur sol plat projetée dans `--base base_link` |
+| `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | Direction de l'odométrie récente avant et après un mouvement observé |
 
-Mentionnez le skill dans la demande : « Utilise ros2-development pour modifier ce paquet Jazzy, compiler ses dépendances et vérifier le nœud installé ainsi que les tests exécutés. »
+**Codes de sortie de diagnostic : 0 SUCCÈS, 1 ÉCHEC, 2 NON CONCLUSIF ou requête invalide.**
+**Codes de sortie de l'inspection de preuve : 0 Cohérent (Consistent), 1 Modifié (Changed), 2 Incomplet (Incomplete).**
+L'outil de preuve sépare strictement les résultats déclarés par l'appelant des hachages observés par l'outil. Il n'exécute ni ne réexécute les commandes, ne garantit pas la fraîcheur ni l'absence de modifications intermédiaires, et ne prouve pas l'état global du robot. Voir [docs/DESIGN.md](docs/DESIGN.md).
 
-## Validation et limites
+## Limites de validation
 
 Codes : 0 PASS, 1 FAIL, 2 INCONCLUSIVE ou demande invalide. Données absentes, NaN, QoS indéterminée, TF manquante, moins de deux échantillons, variation excessive (>1,5 m/s², ajustable via --max-variation) ou aucun test exécuté ne constituent pas un succès. PASS concerne la gravité +Z mesurée dans le repère de base horizontal après TF déclaré ou hypothèse explicite d’alignement (--assume-aligned) ; aucun ne prouve l’immobilité physique et la gravité ne vérifie pas le yaw. L’odométrie vérifie la direction, pas l’échelle des distances. Les diagnostics ne publient pas de commande de mouvement.
 
-CI vérifie la préservation des installations, la logique, de vrais paquets temporaires Python/CMake, les communications et TF synthétiques Jazzy et l’évaluateur. Opus 5.5 High a terminé trois tâches avec le plugin et avec l’installation manuelle ; la référence sans le pack a aussi terminé les trois. Il s’agit d’une observation par méthode et tâche : voir le [rapport de validation](evals/development/RESULTS.md). Ces essais valident les outils, pas un gain mesuré du modèle. Robots physiques et MCU demandent une validation distincte.
+Dans les évaluations historiques avec Claude Code Opus 5.5 High, les sessions avec skills et les sessions de référence ont réussi les mêmes tâches. Dans l'étude de migration d'interfaces ([RESULTS.md](evals/workflow_value/RESULTS.md)), les sessions avec skills ont été plus rapides, mais les effets d'échantillon et de cache **n'établissent pas de façon causale un gain de vitesse, de fiabilité ou de capacité de codage**. Cette étude historique 0.1.2 n'évalue pas les nouveaux outils de transfert de la version 0.2.0.
 
-Une [étude ultérieure de migration d’interfaces](evals/workflow_value/RESULTS.md) compare trois variantes avec consommateurs Python/C++ sous Opus 5.5 High. Les six résultats, avec et sans pack, passent la vérification indépendante. La fidélité des rapports, les règles ambiguës et les processus résiduels sont documentés séparément. Aucun gain de fiabilité ni accélération causale n’est établi ; les skills restent en version 0.1.2.
+Les robots réels, les micrologiciels MCU et les applications Nav2/MoveIt complètes restent non vérifiés.
 
-Certains scores historiques manquent de transcriptions ou de nouvelles notations reproductibles ; ils ne sont pas présentés comme les performances actuelles. [CAPABILITIES.md](evals/CAPABILITIES.md).
+## Contribution et licence
 
-## Mise à jour
-
-En installation manuelle, mettez le dépôt à jour et relancez le même installateur. Pour le plugin, utilisez la commande suivante puis ouvrez une nouvelle session.
-
-```bash
-claude plugin update claude-ros2-skills@claude-ros2-skills
-```
-
-[Parcours complet et portée des preuves (English)](README.md) · [Contribuer](CONTRIBUTING.md) · [Apache-2.0](LICENSE).
+[CONTRIBUTING.md](CONTRIBUTING.md) · [evals/AUTHORING.md](evals/AUTHORING.md) · [Apache-2.0](LICENSE).

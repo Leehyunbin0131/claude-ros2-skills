@@ -1,64 +1,74 @@
-# 用运行证据支持 ROS 2 开发
+<div align="center">
 
-[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
+<img src="assets/hero.png" alt="ROS 2 Jazzy skills for Claude Code and Codex" width="100%"/>
 
-适用于 Ubuntu 24.04 / ROS 2 Jazzy 的三个 Claude Code 和 Codex 技能：开发软件包、核实测试与安装产物、诊断运行故障。保留项目现有约定，按需要查阅官方文档。
+**情境化封装 ROS 2 验证工具、工作流与交接证据。**
 
-## 安装
+[English](README.md) | [한국어](README.ko.md) | **中文** | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-### Codex 安装
+</div>
 
-在克隆仓库后运行以下命令。项目安装使用 `.agents/skills`；使用 `--user` 代替 `--project` 可安装到 `~/.agents/skills`。每个 Codex 技能包含共享验证协议，在使用技能时读取。保留现有 `AGENTS.md`、`CLAUDE.md` 和配置。安装后在工作区启动新会话。CLI/IDE 可用 `$ros2-development` 明确调用。Codex 的验证范围见 [兼容性记录](evals/CODEX.md)。下面的插件与默认手动命令用于 Claude Code。
+适用于 **Ubuntu 24.04 / ROS 2 Jazzy** 的三个 Claude Code 与 Codex 技能：开发软件包、核实测试与安装产物、诊断运行时故障。
+
+本项目遵循 [Agent Skills 规范](https://agentskills.io/home)，将领域知识、开发工作流与可执行诊断工具打包。我们并不声称提高前沿大模型的固有代码生成能力，而是探索一个工程设计假设：**通过封装特定环境的证据检查和结构化交接记录，能否减少会话间验证歧义与上下文交接成本。** 虽然各工具的独立功能已在测试环境中通过验证，但**降低交接成本或提高整体开发生产率仍属未经证实的假设。**
+
+## 快速上手
+
+支持自动技能发现（skill discovery）。
+
+**Codex — 安装到现有项目：**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# 用户全局安装：
 # python3 claude-ros2-skills/scripts/install.py --agent codex --user
 ```
 
-### Claude Code
+技能安装在 Codex 目录（`<project>/.agents/skills` 或 `~/.agents/skills`），并在使用技能时加载共享[验证协议](CLAUDE.md)。保留现有配置与其他技能。
 
-选择一种安装方式。在 Claude Code 会话中安装插件：
+**Claude Code — 插件安装：**
 
 ```text
 /plugin marketplace add Leehyunbin0131/claude-ros2-skills
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-也可安装到已有项目：
+## 技能列表
 
-```bash
-git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
-python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
-# --user: alternative to --project
-```
+| 技能 | 适用场景 | 提供内容 |
+| :--- | :--- | :--- |
+| [ros2-development](skills/ros2-development/SKILL.md) | 创建或修改软件包、节点、接口、launch、配置及测试 | 依赖感知构建、安装产物验证、检测空测试运行、用于任务交接的自选证据跟踪工具 |
+| [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md) | 运行时的发布者、回调、TF、IMU 或里程计异常 | 4 个可执行诊断脚本，以及坐标系（REP 103/105）、QoS、实机标定参考资料 |
+| [ros2-microros](skills/ros2-microros/SKILL.md) | MCU 通信、Agent、rclc、消息内存 | 源码索引与故障诊断指南；**未经 MCU 实机验证** |
 
-重启会话后生效。插件通过 SessionStart 钩子加载协议；用户级安装影响所有项目。手动安装保留现有 CLAUDE.md 和其他技能，将协议放入 .claude/rules/ros2-verification.md；遇到本地修改时拒绝覆盖。ROS、colcon 和驱动需自行准备。
+## 可执行验证与证据工具
 
-## 技能
+脚本存放在各技能目录下。示例中的 `ROS2_SKILL_DIR` 是由智能体内部设置为已加载技能目录的示例变量，不需要用户手动输入。
 
-- [ros2-development](skills/ros2-development/SKILL.md): 软件包、节点、接口、launch/config 和测试开发；检查每个软件包是否确实执行了测试。
-- [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md): 四项可执行诊断：QoS、TF、IMU 和里程计方向，以及坐标系和标定参考。
-- [ros2-microros](skills/ros2-microros/SKILL.md): MCU、代理、rclc 和内存指导。尚未在 MCU 上验证。
+| 脚本 | 目的与检查的证据 |
+| :--- | :--- |
+| `ros2-development/scripts/check_test_results.py` | 检查新 colcon 报告中实际执行并通过的测试（排除空测试） |
+| `ros2-development/scripts/evidence.py begin / finish / inspect` | **可选（opt-in）工作流**：记录调用方声明的命令元数据并比对工作区文件哈希与选定环境变量值，支持任务交接 |
+| `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | 发布者/订阅者端点间的 Jazzy QoS 兼容性 |
+| `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF 树连通性与实机对比用的安装 RPY 欧拉角 |
+| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | 静止水平放置时转换至 `--base base_link` 的重力向量 |
+| `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | 观察到的实际移动前后的新里程计方向 |
 
-在任务中明确写出技能名，例如：“使用 ros2-development 修改此 Jazzy 软件包，构建依赖并验证已安装节点和实际执行的测试。”
+**诊断脚本退出代码：0 通过，1 失败，2 无法断定或请求无效。**
+**证据检查（inspect）退出代码：0 一致 (Consistent)，1 已变更 (Changed)，2 不完整 (Incomplete)。**
+证据工具严格区分调用方声明的结果与工具观察到的文件哈希。它不会自动运行或重跑用户命令，不保证新鲜度或不存在中间篡改，也不证明整个机器人的健康状态。详见 [docs/DESIGN.md](docs/DESIGN.md)。
 
-## 验证与限制
+## 验证与证据边界
 
 退出码：0 通过，1 失败，2 无法判定或请求无效。数据缺失、NaN、未知 QoS、缺失 TF、样本少于 2 个、样本偏差过大（>1.5 m/s²，可通过 --max-variation 调整）或没有执行测试不能视为成功。PASS 仅评估通过已声明 TF 或显式对齐假设（--assume-aligned）后水平基座坐标系中测得的 +Z 重力；二者均不能证明物理静止，且重力不能验证 yaw。里程计检查只验证方向，不验证距离标定。运行时检查不发布运动命令。
 
-CI 覆盖安装保护、判定逻辑、真实临时 Python/CMake 软件包构建与测试、合成 Jazzy 通信和 TF，以及评估工具。Opus 5.5 High 在插件和手动安装下完成了三个任务；基线也全部完成。每种方式、每个任务仅观察一次，详见[验证记录](evals/development/RESULTS.md)。这些检查证明工具行为，不证明代理能力提升。实体机器人和 MCU 仍需单独验证。
+CI 涵盖安装保持、代码有效性、真实 Python/CMake 和 ament 测试用例，以及合成 Jazzy 发布订阅与判定逻辑。
 
-后续[接口迁移对照研究](evals/workflow_value/RESULTS.md)用 Opus 5.5 High 比较了三个含 Python/C++ 消费者的变体。基线与技能组的六个结果均通过独立验证；报告准确性、规则歧义和进程残留另行记录。尚未证实额外的可靠性收益或因果性的提速，技能保持 0.1.2。
+在过往 Claude Code Opus 5.5 High 会话中，技能与基线在相同任务上均通过。在接口迁移实验（[RESULTS.md](evals/workflow_value/RESULTS.md)）中，技能组虽记录到更短耗时，但受限于小样本与缓存等混淆因素，**并未因果证明能带来速度提升、可靠性增强或编码能力改进。**该历史 0.1.2 研究未评估 0.2.0 版本新增的交接工具。
 
-历史成绩存在缺失记录和无法复现的重新评分；不将其宣传为当前性能。 [CAPABILITIES.md](evals/CAPABILITIES.md).
+物理机器人、MCU 固件以及完整的 Nav2/MoveIt 应用仍属未验证范围。
 
-## 更新
+## 贡献与许可
 
-手动安装请拉取仓库后重跑相同安装命令；插件使用以下命令。更新后重启会话。
-
-```bash
-claude plugin update claude-ros2-skills@claude-ros2-skills
-```
-
-[完整使用流程与证据范围 (English)](README.md) · [贡献指南](CONTRIBUTING.md) · [Apache-2.0](LICENSE).
+[CONTRIBUTING.md](CONTRIBUTING.md) · [evals/AUTHORING.md](evals/AUTHORING.md) · [Apache-2.0](LICENSE).
