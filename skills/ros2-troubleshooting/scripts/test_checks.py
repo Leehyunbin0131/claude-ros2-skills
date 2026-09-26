@@ -39,6 +39,12 @@ def test_imu():
     # noisy but centered on +Z: averaging works
     noisy = [(0.05, -0.05, 9.75), (-0.05, 0.05, 9.85)] * 10
     assert analyze(noisy)[0] == "PASS"
+    # Large opposite accelerations cancel in the mean but do not establish a
+    # stationary robot or a valid mounting verdict.
+    swinging = [(9.0, 0.0, G), (-9.0, 0.0, G)] * 25
+    verdict, reason = analyze(swinging)
+    assert verdict == "INCONCLUSIVE" and "variation" in reason
+    assert analyze([(0.0, 0.0, G)])[0] == "INCONCLUSIVE"
 
 
 def test_yaw_from_quat():
@@ -50,11 +56,11 @@ def test_yaw_from_quat():
 def test_imu_transform():
     # A correctly declared upside-down IMU is healthy in the robot base frame.
     corrected = rotate_acceleration((0.0, 0.0, -G), (1.0, 0.0, 0.0, 0.0))
-    assert analyze([corrected])[0] == 'PASS'
+    assert analyze([corrected] * 2)[0] == 'PASS'
     s = math.sqrt(0.5)
     corrected = rotate_acceleration((-G, 0.0, 0.0), (0.0, s, 0.0, s))
-    assert analyze([corrected])[0] == 'PASS'
-    assert analyze([(0.0, 0.0, -G)])[0] == 'FAIL'
+    assert analyze([corrected] * 2)[0] == 'PASS'
+    assert analyze([(0.0, 0.0, -G)] * 2)[0] == 'FAIL'
 
 
 def test_forward_displacement():
@@ -136,6 +142,7 @@ def test_cli_arguments():
         ('check_imu_gravity.py', ['--samples', '0']),
         ('check_imu_gravity.py', ['--timeout', 'nan']),
         ('check_imu_gravity.py', ['--tol-mag', 'inf']),
+        ('check_imu_gravity.py', ['--max-variation', '0']),
         ('check_odom_direction.py', ['--dist', '-1']),
         ('check_odom_direction.py', ['--wait-secs', '-1']),
         ('check_odom_direction.py', ['--timeout', 'inf']),

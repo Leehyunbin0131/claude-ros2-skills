@@ -122,15 +122,18 @@ files, not ROS packages to invoke with `ros2 run`.
 | `ros2-development/scripts/check_test_results.py <results> --packages <name>` | Check executed, passing cases in fresh colcon reports; use `--require-test PACKAGE::test_name` for the changed behaviour, since linters alone can otherwise pass |
 | `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | Native Jazzy QoS compatibility for discovered publisher/subscriber pairs |
 | `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF connectivity and mounting RPY for physical comparison; an unusual angle is an advisory |
-| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Gravity at rest on level ground, transformed into `--base base_link`; missing TF is inconclusive, and gravity cannot establish yaw |
+| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Measured gravity on +Z in `--base base_link` after declared TF or `--assume-aligned`; requires ≥2 samples; RMS sample variation >1.5 m/s² (adjustable via `--max-variation`) or missing TF is inconclusive; neither mode proves physical stillness, and gravity cannot establish yaw |
 | `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | Fresh odometry before and after an externally observed movement; direction only, not distance calibration |
 
 **Exit codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE or invalid request.** Missing data,
-NaN, unavailable IMU fields, unknown QoS, no executed tests and insufficient
-motion must not become successful verification. The runtime scripts require a
-sourced Jazzy environment. They do not publish motion commands; the odometry
-check relies on movement performed outside the script. A check proves only the
-property it observes, not the correctness of the whole robot.
+NaN, unavailable IMU fields, insufficient samples (<2), excessive sample
+variation, unknown QoS, no executed tests and insufficient motion must not
+become successful verification. The runtime scripts require a sourced Jazzy
+environment. They do not publish motion commands; the odometry check relies on
+movement performed outside the script. A check supports only the property it
+observes; IMU PASS confirms measured +Z gravity in the level base frame after
+declared TF or an explicit aligned-axis assumption, but cannot prove physical
+stillness or whole-robot correctness.
 
 ## How it works
 
@@ -169,16 +172,26 @@ cleanup after a focused instruction fix; all attempts and limits are in the
 [release acceptance report](evals/development/RESULTS.md).
 
 Codex support is tracked separately in the [Codex compatibility report](evals/CODEX.md).
-Earlier Claude observations are not Codex performance evidence. The Codex installer
-embeds the protocol on skill activation; it does not install a session-wide hook.
+Its operational evidence covers offline install, discovery, and two project-install
+workflows with model identity unrecorded; earlier Claude observations are not
+Codex performance evidence.
+The Codex installer embeds the protocol on skill activation; it does not install
+a session-wide hook.
 
-A subsequent frozen [interface-migration study](evals/workflow_value/RESULTS.md)
-ran three matched variants with Python and C++ consumers using Opus 5.5 High.
-All six baseline/pack artifacts passed independent clean-build, runtime and
-regression checks. Verification reports, ambiguous project-rule compliance and
-process-cleanup limitations are assessed separately. Pack sessions were faster
-in these runs, but the small sample and runtime/cache confounds do not establish
-a causal speedup or added reliability. The 0.1.2 skills remain unchanged.
+A subsequent [interface-migration study](evals/workflow_value/RESULTS.md)
+tested the frozen 0.1.2 snapshot across three matched variants with Python and
+C++ consumers using Opus 5.5 High. All six baseline/pack artifacts passed
+independent clean-build, runtime and regression checks. Verification reports,
+ambiguous project-rule compliance and process-cleanup limitations are assessed
+separately. In these runs, pack sessions had higher output token counts and API
+estimates; lower elapsed wall times were confounded by execution order, prompt
+caching, and probe backgrounding waits. There is no proven token, total-cost, or
+speed advantage, and none is claimed. This maintenance patch provides a
+targeted subsequent IMU fix, not a broad skill rewrite.
+
+Maintenance is reopened only for a concrete supported-scope defect, a required
+test regression, an observed environment compatibility change, or an explicit
+user scope expansion; upstream model updates alone are insufficient.
 
 Physical robots, MCU firmware, calibration and full Nav2/MoveIt/Gazebo
 applications remain unverified. The small interface fixture does not establish

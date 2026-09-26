@@ -6,6 +6,8 @@ A correctly declared rotated IMU can report gravity on any axis in its own
 frame. TF is required by default; --assume-aligned explicitly skips rotation
 when you know the message axes already align with the level robot's base.
 Use acceleration that includes gravity, not a gravity-compensated estimate.
+Large sample-to-sample variation makes a mounting verdict inconclusive; this
+check cannot prove the robot was stationary throughout the sampling window.
 
 Usage: python3 check_imu_gravity.py [--topic /imu/data]
 Exit codes: 0 PASS, 1 FAIL, 2 inconclusive (unusable/insufficient data / no ROS).
@@ -22,6 +24,7 @@ G = 9.81
 # bias/noise sits well inside +/-1.5 m/s^2. Widen --tol-mag if uncalibrated.
 DEFAULT_MAG_TOL = 1.5      # |a| must be within G ± this (m/s^2)
 DEFAULT_AXIS_RATIO = 0.8   # dominant axis must carry >= this fraction of |a|
+DEFAULT_MAX_VARIATION = 1.5  # RMS deviation from mean in base frame (m/s^2)
 
 
 def rotate_acceleration(vector, quaternion):
@@ -32,7 +35,8 @@ def rotate_acceleration(vector, quaternion):
     return (ax+w*tx+y*tz-z*ty, ay+w*ty+z*tx-x*tz, az+w*tz+x*ty-y*tx)
 
 
-def analyze(samples, mag_tol=DEFAULT_MAG_TOL, axis_ratio=DEFAULT_AXIS_RATIO):
+def analyze(samples, mag_tol=DEFAULT_MAG_TOL, axis_ratio=DEFAULT_AXIS_RATIO,
+            max_variation=DEFAULT_MAX_VARIATION):
     """Pure logic, unit-tested without ROS.
 
     samples: list of (ax, ay, az) tuples.
@@ -44,6 +48,10 @@ def analyze(samples, mag_tol=DEFAULT_MAG_TOL, axis_ratio=DEFAULT_AXIS_RATIO):
         raise ValueError("mag_tol must be finite and greater than zero")
     if not math.isfinite(axis_ratio) or not 0 < axis_ratio <= 1:
         raise ValueError("axis_ratio must be in (0, 1]")
+    if not math.isfinite(max_variation) or max_variation <= 0:
+        raise ValueError("max_variation must be finite and greater than zero")
+    if len(samples) < 2:
+        return "INCONCLUSIVE", "at least two samples are needed to check variation"
     if any(not math.isfinite(value) for sample in samples for value in sample):
         return "INCONCLUSIVE", "acceleration contains non-finite values"
     n = len(samples)
@@ -54,6 +62,13 @@ def analyze(samples, mag_tol=DEFAULT_MAG_TOL, axis_ratio=DEFAULT_AXIS_RATIO):
     if not math.isfinite(mag):
         return "INCONCLUSIVE", "acceleration magnitude is not finite"
     detail = f"mean accel = ({ax:+.2f}, {ay:+.2f}, {az:+.2f}) m/s^2, |a| = {mag:.2f}"
+    variation = math.sqrt(sum((s[0]-ax)**2 + (s[1]-ay)**2 + (s[2]-az)**2
+                              for s in samples) / n)
+    if not math.isfinite(variation) or variation > max_variation:
+        return "INCONCLUSIVE", (
+            f"{detail}. RMS sample variation = {variation:.2f} m/s^2 "
+            f"(limit {max_variation:.2f}): motion, vibration or noisy data "
+            "prevent a mounting verdict. Repeat at rest.")
 
     if abs(mag - G) > mag_tol:
         return "FAIL", (f"{detail}. Magnitude is not ~{G}: robot is moving, "
@@ -83,6 +98,8 @@ def main():
     p.add_argument("--samples", type=positive_int, default=50)
     p.add_argument("--timeout", type=positive_float, default=10.0, help="seconds")
     p.add_argument("--tol-mag", type=positive_float, default=DEFAULT_MAG_TOL)
+    p.add_argument("--max-variation", type=positive_float, default=DEFAULT_MAX_VARIATION,
+                   help="maximum RMS acceleration variation during the sample window (m/s^2)")
     args = p.parse_args()
     if not args.base.strip():
         p.error("--base must name a frame")
@@ -154,7 +171,8 @@ def main():
               f"{last_error or 'Check the topic, QoS and sensor output.'}", file=sys.stderr)
         return 2
 
-    verdict, msg = analyze(samples, mag_tol=args.tol_mag)
+    verdict, msg = analyze(samples, mag_tol=args.tol_mag,
+                           max_variation=args.max_variation)
     print(f"[{verdict}] In {args.base}: {msg}")
     return exit_code(verdict)
 
