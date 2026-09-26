@@ -1,64 +1,70 @@
-# 動作の証拠を伴う ROS 2 開発
+<div align="center">
 
-[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
+<img src="assets/hero.png" alt="ROS 2 Jazzy skills for Claude Code and Codex" width="100%"/>
 
-Ubuntu 24.04 / ROS 2 Jazzy 向けの Claude Code と Codex スキルを3つ提供します。パッケージ開発、テストとインストール成果物の確認、実行時の障害診断を支援し、既存プロジェクトの規約を尊重します。
+**ROS 2 検証ツール、ワークフロー、引き継ぎ証拠のコンテキストに応じたパッケージング。**
 
-## インストール
+[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | **日本語** | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
-### Codex へのインストール
+</div>
 
-リポジトリを clone してから以下を実行します。プロジェクトでは `.agents/skills`、`--project` の代わりに `--user` を使うと `~/.agents/skills` に配置します。共通の検証手順は各スキルに含まれ、スキル使用時に読み込まれます。既存の `AGENTS.md`、`CLAUDE.md` と設定を保持します。作業フォルダーで新しいセッションを開始してください。CLI/IDE では `$ros2-development` で明示的に呼び出せます。[Codex 検証記録](evals/CODEX.md)。以下のプラグインと既定の手動コマンドは Claude Code 用です。
+**Ubuntu 24.04 / ROS 2 Jazzy** を対象とした Claude Code および Codex 向けの3つのスキルを提供します：パッケージ開発、テストとインストール成果物の検証、実行時障害の診断。
+
+本リポジトリは、[Agent Skills 標準](https://agentskills.io/home) に準拠し、ドメイン知識、開発ワークフロー、実行可能な診断ツールをパッケージングします。先端言語モデル本来のコーディング能力向上を主張するのではなく、**環境固有の証拠確認と構造化された引き継ぎ記録により、検証の曖昧さやセッション間の引き継ぎコストを削減できるかを探る設計仮説**に基づいています。ツール自体の機能はテストフィクスチャで確認されていますが、**引き継ぎコストの削減や総合的な生産性の向上は未検証の仮説です。**
+
+## クイックスタート
+
+自動スキル検出（skill discovery）を標準でサポートしています。
+
+**Codex — プロジェクトへのインストール:**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# ユーザー全体のインストール:
 # python3 claude-ros2-skills/scripts/install.py --agent codex --user
 ```
 
-### Claude Code
+Codexのスキル配置先（`<project>/.agents/skills` または `~/.agents/skills`）に配置され、共通の [検証プロトコル](CLAUDE.md) が各スキルに含まれます。既存の設定や他のスキルは保持されます。
 
-インストール方法は1つ選んでください。Claude Code セッションでプラグインを追加します：
+**Claude Code — プラグインインストール:**
 
 ```text
 /plugin marketplace add Leehyunbin0131/claude-ros2-skills
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-既存プロジェクトへの手動インストール：
+## スキル一覧
 
-```bash
-git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
-python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
-# --user: alternative to --project
-```
+| スキル | 用途 | 提供内容 |
+| :--- | :--- | :--- |
+| [ros2-development](skills/ros2-development/SKILL.md) | パッケージ、ノード、インターフェース、launch、設定、テストの開発 | 依存関係を考慮したビルド、インストール成果物の検証、空テスト実行の検出、引き継ぎのためのオプトイン証拠追跡ツール |
+| [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md) | トピック、コールバック、TF、IMU、オドメトリの実行時障害 | 4つの実行可能診断ツール、座標系（REP 103/105）、QoS、実機キャリブレーション参照 |
+| [ros2-microros](skills/ros2-microros/SKILL.md) | MCU通信、エージェント、rclc、メッセージメモリ | ソース参照および診断ガイダンス（**MCU実機未検証**） |
 
-新しいセッションで反映されます。プラグインは SessionStart フックでプロトコルを読み込み、ユーザー範囲では全プロジェクトに適用されます。手動インストールは既存の CLAUDE.md と他のスキルを保持し、.claude/rules/ros2-verification.md にプロトコルを配置します。ローカル変更は上書きしません。ROS、colcon、ドライバーは別途必要です。
+## 実行可能検証および証拠ツール
 
-## スキル
+各スクリプトはスキル内に配置されています。例にある `ROS2_SKILL_DIR` はエージェントがロードされたスキルのディレクトリに内部設定する変数であり、ユーザーに入力を求めるものではありません。
 
-- [ros2-development](skills/ros2-development/SKILL.md): パッケージ、ノード、インターフェース、launch/config、テストの開発。各パッケージでテストが実際に実行されたか確認します。
-- [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md): QoS、TF、IMU、オドメトリ方向の4つの実行可能な診断と、座標系・校正の参考資料。
-- [ros2-microros](skills/ros2-microros/SKILL.md): MCU、エージェント、rclc、メモリのガイダンス。MCUでの動作は未検証です。
+| スクリプト | 目的と確認証拠 |
+| :--- | :--- |
+| `ros2-development/scripts/check_test_results.py` | 新規colcon結果から実際に実行・成功したテストを確認（空テストの排除） |
+| `ros2-development/scripts/evidence.py begin / finish / inspect` | **オプトインワークフロー**: 宣言されたコマンドメタデータの記録およびワークスペースのファイルハッシュと選択された環境変数値の比較による引き継ぎ支援 |
+| `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | 発行者・購読者ペアのJazzy QoS互換性 |
+| `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF接続性および実機比較用の取り付けRPY角度 |
+| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | 静止水平状態での `--base base_link` 重力ベクトル |
+| `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | 観測された移動前後の新規オドメトリ進行方向 |
 
-依頼にスキル名を明示できます。例：「ros2-development を使ってこの Jazzy パッケージを変更し、依存関係をビルドして、インストール済みノードと実行されたテストを確認してください。」
+**診断スクリプト終了コード: 0 合格, 1 失敗, 2 判定不能/無効な要求。**
+**証拠検査（inspect）終了コード: 0 一致(Consistent), 1 変更あり(Changed), 2 不完全(Incomplete)。**
+証拠ツールは、呼び出し側が宣言した結果とツールが観測したファイルハッシュを厳格に分離します。ユーザーコマンドの自動実行や再実行は行わず、鮮度の保証や中間変更の検出、ロボット全体の正常性を証明するものではありません。[docs/DESIGN.md](docs/DESIGN.md) を参照してください。
 
-## 検証と限界
+## 検証の限界
 
-終了コードは0が合格、1が失敗、2が判定不能または無効な要求です。欠落データ、NaN、不明なQoS、欠落TF、テスト未実行を成功と扱いません。IMUはTFで基準フレームに変換し、重力ではyawを検証できません。オドメトリは方向のみで距離校正は対象外です。実行時診断は移動指令を送信しません。
+過去の Claude Code Opus 5.5 High の評価において、スキル適用群とベースライン群は同じ課題を完了しました。インターフェース移行比較実験（[RESULTS.md](evals/workflow_value/RESULTS.md)）の観測実行ではスキル適用群で所要時間の短縮が記録されましたが、小規模サンプルやキャッシュの影響により、**速度向上や信頼性の改善、コーディング能力の向上を因果的に実証したものではありません。**
 
-CIはインストール保護、判定ロジック、実際の一時Python/CMakeパッケージのビルドとテスト、合成Jazzy通信・TF、評価ツールを確認します。Opus 5.5 High による3課題はプラグイン・手動インストールの両方で完了しました。ベースラインも全課題を完了しており、方式・課題ごとに1回の観測です。[検証記録](evals/development/RESULTS.md)を参照してください。ツールの動作検証はエージェント能力の向上を証明しません。実機とMCUは別途検証が必要です。
+実機ロボット、MCUファームウェア、完全なNav2/MoveIt環境は未検証です。
 
-後続の[インターフェース移行比較](evals/workflow_value/RESULTS.md)では、Opus 5.5 High で Python/C++ 消費側を含む3変種を検証しました。スキル有無の6成果物すべてが独立検証を通過しました。報告の正確性、規則の曖昧さ、残存プロセスは別に記録しています。信頼性向上や因果的な高速化は実証されず、スキルは 0.1.2 のままです。
+## コントリビューション & ライセンス
 
-過去の成績には欠落記録や再現できない再採点があります。現在の性能として宣伝しません。 [CAPABILITIES.md](evals/CAPABILITIES.md).
-
-## 更新
-
-手動インストールはリポジトリを更新して同じインストーラーを再実行します。プラグインには以下を使い、その後新しいセッションを開始します。
-
-```bash
-claude plugin update claude-ros2-skills@claude-ros2-skills
-```
-
-[詳細な開発手順と検証範囲 (English)](README.md) · [貢献ガイド](CONTRIBUTING.md) · [Apache-2.0](LICENSE).
+[CONTRIBUTING.md](CONTRIBUTING.md) · [evals/AUTHORING.md](evals/AUTHORING.md) · [Apache-2.0](LICENSE).

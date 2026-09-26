@@ -6,8 +6,9 @@ description: "Implement or change ROS 2 Jazzy packages, nodes, interfaces, launc
 # ROS 2 development
 
 Work from the workspace's actual package graph and installed artifacts. This
-skill supplies a development workflow and a check for empty test runs; it does
-not prescribe a new workspace layout or replace the project's build conventions.
+skill supplies a development workflow, a check for empty test runs, and an
+optional evidence tracking tool for task handoff. It does not prescribe a new
+workspace layout or replace the project's build conventions.
 
 ## Build the affected package graph
 
@@ -27,14 +28,14 @@ validate the source change.
 `colcon test` and `colcon test-result` can both succeed with zero tests. Use a
 fresh result directory so a previous passing report cannot satisfy this run:
 
-Resolve the absolute directory containing this loaded `SKILL.md` and set
-`ROS2_SKILL_DIR` to it. This is a shell variable you set, not one supplied by
-the assistant. Scripts and references are relative to the skill, not the workspace.
+The variable `ROS2_SKILL_DIR` in the examples below represents the absolute path
+to the loaded skill directory. The agent sets this path internally based on
+where the skill was discovered and loaded; do not ask the user for this path.
 
 ```bash
 # After building, in the workspace root. Replace my_package with actual names.
 # For pytest packages; omit --python-testing pytest for other test frameworks.
-ROS2_SKILL_DIR="/absolute/path/to/ros2-development" # Replace with the loaded skill directory.
+ROS2_SKILL_DIR="/absolute/path/to/ros2-development" # Set by agent to loaded skill directory.
 results="$(mktemp -d /tmp/ros2-test-results.XXXXXX)"
 colcon test --packages-select my_package --return-code-on-test-failure \
   --python-testing pytest --test-result-base "$results" &&
@@ -81,11 +82,22 @@ Python/C++ nodes, interfaces, launch/config, or lifecycle and sensor behaviour.
 Check the observable result again after a correction; keep a failed probe
 separate from a confirmed defect in the implementation.
 
+## Optional evidence tracking and handoff
+
+When handing off a task to another agent session or collaborator, the optional
+`evidence.py` tool can record snapshots and verify whether the recorded context
+remains unchanged at handoff time. See [references/handoff.md](references/handoff.md)
+for instructions on `begin`, `finish`, and `inspect`.
+
+This tool records artifact hashes and declared execution metadata; it does not
+run user commands and does not guarantee that the generated code is correct.
+
 ## Evidence
 
 The result checker is tested against passing, failing, empty and skipped
-reports, including fresh-directory separation in real Python and CMake colcon fixtures. This workflow is new: an
-agent comparison has **not** established a performance gain from its prose.
+reports, including fresh-directory separation in real Python and CMake colcon fixtures.
+This workflow provides diagnostic checks; an agent comparison has **not** established
+a performance gain from its prose.
 Official semantics: [package selection](https://colcon.readthedocs.io/en/released/reference/package-selection-arguments.html),
 [test](https://colcon.readthedocs.io/en/released/reference/verb/test.html),
 [test results](https://colcon.readthedocs.io/en/released/reference/verb/test-result.html).

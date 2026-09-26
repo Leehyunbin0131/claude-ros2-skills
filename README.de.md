@@ -1,64 +1,72 @@
-# ROS-2-Entwicklung mit nachgewiesener Funktion
+<div align="center">
 
-[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
+<img src="assets/hero.png" alt="ROS 2 Jazzy skills for Claude Code and Codex" width="100%"/>
 
-Drei Skills für Claude Code und Codex für Ubuntu 24.04 / ROS 2 Jazzy: Pakete entwickeln, Tests und installierte Artefakte prüfen und Laufzeitfehler diagnostizieren. Bestehende Projektkonventionen bleiben maßgeblich; installierte Dokumentation wird gezielt herangezogen.
+**Kontextbezogene Bündelung von ROS-2-Verifikationswerkzeugen, Workflows und Übergabenachweisen.**
 
-## Installation
+[English](README.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | **Deutsch**
 
-### Installation für Codex
+</div>
 
-Nach dem Klonen des Repositorys den folgenden Befehl ausführen. Projekt-Skills liegen unter `.agents/skills`; mit `--user` statt `--project` wird `~/.agents/skills` verwendet. Jeder Skill enthält das gemeinsame Prüfprotokoll, das bei seiner Verwendung geladen wird. Bestehende `AGENTS.md`, `CLAUDE.md` und Einstellungen bleiben erhalten. Eine neue Sitzung im Projekt starten. In CLI/IDE ist der explizite Aufruf mit `$ros2-development` möglich. Siehe [Codex-Prüfbericht](evals/CODEX.md). Das Plugin und die folgenden manuellen Standardbefehle gelten für Claude Code.
+Drei Skills für **Claude Code und Codex** für **Ubuntu 24.04 / ROS 2 Jazzy**: Pakete entwickeln, Tests und installierte Artefakte prüfen und Laufzeitfehler diagnostizieren.
+
+Dieses Repository bündelt Domänenwissen, Arbeitsabläufe und ausführbare Diagnosewerkzeuge gemäß dem [Agent Skills Standard](https://agentskills.io/home). Anstatt eine Steigerung der inhärenten Codegenerierungsfähigkeiten von Spitzenmodellen zu behaupten, untersucht dieses Projekt eine technische Hypothese: **Die Bündelung umgebungsspezifischer Nachweisprüfungen und strukturierter Übergabeprotokolle (Handoffs) kann Verifikationsunklarheiten und Kontextübertragungskosten zwischen Sitzungen oder Beteiligten reduzieren.** Während die Funktion einzelner Werkzeuge in Testszenarien bestätigt wurde, **bleiben geringere Übergabekosten und allgemeine Produktivitätsgewinne unbewiesene Hypothesen.**
+
+## Schnellstart
+
+Die automatische Skill-Erkennung (Skill Discovery) wird in allen Umgebungen unterstützt.
+
+**Codex — Installation in einem Projekt:**
 
 ```bash
 git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
 python3 claude-ros2-skills/scripts/install.py --agent codex --project /path/to/your-workspace
+# Benutzerweite Installation:
 # python3 claude-ros2-skills/scripts/install.py --agent codex --user
 ```
 
-### Claude Code
+Die Skills werden unter `<Projekt>/.agents/skills` oder `~/.agents/skills` installiert und laden das gemeinsame [Prüfprotokoll](CLAUDE.md). Bestehende Konfigurationen und andere Skills bleiben erhalten.
 
-Wählen Sie eine Methode. Für das Plugin in einer Claude-Code-Sitzung:
+**Claude Code — Plugin-Installation:**
 
 ```text
 /plugin marketplace add Leehyunbin0131/claude-ros2-skills
 /plugin install claude-ros2-skills@claude-ros2-skills
 ```
 
-Manuelle Installation in ein vorhandenes Projekt:
+## Verfügbare Skills
 
-```bash
-git clone https://github.com/Leehyunbin0131/claude-ros2-skills.git
-python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
-# --user: alternative to --project
-```
+| Skill | Einsatzbereich | Funktion |
+| :--- | :--- | :--- |
+| [ros2-development](skills/ros2-development/SKILL.md) | Pakete, Knoten, Schnittstellen, Launch, Konfiguration und Tests entwickeln | Abhängigkeitsbewusste Builds, Prüfung installierter Artefakte, Erkennung von Testläufen ohne Tests und optionales Nachweis-Tracking für Übergaben |
+| [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md) | Laufzeitfehler bei Publishern, Callbacks, TF, IMU oder Odometrie | Vier ausführbare Diagnosen und direkte Referenzen zu Koordinatenrahmen (REP 103/105), QoS und Kalibrierung |
+| [ros2-microros](skills/ros2-microros/SKILL.md) | MCU-Transport, Agent, rclc, Nachrichtenspeicher | Einstiegspunkte und Diagnoseleitfaden; **nicht auf MCU-Hardware validiert** |
 
-Starten Sie eine neue Sitzung. Das Plugin lädt das Protokoll über SessionStart; die Benutzerebene gilt für alle Projekte. Die manuelle Installation erhält CLAUDE.md und fremde Skills und legt das Protokoll unter .claude/rules/ros2-verification.md ab. Lokale Änderungen werden nicht überschrieben. ROS, colcon und Treiber sind separat erforderlich.
+## Ausführbare Verifikations- und Nachweiswerkzeuge
 
-## Skills
+Die Skripte sind den jeweiligen Skills beigelegt. In den Beispielen ist `ROS2_SKILL_DIR` eine vom Agenten intern gesetzte Beispielvariable auf das geladene Skill-Verzeichnis; sie erfordert keine Benutzereingabe.
 
-- [ros2-development](skills/ros2-development/SKILL.md): Pakete, Nodes, Schnittstellen, launch/config und Tests entwickeln; prüfen, dass jedes Paket tatsächlich Tests ausgeführt hat.
-- [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md): Vier ausführbare Diagnosen: QoS, TF, IMU und Odometrierichtung, ergänzt um Referenzen zu Koordinaten und Kalibrierung.
-- [ros2-microros](skills/ros2-microros/SKILL.md): Hinweise zu MCU, Agent, rclc und Speicher. Nicht auf einer MCU validiert.
+| Skript | Zweck und geprüfter Nachweis |
+| :--- | :--- |
+| `ros2-development/scripts/check_test_results.py` | Prüft tatsächlich ausgeführte und bestandene Tests in frischen colcon-Berichten (schließt leere Läufe aus) |
+| `ros2-development/scripts/evidence.py begin / finish / inspect` | **Opt-in-Workflow**: Erfasst vom Aufrufer deklarierte Metadaten und vergleicht Datei-Hashes sowie ausgewählte Umgebungswerte zur Unterstützung von Übergaben |
+| `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | Native Jazzy-QoS-Kompatibilität zwischen Publisher- und Subscriber-Endpunkten |
+| `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF-Konnektivität und RPY-Montagewinkel für den physischen Abgleich |
+| `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Erdbeschleunigung in Ruhelage auf ebener Fläche transformiert in `--base base_link` |
+| `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | Frische Odometrie-Richtung vor und nach einer beobachteten Bewegung |
 
-Nennen Sie den Skill im Auftrag: „Nutze ros2-development, um dieses Jazzy-Paket zu ändern, seine Abhängigkeiten zu bauen und den installierten Node sowie die ausgeführten Tests zu prüfen.“
+**Diagnose-Rückgabewerte: 0 BESTANDEN, 1 FEHLER, 2 NICHT EINDEUTIG oder ungültige Anfrage.**
+**Nachweisprüfungs-Rückgabewerte: 0 Konsistent (Consistent), 1 Geändert (Changed), 2 Unvollständig (Incomplete).**
+Das Nachweiswerkzeug trennt strikt zwischen den vom Aufrufer deklarierten Ausgaben und den vom Werkzeug beobachteten Hashes. Es führt keine Benutzerbefehle aus, garantiert weder Frische noch das Fehlen von Zwischenänderungen und belegt nicht die Gesamtkorrektheit des Roboters. Siehe [docs/DESIGN.md](docs/DESIGN.md).
 
-## Validierung und Grenzen
+## Validierungsgrenzen
 
-Exit-Codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE oder ungültige Anfrage. Fehlende Daten, NaN, unbekanntes QoS, fehlende TF oder keine ausgeführten Tests zählen nicht als Erfolg. Die IMU wird in den Basisrahmen transformiert; Gravitation prüft kein Yaw. Der Odometrietest prüft Richtung, nicht Entfernungskalibrierung. Laufzeitdiagnosen senden keine Bewegungsbefehle.
+CI prüft Installationserhalt, Code-Gültigkeit, reale Python/CMake- und ament-Tests sowie synthetische Jazzy-Kommunikation.
 
-CI prüft Installationsschutz, Entscheidungslogik, echte temporäre Python/CMake-Pakete, synthetische Jazzy-Kommunikation und TF sowie den Evaluator. Opus 5.5 High hat drei Aufgaben sowohl mit Plugin als auch mit manueller Installation abgeschlossen; die Baseline ohne das Paket ebenfalls. Das ist eine Beobachtung pro Methode und Aufgabe, siehe [Abnahmebericht](evals/development/RESULTS.md). Die Tests belegen Werkzeugverhalten, keinen gemessenen Fähigkeitsgewinn des Agenten. Reale Roboter und MCUs benötigen eigene Validierung.
+In früheren Evaluierungen mit Claude Code Opus 5.5 High bestanden sowohl Sessions mit Skills als auch die Baseline dieselben Aufgaben. In einer Schnittstellen-Migrationsstudie ([RESULTS.md](evals/workflow_value/RESULTS.md)) waren Skill-Sessions in den beobachteten Läufen schneller; Stichproben- und Cache-Einflüsse **begründen jedoch keinen kausalen Nachweis für Geschwindigkeits-, Zuverlässigkeits- oder Programmierfähigkeitsverbesserungen**.
 
-Eine spätere [Vergleichsstudie zur Schnittstellenmigration](evals/workflow_value/RESULTS.md) prüft drei Varianten mit Python/C++-Verbrauchern unter Opus 5.5 High. Alle sechs Ergebnisse mit und ohne Pack bestehen die unabhängige Prüfung. Berichtsgenauigkeit, mehrdeutige Regeln und verbleibende Prozesse werden getrennt dokumentiert. Ein Zuverlässigkeitsgewinn oder kausaler Geschwindigkeitsvorteil ist nicht belegt; die Skills bleiben bei 0.1.2.
+Reale Roboter, MCU-Firmware und vollständige Nav2/MoveIt-Anwendungen bleiben ungeprüft.
 
-Einigen historischen Zahlen fehlen Transkripte oder reproduzierbare Neubewertungen; sie werden nicht als aktuelle Leistung beworben. [CAPABILITIES.md](evals/CAPABILITIES.md).
+## Mitwirken & Lizenz
 
-## Aktualisierung
-
-Bei manueller Installation das Repository aktualisieren und denselben Installer erneut ausführen. Für das Plugin folgenden Befehl verwenden und eine neue Sitzung starten.
-
-```bash
-claude plugin update claude-ros2-skills@claude-ros2-skills
-```
-
-[Vollständiger Ablauf und Evidenzumfang (English)](README.md) · [Mitwirken](CONTRIBUTING.md) · [Apache-2.0](LICENSE).
+[CONTRIBUTING.md](CONTRIBUTING.md) · [evals/AUTHORING.md](evals/AUTHORING.md) · [Apache-2.0](LICENSE).

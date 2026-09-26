@@ -2,7 +2,7 @@
 
 <img src="assets/hero.png" alt="ROS 2 Jazzy skills for Claude Code and Codex" width="100%"/>
 
-**ROS 2 development with evidence that the result works.**
+**Contextual packaging of ROS 2 verification tools, workflows, and handoff evidence.**
 
 ![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
@@ -13,14 +13,13 @@
 </div>
 
 Three skills for **Claude Code and Codex**, targeting **Ubuntu 24.04 / ROS 2 Jazzy**: develop packages,
-verify tests and installed behaviour, and diagnose runtime faults. The goal is
-less time spent correcting plausible code that was never exercised. This pack
-supplies targeted workflows and executable checks, not a replacement for the
-workspace's conventions or the installed ROS documentation.
+verify tests and installed behaviour, and diagnose runtime faults.
+
+This repository packages contextual domain guidance, workflows, and executable diagnostics under the [Agent Skills standard](https://agentskills.io/home). Rather than claiming to enhance the intrinsic code generation capabilities of frontier language models, this project explores an engineering hypothesis: **packaging environment-specific evidence checks and structured handoff records can reduce verification ambiguity and context-transfer overhead between sessions or collaborators.** While individual tool functionality is validated on test fixtures, **reduced handoff cost and overall developer productivity gains remain unproven.**
 
 ## Quickstart
 
-Choose your assistant. For Claude Code, choose either plugin or manual installation.
+Choose your assistant. Automatic skill discovery is supported across environments. For Claude Code, choose either plugin or manual installation.
 
 **Codex — native skills for an existing project:**
 
@@ -35,9 +34,8 @@ The [Codex skill locations](https://learn.chatgpt.com/docs/build-skills) are
 `<project>/.agents/skills` and `~/.agents/skills` for these two scopes. Choose one
 scope to avoid duplicate skill names. Each installed Codex skill includes the
 shared [verification protocol](CLAUDE.md), loaded when that skill is used.
-No Claude hooks or rules are required. Existing `AGENTS.md`, `CLAUDE.md`, Codex
-configuration and unrelated skills are preserved; local edits stop an update.
-Start a new Codex session in the target workspace. To select a skill explicitly
+Existing `AGENTS.md`, `CLAUDE.md`, Codex configuration and unrelated skills are preserved;
+local edits stop an update. Start a new Codex session in the target workspace. To select a skill explicitly
 in Codex CLI or the IDE, use `$ros2-development` or `$ros2-troubleshooting`.
 In the desktop skill picker, select the same skill by name.
 
@@ -70,7 +68,7 @@ python3 claude-ros2-skills/scripts/install.py --project /path/to/your-workspace
 # python3 claude-ros2-skills/scripts/install.py --user
 ```
 
-The installer copies the three skills and `.claude/rules/ros2-verification.md`.
+The installer copies the skills and `.claude/rules/ros2-verification.md`.
 It preserves existing `CLAUDE.md` files and unrelated skills, refuses to overwrite
 local edits, and reports retired skill directories for manual review. Restart
 Claude Code afterwards. ROS, colcon and robot drivers are not installed by this
@@ -92,11 +90,11 @@ the implementation's assertions failed.
 
 | Skill | When it helps | What it adds |
 | :--- | :--- | :--- |
-| [ros2-development](skills/ros2-development/SKILL.md) | Creating or modifying packages, nodes, interfaces, launch/config and tests | Dependency-aware builds, installed-artifact verification, a check that rejects empty/all-skipped test runs |
+| [ros2-development](skills/ros2-development/SKILL.md) | Creating or modifying packages, nodes, interfaces, launch/config and tests | Dependency-aware builds, installed-artifact verification, a check that rejects empty test runs, and an optional evidence tracking tool for task handoff |
 | [ros2-troubleshooting](skills/ros2-troubleshooting/SKILL.md) | A live publisher, callback, TF, IMU or odometry behaves incorrectly | Four executable diagnostics and focused frame, runtime and calibration references |
 | [ros2-microros](skills/ros2-microros/SKILL.md) | MCU transport, agent, rclc or message memory work | Source pointers and troubleshooting guidance; **not MCU-validated** |
 
-Both assistants can select a skill from its description. To request it explicitly, mention
+Both assistants can select a skill automatically from its description. To request it explicitly, mention
 its name in your task. Examples:
 
 - “Use ros2-development to add a service to this existing Jazzy package. Build
@@ -112,25 +110,26 @@ making assumptions about them.
 
 ## Verification scripts
 
-Scripts ship with their skill. Resolve `scripts/` from the absolute directory
-of the loaded `SKILL.md`, not the current working directory. The examples use
-`ROS2_SKILL_DIR`, a shell variable you set to that directory. They are Python
-files, not ROS packages to invoke with `ros2 run`.
+Scripts ship with their respective skill. In command examples, `ROS2_SKILL_DIR` is an illustrative
+variable set by the agent to the directory containing the loaded skill; it does not require user input.
+They are plain Python files, not ROS packages to invoke with `ros2 run`.
 
 | Script | Evidence it checks |
 | :--- | :--- |
 | `ros2-development/scripts/check_test_results.py <results> --packages <name>` | Check executed, passing cases in fresh colcon reports; use `--require-test PACKAGE::test_name` for the changed behaviour, since linters alone can otherwise pass |
+| `ros2-development/scripts/evidence.py begin / finish / inspect` | **Opt-in workflow**: Records caller-declared command metadata and inspects watched file hashes and selected environment values for handoff |
 | `ros2-troubleshooting/scripts/check_qos_compat.py --topic /scan` | Native Jazzy QoS compatibility for discovered publisher/subscriber pairs |
 | `ros2-troubleshooting/scripts/check_tf_tree.py --sensors laser_frame,imu_link` | TF connectivity and mounting RPY for physical comparison; an unusual angle is an advisory |
 | `ros2-troubleshooting/scripts/check_imu_gravity.py --topic /imu/data` | Gravity at rest on level ground, transformed into `--base base_link`; missing TF is inconclusive, and gravity cannot establish yaw |
 | `ros2-troubleshooting/scripts/check_odom_direction.py --topic /odom` | Fresh odometry before and after an externally observed movement; direction only, not distance calibration |
 
-**Exit codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE or invalid request.** Missing data,
-NaN, unavailable IMU fields, unknown QoS, no executed tests and insufficient
-motion must not become successful verification. The runtime scripts require a
-sourced Jazzy environment. They do not publish motion commands; the odometry
-check relies on movement performed outside the script. A check proves only the
-property it observes, not the correctness of the whole robot.
+**Diagnostic exit codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE or invalid request.**
+
+**Evidence inspection exit codes: 0 Consistent, 1 Changed, 2 Incomplete.**
+
+Missing data, NaN, unavailable IMU fields, unknown QoS, no executed tests and insufficient motion must not become successful verification. The runtime scripts require a sourced Jazzy environment. They do not publish motion commands; the odometry check relies on movement performed outside the script. A check proves only the property it observes, not the correctness of the whole robot.
+
+The evidence tool strictly separates caller-declared outputs from tool-observed file hashes. It does not execute or re-run user commands, does not guarantee freshness or absence of intermediate changes, and does not claim whole-robot health. See [docs/DESIGN.md](docs/DESIGN.md) and [references/handoff.md](skills/ros2-development/references/handoff.md).
 
 ## How it works
 
@@ -146,7 +145,7 @@ flowchart LR
 
 The protocol covers development across packages, Nav2, MoveIt and ros2_control;
 the focused skills add procedures and tools when those are useful. We do not
-restore large domain manuals merely to increase the skill count. The new
+restore large domain manuals merely to increase the skill count. The
 `ros2-development` workflow addresses a concrete gap: a successful test command
 can report **zero tests**. In the real package fixture, that command returns 0
 while the bundled evidence check returns 2.

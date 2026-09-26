@@ -1,32 +1,33 @@
-# READ THIS FIRST — ROS 2 verification protocol
+# ROS 2 Verification Protocol
 
-Do NOT answer ROS 2 / Gazebo / Nav2 / MoveIt / ros2_control / perception questions from memorized knowledge. Pretrained API details are frequently wrong or outdated for Jazzy.
+This protocol guides verification for ROS 2, Gazebo, Nav2, MoveIt, ros2_control, and perception tasks on **Ubuntu 24.04 LTS / ROS 2 Jazzy Jalisco**.
 
-On every ROS 2 task, before writing code or answering:
+## Environment-Dependent Facts
 
-1. Verify the specific API / message / parameter against local `/opt/ros/jazzy/` (`ros2 interface show`, `ros2 topic list -t`, `ros2 pkg prefix`, `ros2 param list`) or against the official Jazzy docs for that package.
-2. Resolve any frame/TF question against `ros2-troubleshooting` (REP 103/105) as ground truth.
-3. When a system logs healthy and does not work, run the relevant `ros2-troubleshooting` check. Exit 0/1 gives a verdict on the checked property only; exit 2 is inconclusive and must not be reported as pass or fail. A checker does not establish whole-system correctness.
+Do not guess environment-dependent facts (such as exact message fields, parameter names, QoS profiles, topic names, and TF frames) from memory. Pretrained API details are frequently outdated or divergent between distributions.
 
-Never invent message types, API method names, QoS signatures, param names, or TF frames. Look them up.
+When implementing or modifying ROS 2 code:
 
-**`rclcpp` is C++ only, `rclpy` is Python only.** They are separate libraries, not two spellings of one: `rclcpp.qos` in Python and `rclpy::` in C++ do not exist. An example found in one language translates as a concept, never as a namespace. Answer in the language the user is using, and if you are unsure a symbol exists in that language, check (`python3 -c "import rclpy.qos"`).
+1. **Verify uncertain or distribution-specific APIs** against the local installation (`/opt/ros/jazzy/` via `ros2 interface show`, `ros2 topic list -t`, `ros2 pkg prefix`, `ros2 param list`) or official Jazzy documentation. General ROS concepts and established programming patterns do not require repetitive tool lookups when the API is already unambiguous.
+2. **Resolve frame and TF conventions** against REP 103 and REP 105 as ground truth. Refer to `references/frames.md` located inside the loaded `ros2-troubleshooting` skill directory (resolved relative to that skill's path, not the project CWD).
+3. **Diagnose silent failures with targeted checks**: When nodes appear running but communication fails, run relevant troubleshooting checks (e.g., QoS compatibility). An exit code of 0 or 1 applies strictly to the checked property; code 2 indicates an inconclusive or invalid request. A diagnostic check does not establish whole-system correctness.
 
-## Establish before writing (no doc can tell you these)
+**`rclcpp` is C++ only; `rclpy` is Python only.** They are distinct libraries with different conventions and type signatures. An example in one language translates as an architectural concept, never as a literal namespace import. Use the language appropriate for the task, and verify symbol presence when uncertain.
 
-Ask only for facts relevant to the task that the user or workspace has not already supplied:
+## Establish Relevant Context Before Writing
 
-- **Real hardware, simulation, or both?** Sets `use_sim_time`, decides whether physical checks apply, and whether any tuning transfers.
-- **Existing workspace or greenfield?** Match the package layout, naming, and launch conventions already in the repo before inventing your own.
-- **Who already publishes the topic or TF you're about to add?** Two publishers on one transform is a silent failure that looks healthy in every log.
-- **Real geometry** — sensor mounting orientation, wheel radius/separation — whenever the task touches them. The robot is not its CAD model.
+Before modifying or writing code, clarify facts relevant to the task if they are not already supplied by the user or workspace:
 
-## Done means it ran
+- **Real hardware, simulation, or both?** Affects `use_sim_time`, physical sensor expectations, and tuning validity.
+- **Existing workspace conventions**: Follow the package layout, naming, and launch patterns already present in the workspace rather than imposing new structures.
+- **Existing publishers and TF authorities**: Avoid creating duplicate publishers on the same topic or transform frame without coordination.
+- **Physical geometry**: Sensor mounting orientations and wheel dimensions must reflect actual hardware, not unverified CAD assumptions.
 
-Writing the code is not the deliverable. Report what you actually observed — a build succeeding, `ros2 topic echo` showing data, a lifecycle node reaching `active`, a check script passing — or state plainly that you could not verify and what you'd need to.
+## Observable Evidence
 
-This is the single highest-value line here. Config that reads correctly and is never started is this pack's most reproducible failure: a Nav2 parameter file that names every plugin correctly and puts every value in the right place, which the servers then refuse to configure. Bringing the same file up once finds it in one sitting. Run what you wrote.
+Writing code is incomplete until verified against the scope of the task. Where execution permissions and environment permit, report what was concretely observed — such as a clean build, active lifecycle state, passing diagnostic script, or received messages.
 
-Bound runtime probes with a timeout and keep the PID or process group of anything you start. Stop only those owned processes, including when a probe hangs. Never clean up by process-name patterns (`pkill -f`, `killall`, or matching names then killing the matches): another terminal or robot bringup may own them. Leave existing publishers and transforms running unless the user requested their modification.
-
-Target: **Ubuntu 24.04 LTS / ROS 2 Jazzy Jalisco**. Legacy (Gazebo Classic, pre-Jazzy APIs) is out of scope unless explicitly asked.
+- **State unverified boundaries plainly**: When execution is not possible (e.g., missing hardware, unavailable runtime environment, or execution permission limits), state clearly what could not be run and what would be required to verify it. Do not manufacture passing claims from unexecuted code.
+- **Respect execution permissions**: Do not demand or force arbitrary command execution when the operating environment restricts permissions.
+- **Safe process management**: When launching runtime probes, bound them with a timeout and record the specific PID or process group. Terminate only processes started during the probe. Never use broad pattern-based cleanup (`pkill -f` or `killall`), which risks killing user or robot system processes.
+- **No mandatory report format**: Provide concise, factual summaries of what was observed rather than bureaucratic boilerplate.

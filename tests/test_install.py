@@ -49,6 +49,9 @@ class Installation(unittest.TestCase):
         helper = self.target/'skills/ros2-troubleshooting/scripts/check_imu_gravity.py'
         result = subprocess.run(['python3', str(helper), '--help'], capture_output=True, text=True, timeout=5)
         self.assertEqual(result.returncode, 0, result.stderr)
+        evidence = self.target/'skills/ros2-development/scripts/evidence.py'
+        result = subprocess.run(['python3', str(evidence), '--help'], capture_output=True, text=True, timeout=5)
+        self.assertEqual(result.returncode, 0, result.stderr)
         checker = self.target/'skills/ros2-development/scripts/check_test_results.py'
         result = subprocess.run(['python3', str(checker), '--help'], capture_output=True, text=True, timeout=5)
         self.assertEqual(result.returncode, 0, result.stderr)

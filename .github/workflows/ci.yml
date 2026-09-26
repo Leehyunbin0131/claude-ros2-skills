@@ -26,6 +26,7 @@ jobs:
       - name: Development evidence gate
         run: |
           python3 tests/test_development.py
+          python3 tests/test_evidence.py
           python3 evals/development/test_runner.py
           python3 evals/workflow_value/test_runner.py
           python3 evals/workflow_value/test_oracle.py
