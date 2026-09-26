@@ -45,7 +45,7 @@ Puedes mencionar el skill en tu petición: «Usa ros2-development para modificar
 
 ## Validación y límites
 
-Códigos: 0 PASS, 1 FAIL, 2 INCONCLUSIVE o solicitud inválida. Datos ausentes, NaN, QoS desconocido, TF ausente o cero pruebas no cuentan como éxito. La IMU se transforma al marco base; la gravedad no verifica yaw. La odometría verifica dirección, no calibración de distancia. Los diagnósticos no publican órdenes de movimiento.
+Códigos: 0 PASS, 1 FAIL, 2 INCONCLUSIVE o solicitud inválida. Datos ausentes, NaN, QoS desconocido, TF ausente, menos de dos muestras, variación excesiva (>1.5 m/s², ajustable con --max-variation) o cero pruebas no cuentan como éxito. PASS evalúa la gravedad +Z medida en el marco base nivelado tras aplicar el TF declarado o una suposición explícita de alineación (--assume-aligned); ninguno demuestra reposo físico y la gravedad no verifica yaw. La odometría verifica dirección, no calibración de distancia. Los diagnósticos no publican órdenes de movimiento.
 
 CI comprueba conservación de instalaciones, lógica, paquetes temporales Python/CMake reales, comunicación y TF sintéticos en Jazzy y el evaluador. Opus 5.5 High completó tres tareas con plugin y con instalación manual; la referencia sin el paquete también completó las tres. Es una observación por método y tarea: consulta el [registro de aceptación](evals/development/RESULTS.md). Las pruebas acreditan herramientas, no una mejora medida del agente. Robots físicos y MCU requieren validación aparte.
 

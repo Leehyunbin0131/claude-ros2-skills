@@ -45,7 +45,7 @@ Nennen Sie den Skill im Auftrag: „Nutze ros2-development, um dieses Jazzy-Pake
 
 ## Validierung und Grenzen
 
-Exit-Codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE oder ungültige Anfrage. Fehlende Daten, NaN, unbekanntes QoS, fehlende TF oder keine ausgeführten Tests zählen nicht als Erfolg. Die IMU wird in den Basisrahmen transformiert; Gravitation prüft kein Yaw. Der Odometrietest prüft Richtung, nicht Entfernungskalibrierung. Laufzeitdiagnosen senden keine Bewegungsbefehle.
+Exit-Codes: 0 PASS, 1 FAIL, 2 INCONCLUSIVE oder ungültige Anfrage. Fehlende Daten, NaN, unbekanntes QoS, fehlende TF, <2 Messungen, übermäßige Messwertvariation (>1,5 m/s², anpassbar über --max-variation) oder keine ausgeführten Tests zählen nicht als Erfolg. PASS betrifft die gemessene +Z-Gravitation im horizontalen Basisrahmen nach deklariertem TF oder expliziter Ausrichtungsannahme (--assume-aligned); keines davon beweist physischen Stillstand, und Gravitation prüft kein Yaw. Der Odometrietest prüft Richtung, nicht Entfernungskalibrierung. Laufzeitdiagnosen senden keine Bewegungsbefehle.
 
 CI prüft Installationsschutz, Entscheidungslogik, echte temporäre Python/CMake-Pakete, synthetische Jazzy-Kommunikation und TF sowie den Evaluator. Opus 5.5 High hat drei Aufgaben sowohl mit Plugin als auch mit manueller Installation abgeschlossen; die Baseline ohne das Paket ebenfalls. Das ist eine Beobachtung pro Methode und Aufgabe, siehe [Abnahmebericht](evals/development/RESULTS.md). Die Tests belegen Werkzeugverhalten, keinen gemessenen Fähigkeitsgewinn des Agenten. Reale Roboter und MCUs benötigen eigene Validierung.
 

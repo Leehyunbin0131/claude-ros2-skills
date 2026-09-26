@@ -121,6 +121,24 @@ class RosChecks(unittest.TestCase):
         self.imu((0.0, float('nan'), 9.81), 2)
         self.imu((0.0, 0.0, 9.81), 2, unavailable=True)
 
+    def test_imu_oscillation_is_inconclusive(self):
+        topic = '/regression/imu_oscillating_' + uuid.uuid4().hex
+        pub = self.node.create_publisher(Imu, topic, qos_profile_sensor_data)
+        def publish(_):
+            msg = Imu()
+            msg.header.frame_id = 'imu_link'
+            msg.linear_acceleration.x = 9.0 if int(time.monotonic() * 10) % 2 else -9.0
+            msg.linear_acceleration.z = 9.81
+            pub.publish(msg)
+        try:
+            code, text = self.command('check_imu_gravity.py',
+                                      ['--topic', topic, '--samples', '20', '--timeout', '6',
+                                       '--assume-aligned'], publish)
+            self.assertEqual(code, 2, text)
+            self.assertIn('variation', text)
+        finally:
+            self.node.destroy_publisher(pub)
+
     def test_imu_uses_declared_mount(self):
         topic = '/regression/imu_tf_' + uuid.uuid4().hex
         frame = 'imu_' + uuid.uuid4().hex
