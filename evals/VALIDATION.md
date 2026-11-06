@@ -1,5 +1,7 @@
 # Development and diagnostic validation — 2026-09-25
 
+> **Scope note:** This document records operational validation for the 0.1.2 development workflow and runtime diagnostic update. For the 0.2.0 evidence handoff tool (`evidence.py`) validation and architecture, see [docs/VALIDATION.md](../docs/VALIDATION.md) and [docs/DESIGN.md](../docs/DESIGN.md).
+
 This records operational validation for the development-workflow update. It is
 not an agent performance benchmark. The previous source baseline is
 `39fed2a093a811aa8797d28daff6bef737b94b6f`.

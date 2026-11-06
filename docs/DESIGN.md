@@ -98,3 +98,10 @@ python3 "${ROS2_SKILL_DIR}/scripts/evidence.py" inspect /tmp/evidence-run-001 \
 4. **Reverted Changes (ABA Problem)**: If a file was modified during execution and subsequently reverted to its exact original byte state, hash comparisons will not detect the intermediate modification.
 5. **No Guarantee of Whole-System Health**: An `inspect` status of `0` confirms only that watched files match the snapshot. It does not prove that the robot is operational or free of defects.
 6. **No Automatic Graph Crawling**: The tool monitors only explicitly declared watch paths. Dependencies outside declared `--watch` paths (underlays, system packages) are not tracked.
+
+## 5. Related Documentation
+
+- **Operational Validation (0.2.0 Evidence Tool)**: [docs/VALIDATION.md](VALIDATION.md)
+- **Step-by-Step Handoff Reference**: [skills/ros2-development/references/handoff.md](../skills/ros2-development/references/handoff.md)
+- **Development & Diagnostic Validation Inventory (0.1.2)**: [evals/VALIDATION.md](../evals/VALIDATION.md)
+- **Historical Capability & Evaluation Records**: [evals/CAPABILITIES.md](../evals/CAPABILITIES.md) and [evals/LADDER.md](../evals/LADDER.md)

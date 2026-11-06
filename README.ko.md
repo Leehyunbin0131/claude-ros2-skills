@@ -4,6 +4,10 @@
 
 **ROS 2 검증 도구, 작업 흐름, 인계 증거의 상황별 패키징.**
 
+![ROS 2](https://img.shields.io/badge/ROS%202-Jazzy-22314E?logo=ros&logoColor=white)
+![Ubuntu](https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?logo=ubuntu&logoColor=white)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)
+
 [English](README.md) | **한국어** | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
 
 </div>
@@ -136,45 +140,29 @@ Nav2·MoveIt·ros2_control을 포함한 개발에서도 이 흐름을 활용하�
 새 개발 스킬이 다루는 구체적인 문제는 **실행한 테스트가 0개인데 명령이 성공하는 경우**입니다.
 실제 임시 패키지 검증에서 기본 `colcon` 명령은 0으로 종료했지만 새 검사는 2로 종료해 완료 증거가 없음을 표시했습니다.
 
-## 검증 범위와 한계
+## 검증 요약 및 적용 경계
 
-Codex 지원 검증은 [별도 보고서](evals/CODEX.md)에 기록합니다. 오프라인 설치·탐색 및 모델명이 기록되지 않은
-2건의 프로젝트 설치 워크플로를 다루며, 기존 Claude 실행 결과는 Codex 성능의 증거가 아닙니다.
-Codex에서는 스킬을 활성화할 때 공통 지침이 적용됩니다.
-CI는 설치·업데이트 시 파일 보존, Python·셸 코드, 판정 로직, 실제 Python/CMake 및 ament 테스트,
-합성 Jazzy 통신·TF, 독립적인 평가 판정기의 정상·오류 사례를 검사합니다.
-명령은 [기여 안내](CONTRIBUTING.md)에 있습니다.
+- **CI 및 픽스처 검증**: 설치·업데이트 시 파일 보존, Python·셸 문법, 결정론적 판정 로직, 실제 Python/CMake 및 `ament` 테스트 래퍼, 합성 Jazzy 통신·TF, 인계 증거 스냅샷 계약([docs/VALIDATION.md](docs/VALIDATION.md)), 독립적인 평가 오라클(정상·오류 대조군)을 자동 검사합니다. 실행 명령은 [CONTRIBUTING.md](CONTRIBUTING.md)에 있습니다.
+- **배포 수락 검증 (Claude Code)**: 실제 **Opus 5.5 High** 세션으로 네임스페이스 센서 패키지 개발, 휠 속도 회귀 테스트 수정, 실시간 IMU/TF 진단 과제를 플러그인·수동 설치 방식에서 각각 완료하고 지침 전달 및 스크립트 실행을 확인했습니다([evals/development/RESULTS.md](evals/development/RESULTS.md)). 스킬 없는 기본(baseline) 실행도 세 과제를 모두 통과했으며, 이는 방식·과제당 1회(`n=1`)의 동작 확인일 뿐 **성능 향상이나 동등한 신뢰성을 입증하지 않습니다.**
+- **Codex 호환성 검증**: 22개 오프라인 설치·탐색 테스트와 프로젝트 설치 워크플로 2건(모델명 미기록)을 [evals/CODEX.md](evals/CODEX.md)에 기록합니다. Codex 설치본은 세션 시작 훅 대신 스킬 활성화 시점에 공통 지침을 포함합니다.
+- **인터페이스 변경 비교 실험 및 비주장(Non-claims)**: 동결된 `0.1.2` 스냅샷에서 Opus 5.5 High로 Python·C++ 소비자가 있는 세 변형을 스킬 유무에 따라 비교한 결과([evals/workflow_value/RESULTS.md](evals/workflow_value/RESULTS.md)), 여섯 결과물 모두 독립적인 클린 빌드·런타임·회귀 검증을 통과했습니다. 스킬 팩 세션은 출력 토큰 수와 추정 API 비용이 더 높았으며, 관측된 경과 시간 단축은 실행 순서·프롬프트 캐시·백그라운드 프로브 대기가 혼재된 결과입니다. **토큰 수, 총 비용, 속도 측면의 이점은 입증되지 않았으며 이를 주장하지 않습니다.** 또한 과거 `0.1.2` 연구는 `0.2.0`의 인계 증거 도구를 평가하지 않습니다.
+- **미검증 범위**: 실물 로봇, MCU 펌웨어, 물리 보정, 그리고 Nav2·MoveIt·Gazebo 전체 애플리케이션은 검증하지 않았습니다. 소규모 픽스처 결과로 일반적인 오래된 오버레이(stale overlay) 복구, 구형·신형 DDS 타입 간 호환성, 외부 C++ 라이브러리 연동, `--packages-up-to` 지침의 인과적 효과까지 입증한 것은 아닙니다.
+- **유지보수 기준**: 지원 범위 내의 구체적인 결함, 필수 테스트 회귀, 확인된 실행 환경 호환성 변화, 명시적인 사용자 범위 확장이 있을 때만 재개하며, 업스트림 모델 업데이트만으로는 재개하지 않습니다.
 
-실제 Claude Code **Opus 5.5 High**로 센서 패키지 개발, 휠 속도 기능 테스트 수정,
-IMU/TF 진단을 플러그인·수동 설치 방식에서 각각 완료했습니다.
-두 설치 방식의 로딩 검사에서는 지침 전달과 제공 스크립트 실행도 확인했습니다.
-스킬 없는 기본 실행도 세 과제를 모두 통과했습니다. **방식·과제마다 한 번의 관측이며,
-성능 향상이나 같은 신뢰성을 입증한 결과가 아닙니다.**
-종료 지침을 보강한 뒤의 런타임 재검증을 포함한 모든 시도와 한계는
-[배포 검증 기록](evals/development/RESULTS.md)에 공개합니다.
+## 문서 구성 및 안내
 
-후속 [인터페이스 변경 비교 실험](evals/workflow_value/RESULTS.md)은 동결된 0.1.2 스냅샷을 대상으로 Opus 5.5 High를
-사용해 Python·C++ 소비자가 있는 세 변형을 스킬 유무에 따라 비교했습니다. 여섯 결과물 모두 독립적인
-빌드·실행·회귀 검증을 통과했습니다. 검증 보고의 정확성, 해석이 갈리는 프로젝트 규칙,
-프로세스 종료 문제는 별도로 기록했습니다. 해당 실험에서 스킬 팩 세션은 출력 토큰 수와 API 비용 추정치가
-더 높았으며, 관측된 경과 시간 단축은 실행 순서, 프롬프트 캐시, 백그라운드 프로브 대기 시간의 혼재로 인한 것입니다.
-토큰 수, 총 비용, 속도 측면의 입증된 이점은 없으며 이를 주장하지 않습니다. 0.2.0 릴리스는 선별적인 IMU 수정과
-함께 선택적 증거 인계 워크플로를 제공하며, 해당 과거 0.1.2 연구가 새로운 인계 도구를 검증하는 것은 아닙니다.
-
-유지보수는 지원 범위 내의 구체적인 결함, 필수 테스트 회귀, 확인된 실행 환경 호환성 변화,
-명시적인 사용자 범위 확장이 있을 때만 재개하며, 업스트림 모델 업데이트만으로는 불충분합니다.
-
-실물 로봇·MCU·물리 보정과 Nav2·MoveIt·Gazebo 전체 애플리케이션은 검증하지 않았습니다.
-작은 인터페이스 사례로 일반적인 overlay 복구, 구형·신형 DDS 타입 간 통신, 외부 C++ 라이브러리 사용,
-`--packages-up-to` 지침의 효과까지 입증한 것은 아닙니다.
-
-## 평가 기록
-
-[CAPABILITIES.md](evals/CAPABILITIES.md)는 과거 수치와 저장된 판정의 차이를 공개합니다.
-일부는 원본이나 재채점 자료가 없어 재현할 수 없습니다. 이를 현재 성능으로 홍보하거나
-모든 도메인 지식이 불필요하다는 근거로 사용하지 않습니다.
-새 스킬은 실제 개발 문제를 해결해야 하며, 모델 성능 향상을 주장하려면 동일 조건의 대조 실험이 필요합니다.
-[작성 기준](evals/AUTHORING.md)과 [평가 방법](evals/LADDER.md)을 참고하세요.
+| 문서 | 설명 |
+| :--- | :--- |
+| [CLAUDE.md](CLAUDE.md) | 에이전트 세션에 전달되는 공통 ROS 2 Jazzy 검증 프로토콜 |
+| [docs/DESIGN.md](docs/DESIGN.md) | 작업 인계 증거 도구(`evidence.py`)의 아키텍처, 설계 트레이드오프 및 CLI 계약 |
+| [docs/VALIDATION.md](docs/VALIDATION.md) | `0.2.0` 인계 증거 도구의 계약 테스트 및 정성적 스모크 검증 요약 |
+| [evals/VALIDATION.md](evals/VALIDATION.md) | `0.1.2` 개발 워크플로 및 런타임 진단 도구의 기능 검증 내역 |
+| [evals/development/RESULTS.md](evals/development/RESULTS.md) | Claude Code 배포 수락 검증 기록 (플러그인·수동·베이스라인 실행) |
+| [evals/CODEX.md](evals/CODEX.md) | Codex 스킬 설치, 탐색 검사 및 샌드박스 런타임 관측 보고서 |
+| [evals/workflow_value/RESULTS.md](evals/workflow_value/RESULTS.md) | 인터페이스 변경 비교 실험 결과 (`0.1.2` 스냅샷) |
+| [evals/CAPABILITIES.md](evals/CAPABILITIES.md) | 과거 베이스라인 평가 점수와 커밋된 판정 기록 간의 대조표 (현재 성능으로 홍보하지 않음) |
+| [evals/AUTHORING.md](evals/AUTHORING.md) & [evals/LADDER.md](evals/LADDER.md) | 스킬 작성 기준 및 사전 등록형 난이도 사다리(Difficulty Ladder) 평가 방법론 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 기여에 필요한 증거 수준, 구현 규칙 및 PR 전 전체 테스트 명령어 |
 
 ## 업데이트
 

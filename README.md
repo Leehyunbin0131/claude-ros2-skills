@@ -150,62 +150,29 @@ restore large domain manuals merely to increase the skill count. The
 can report **zero tests**. In the real package fixture, that command returns 0
 while the bundled evidence check returns 2.
 
-## Validation and evidence limits
+## Validation & Scope Boundaries
 
-CI checks installation/update preservation, Python and shell code, deterministic
-verdicts, real Python/CMake and ament test wrappers, synthetic Jazzy pub/sub and
-TF, and independent acceptance-oracle controls. Commands are in
-[CONTRIBUTING.md](CONTRIBUTING.md).
+- **CI & Fixture Validation**: Automated suites verify installation/update preservation, Python and shell syntax, deterministic verdicts, real Python/CMake and `ament` test wrappers, synthetic Jazzy pub/sub and TF checks, evidence snapshot contracts ([docs/VALIDATION.md](docs/VALIDATION.md)), and independent acceptance-oracle controls. Commands are listed in [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Release Acceptance (Claude Code)**: Live **Opus 5.5 High** sessions completed three workflows under both plugin and manual installation (namespaced sensor package with installed YAML/launch, wheel-speed regression tests, and live IMU/TF diagnosis), alongside loading smokes that verified protocol delivery and script execution ([evals/development/RESULTS.md](evals/development/RESULTS.md)). Baseline sessions also passed all three tasks (`n=1` per method and task; this is operational acceptance, **not** evidence of a performance gain or equivalent reliability).
+- **Codex Compatibility**: Covered in [evals/CODEX.md](evals/CODEX.md), including 22 offline installation/discovery checks and two project-install workflows (model identity unrecorded). The Codex installer embeds the shared protocol on skill activation rather than via a session-wide hook.
+- **Interface-Migration Study & Non-Claims**: A matched study on the frozen `0.1.2` snapshot ([evals/workflow_value/RESULTS.md](evals/workflow_value/RESULTS.md)) compared three Python/C++ consumer variants with and without the pack using Opus 5.5 High. All six artifacts passed clean-build, runtime, and regression checks. Pack sessions used more output tokens and higher estimated API cost, while lower elapsed wall times were confounded by execution order, prompt caching, and background probe waits. **No token, total-cost, or speed advantage is claimed.** That historical `0.1.2` study does not evaluate the `0.2.0` evidence handoff tool.
+- **Unverified Boundaries**: Physical robots, MCU firmware, physical calibration, and full Nav2/MoveIt/Gazebo applications remain unverified. Small test fixtures do not establish general stale-overlay remediation, cross-version DDS type interoperability, external C++ library integration, or the causal effect of `--packages-up-to` guidance.
+- **Maintenance Policy**: Reopened only for concrete supported-scope defects, required test regressions, observed environment compatibility changes, or explicit user scope expansion; upstream model updates alone are insufficient.
 
-Real Claude Code **Opus 5.5 High** sessions completed three targeted workflows
-under both plugin and manual installation: a namespaced sensor package with
-installed YAML/launch, meaningful wheel-speed tests, and live IMU/TF diagnosis.
-Both loading smokes verified protocol delivery and actual bundled-script use.
-The three baseline sessions also passed: the observed task outcomes were the
-same. This is **one run per method and task, not evidence of a performance gain
-or equivalent reliability**. Follow-up runtime sessions review owned-process
-cleanup after a focused instruction fix; all attempts and limits are in the
-[release acceptance report](evals/development/RESULTS.md).
+## Documentation Map
 
-Codex support is tracked separately in the [Codex compatibility report](evals/CODEX.md).
-Its operational evidence covers offline install, discovery, and two project-install
-workflows with model identity unrecorded; earlier Claude observations are not
-Codex performance evidence.
-The Codex installer embeds the protocol on skill activation; it does not install
-a session-wide hook.
-
-A subsequent [interface-migration study](evals/workflow_value/RESULTS.md)
-tested the frozen 0.1.2 snapshot across three matched variants with Python and
-C++ consumers using Opus 5.5 High. All six baseline/pack artifacts passed
-independent clean-build, runtime and regression checks. Verification reports,
-ambiguous project-rule compliance and process-cleanup limitations are assessed
-separately. In these runs, pack sessions had higher output token counts and API
-estimates; lower elapsed wall times were confounded by execution order, prompt
-caching, and probe backgrounding waits. There is no proven token, total-cost, or
-speed advantage, and none is claimed. Release 0.2.0 ships opt-in evidence
-handoff tools alongside targeted IMU fixes; that historical 0.1.2 study does not
-evaluate the new handoff tool.
-
-Maintenance is reopened only for a concrete supported-scope defect, a required
-test regression, an observed environment compatibility change, or an explicit
-user scope expansion; upstream model updates alone are insufficient.
-
-Physical robots, MCU firmware, calibration and full Nav2/MoveIt/Gazebo
-applications remain unverified. The small interface fixture does not establish
-general stale-overlay remediation, old/new DDS type interoperability, external
-C++ library consumption or the benefit of `--packages-up-to` guidance.
-
-## Evals
-
-[CAPABILITIES.md](evals/CAPABILITIES.md) preserves historical scores and reconciles
-them with committed verdicts. Some reported scores cannot be reproduced because
-transcripts or re-grades are missing; they are not evidence that all domain
-knowledge is unnecessary. We do not advertise those scores as current results.
-
-New skills should improve a real development task. Reproducible failure fixtures
-support tool correctness; before claiming an agent performance gain, compare
-matched tasks with and without the change. See [authoring criteria](evals/AUTHORING.md)
-and the [evaluation method](evals/LADDER.md).
+| Document | Purpose |
+| :--- | :--- |
+| [CLAUDE.md](CLAUDE.md) | Shared ROS 2 Jazzy verification protocol loaded into agent sessions |
+| [docs/DESIGN.md](docs/DESIGN.md) | Architecture, trade-offs, and CLI contract for `evidence.py` task handoffs |
+| [docs/VALIDATION.md](docs/VALIDATION.md) | Operational validation and contract test summary for the `0.2.0` evidence tool |
+| [evals/VALIDATION.md](evals/VALIDATION.md) | Operational validation inventory for the `0.1.2` development and diagnostic workflows |
+| [evals/development/RESULTS.md](evals/development/RESULTS.md) | Live release-acceptance records (Claude Code plugin, manual, and baseline runs) |
+| [evals/CODEX.md](evals/CODEX.md) | Codex skill installation, discovery checks, and runtime sandbox observations |
+| [evals/workflow_value/RESULTS.md](evals/workflow_value/RESULTS.md) | Matched interface-migration comparison study (`0.1.2` snapshot) |
+| [evals/CAPABILITIES.md](evals/CAPABILITIES.md) | Historical capability scores and reconciliation against committed verdicts (not advertised as current results) |
+| [evals/AUTHORING.md](evals/AUTHORING.md) & [evals/LADDER.md](evals/LADDER.md) | Skill authoring criteria and pre-registered difficulty-ladder evaluation method |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Evidence standards, implementation conventions, and pre-PR test commands |
 
 ## Updating
 
